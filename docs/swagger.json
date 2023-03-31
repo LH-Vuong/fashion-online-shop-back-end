@@ -1,0 +1,18 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Online Shop API",
+        "description": "A clothes shop API in Go using Gin framework.",
+        "contact": {
+            "name": "Trần Quang Tuấn",
+            "url": "https://github.com/vangxitrum",
+            "email": "tuantq666@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "paths": {}
+}

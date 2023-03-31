@@ -8,4 +8,5 @@ import (
 func SetUp(s *gin.Engine, container *dig.Container) {
 	InitHealthRouter(s, container)
 	InitProductRouter(s, container)
+	InitSwaggerRouter(s, container)
 }
