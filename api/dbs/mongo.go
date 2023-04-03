@@ -14,6 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+func InitContext() (ctx context.Context, cancel context.CancelFunc) {
+	ctx, cancel = context.WithTimeout(context.TODO(), 10*time.Second)
+	return
+}
+
 type Database interface {
 	Collection(string) Collection
 	Client() Client
@@ -96,10 +101,18 @@ func (d *nullawareDecoder) DecodeValue(dctx bsoncodec.DecodeContext, vr bsonrw.V
 
 func NewClient(connection string) (Client, error) {
 
-	time.Local = time.UTC
-	c, err := mongo.NewClient(options.Client().ApplyURI(connection))
+	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
+	clientOptions := options.Client().
+		ApplyURI(connection).
+		SetServerAPIOptions(serverAPIOptions)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		panic(err)
+	}
 
-	return &mongoClient{cl: c}, err
+	return &mongoClient{cl: client}, err
 
 }
 
