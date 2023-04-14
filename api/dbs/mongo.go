@@ -14,6 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+func InitContext() (ctx context.Context, cancel context.CancelFunc) {
+	ctx, cancel = context.WithTimeout(context.TODO(), 10*time.Second)
+	return
+}
+
 type Database interface {
 	Collection(string) Collection
 	Client() Client
@@ -24,6 +29,7 @@ type Collection interface {
 	InsertOne(context.Context, interface{}) (interface{}, error)
 	InsertMany(context.Context, []interface{}) ([]interface{}, error)
 	DeleteOne(context.Context, interface{}) (int64, error)
+	DeleteMany(context.Context, interface{}, ...*options.DeleteOptions) (*mongo.DeleteResult, error)
 	Find(context.Context, interface{}, ...*options.FindOptions) (Cursor, error)
 	CountDocuments(context.Context, interface{}, ...*options.CountOptions) (int64, error)
 	Aggregate(context.Context, interface{}) (Cursor, error)
@@ -94,12 +100,20 @@ func (d *nullawareDecoder) DecodeValue(dctx bsoncodec.DecodeContext, vr bsonrw.V
 	return nil
 }
 
-func NewClient(connection string) (Client, error) {
+func NewClient(connection string) (*mongoClient, error) {
 
-	time.Local = time.UTC
-	c, err := mongo.NewClient(options.Client().ApplyURI(connection))
+	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
+	clientOptions := options.Client().
+		ApplyURI(connection).
+		SetServerAPIOptions(serverAPIOptions)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		panic(err)
+	}
 
-	return &mongoClient{cl: c}, err
+	return &mongoClient{cl: client}, err
 
 }
 
@@ -175,6 +189,10 @@ func (mc *mongoCollection) Aggregate(ctx context.Context, pipeline interface{}) 
 
 func (mc *mongoCollection) UpdateMany(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return mc.coll.UpdateMany(ctx, filter, update, opts[:]...)
+}
+
+func (mc *mongoCollection) DeleteMany(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	return mc.coll.DeleteMany(ctx, filter, opts[:]...)
 }
 
 func (mc *mongoCollection) CountDocuments(ctx context.Context, filter interface{}, opts ...*options.CountOptions) (int64, error) {

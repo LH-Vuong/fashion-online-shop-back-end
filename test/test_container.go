@@ -1,4 +1,4 @@
-package container
+package test
 
 import (
 	"go.uber.org/dig"
