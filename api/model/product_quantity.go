@@ -1,7 +1,9 @@
 package model
 
 type ProductQuantity struct {
-	Color     string `json:"color"`
-	Size      string `json:"size"`
-	ProductId string `json:"productId"`
+	Id       string `bson:"_id,omitempty"json:"id"`
+	Color    string `bson:"color" json:"color"`
+	Size     string `bson:"size" json:"size"`
+	Quantity int    `bson:"quantity"json:"quantity"`
+	DetailId string `bson:"detail_id" json:"detail_id"`
 }

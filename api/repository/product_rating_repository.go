@@ -18,7 +18,7 @@ type ProductRatingRepositoryImpl struct {
 	ratingCollection dbs.Collection
 }
 
-func (repository ProductRatingRepositoryImpl) GetAvr(productId string) (avr model.AvrRate, err error) {
+func (repository *ProductRatingRepositoryImpl) GetAvr(productId string) (avr model.AvrRate, err error) {
 
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
@@ -28,7 +28,6 @@ func (repository ProductRatingRepositoryImpl) GetAvr(productId string) (avr mode
 	}
 	cursor, err := repository.ratingCollection.Aggregate(ctx, pipeline)
 	if err != nil {
-		println("panic at query")
 		return avr, err
 	}
 
@@ -37,13 +36,12 @@ func (repository ProductRatingRepositoryImpl) GetAvr(productId string) (avr mode
 	}
 
 	if err != nil {
-		println("panic at decode")
 		return avr, err
 	}
 	return
 }
 
-func (repository ProductRatingRepositoryImpl) ListWithAvrRate(productIds []string) (ratings []model.AvrRate, err error) {
+func (repository *ProductRatingRepositoryImpl) ListWithAvrRate(productIds []string) (ratings []model.AvrRate, err error) {
 
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
@@ -62,7 +60,7 @@ func (repository ProductRatingRepositoryImpl) ListWithAvrRate(productIds []strin
 	return
 }
 
-func (repository ProductRatingRepositoryImpl) List(productIds []string, value model.RangeValue[int]) (ratings []model.Rating, err error) {
+func (repository *ProductRatingRepositoryImpl) List(productIds []string, value model.RangeValue[int]) (ratings []model.Rating, err error) {
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
 
@@ -88,5 +86,5 @@ func (repository ProductRatingRepositoryImpl) List(productIds []string, value mo
 }
 
 func NewProductRatingRepositoryImpl(collection dbs.Collection) ProductRatingRepository {
-	return ProductRatingRepositoryImpl{collection}
+	return &ProductRatingRepositoryImpl{collection}
 }

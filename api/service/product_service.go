@@ -18,7 +18,8 @@ type ProductServiceImpl struct {
 	ProductRatingRepository repository.ProductRatingRepository
 }
 
-func (service ProductServiceImpl) Get(id string) model.Product {
+func (service *ProductServiceImpl) Get(id string) model.Product {
+
 	product, err := service.ProductDetailRepository.Get(id)
 	if err != nil {
 		panic(err)
@@ -31,7 +32,7 @@ func (service ProductServiceImpl) Get(id string) model.Product {
 	return product
 }
 
-func (service ProductServiceImpl) getAvrRate(productId string) (avr float64, err error) {
+func (service *ProductServiceImpl) getAvrRate(productId string) (avr float64, err error) {
 
 	rs, err := service.ProductRatingRepository.GetAvr(productId)
 	if err != nil {
@@ -46,7 +47,7 @@ func getTotalPage(pageSize int, quantity int) (total int) {
 	return
 }
 
-func (service ProductServiceImpl) listProductPhoto(products []model.Product) (photos []model.ProductPhoto, err error) {
+func (service *ProductServiceImpl) listProductPhoto(products []model.Product) (photos []model.ProductPhoto, err error) {
 	var productIds []string
 	for _, product := range products {
 		productIds = append(productIds, product.Id)
@@ -69,7 +70,7 @@ func addPhotosToProduct(photos []model.ProductPhoto, products *[]model.Product) 
 	}
 }
 
-func (service ProductServiceImpl) List(productsRequest request.ListProductsRequest) response.ListProductResponse {
+func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) response.ListProductResponse {
 
 	priceRange := model.RangeValue[int64]{
 		From: productsRequest.MinPrice,
@@ -105,7 +106,7 @@ func (service ProductServiceImpl) List(productsRequest request.ListProductsReque
 func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
 	productRatingRepo repository.ProductRatingRepository,
 	productPhotoRepo repository.ProductPhotoRepository) ProductService {
-	return ProductServiceImpl{
+	return &ProductServiceImpl{
 		productDetailRepo,
 		productPhotoRepo,
 		productRatingRepo,

@@ -17,13 +17,15 @@ type ProductDetailRepository interface {
 		productType []string,
 		gender []string,
 		priceRange model.RangeValue[int64], startAt int, length int) ([]model.Product, error)
+
+	ListBySearchOption(searchOption model.ProductSearchOption) ([]model.Product, error)
 }
 
 type ProductDetailRepositoryImpl struct {
 	collection dbs.Collection
 }
 
-func (repository ProductDetailRepositoryImpl) Get(id string) (product model.Product, err error) {
+func (repository *ProductDetailRepositoryImpl) Get(id string) (product model.Product, err error) {
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
 	rs := repository.collection.FindOne(ctx, bson.D{})
@@ -31,7 +33,7 @@ func (repository ProductDetailRepositoryImpl) Get(id string) (product model.Prod
 	return
 }
 
-func (repository ProductDetailRepositoryImpl) List(productIds []string, keyWord string,
+func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord string,
 	tags []string,
 	brands []string,
 	productTypes []string,
@@ -75,9 +77,7 @@ func (repository ProductDetailRepositoryImpl) List(productIds []string, keyWord 
 		genderFilter := bson.M{"genders": bson.M{"$in": genders}}
 		filters = append(filters, genderFilter)
 	}
-	println("price")
-	println(priceRange.From)
-	println(priceRange.To)
+
 	priceFilter := bson.M{"price": bson.M{"$gte": priceRange.From, "$lte": priceRange.To}}
 	filters = append(filters, priceFilter)
 	ctx, cancel := dbs.InitContext()
@@ -85,8 +85,6 @@ func (repository ProductDetailRepositoryImpl) List(productIds []string, keyWord 
 
 	var queryFilter primitive.M
 	if len(filters) > 0 {
-		println("filter")
-		println(len(filters))
 		queryFilter = bson.M{"$and": filters}
 	} else {
 		queryFilter = bson.M{}
@@ -107,6 +105,20 @@ func (repository ProductDetailRepositoryImpl) List(productIds []string, keyWord 
 	return
 }
 
+func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption model.ProductSearchOption) ([]model.Product, error) {
+	return repository.List(searchOption.Ids,
+		searchOption.KeyWord,
+		searchOption.Tags,
+		searchOption.Brands,
+		searchOption.ProductType,
+		searchOption.Gender,
+		searchOption.PriceRange,
+		searchOption.StartAt,
+		searchOption.Length,
+	)
+
+}
+
 func NewProductRepositoryImpl(productCollection dbs.Collection) ProductDetailRepository {
-	return ProductDetailRepositoryImpl{collection: productCollection}
+	return &ProductDetailRepositoryImpl{collection: productCollection}
 }

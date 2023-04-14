@@ -1,11 +1,13 @@
-package configs
+package test
 
 import (
 	"github.com/spf13/viper"
+	"os"
 )
 
 func init() {
-
+	dir, _ := os.Getwd()
+	panic(dir)
 	viper.SetConfigName("env")
 	viper.SetConfigType("json")
 	viper.AddConfigPath("./test_configs")

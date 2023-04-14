@@ -15,14 +15,14 @@ type ProductPhotoRepositoryImpl struct {
 	PhotoCollection dbs.Collection
 }
 
-func (repository ProductPhotoRepositoryImpl) Get(productId string) (photo model.ProductPhoto, err error) {
+func (repository *ProductPhotoRepositoryImpl) Get(productId string) (photo model.ProductPhoto, err error) {
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
 	repository.PhotoCollection.FindOne(ctx, bson.M{"product_id": productId}).Decode(photo)
 	return
 }
 
-func (repository ProductPhotoRepositoryImpl) List(productIds []string) (photos []model.ProductPhoto, err error) {
+func (repository *ProductPhotoRepositoryImpl) List(productIds []string) (photos []model.ProductPhoto, err error) {
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
 
@@ -41,7 +41,7 @@ func (repository ProductPhotoRepositoryImpl) List(productIds []string) (photos [
 }
 
 func NewProductPhotoRepository(photoCollection dbs.Collection) ProductPhotoRepository {
-	return ProductPhotoRepositoryImpl{
+	return &ProductPhotoRepositoryImpl{
 		photoCollection,
 	}
 }
