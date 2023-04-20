@@ -1,11 +1,12 @@
 package repository
 
 import (
+	"online_fashion_shop/api/model"
+	"online_fashion_shop/initializers"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"online_fashion_shop/api/dbs"
-	"online_fashion_shop/api/model"
 )
 
 type ProductDetailRepository interface {
@@ -22,11 +23,11 @@ type ProductDetailRepository interface {
 }
 
 type ProductDetailRepositoryImpl struct {
-	collection dbs.Collection
+	collection initializers.Collection
 }
 
 func (repository *ProductDetailRepositoryImpl) Get(id string) (product model.Product, err error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	rs := repository.collection.FindOne(ctx, bson.D{})
 	err = rs.Decode(&product)
@@ -80,7 +81,7 @@ func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord
 
 	priceFilter := bson.M{"price": bson.M{"$gte": priceRange.From, "$lte": priceRange.To}}
 	filters = append(filters, priceFilter)
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
 	var queryFilter primitive.M
@@ -119,6 +120,6 @@ func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption m
 
 }
 
-func NewProductRepositoryImpl(productCollection dbs.Collection) ProductDetailRepository {
+func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {
 	return &ProductDetailRepositoryImpl{collection: productCollection}
 }

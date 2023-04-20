@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
-	"online_fashion_shop/api/dbs"
 	"online_fashion_shop/api/model"
+	"online_fashion_shop/initializers"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type ProductPhotoRepository interface {
@@ -12,18 +13,18 @@ type ProductPhotoRepository interface {
 }
 
 type ProductPhotoRepositoryImpl struct {
-	PhotoCollection dbs.Collection
+	PhotoCollection initializers.Collection
 }
 
 func (repository *ProductPhotoRepositoryImpl) Get(productId string) (photo model.ProductPhoto, err error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	repository.PhotoCollection.FindOne(ctx, bson.M{"product_id": productId}).Decode(photo)
 	return
 }
 
 func (repository *ProductPhotoRepositoryImpl) List(productIds []string) (photos []model.ProductPhoto, err error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
 	if len(productIds) > 0 {
@@ -40,7 +41,7 @@ func (repository *ProductPhotoRepositoryImpl) List(productIds []string) (photos 
 	return
 }
 
-func NewProductPhotoRepository(photoCollection dbs.Collection) ProductPhotoRepository {
+func NewProductPhotoRepository(photoCollection initializers.Collection) ProductPhotoRepository {
 	return &ProductPhotoRepositoryImpl{
 		photoCollection,
 	}

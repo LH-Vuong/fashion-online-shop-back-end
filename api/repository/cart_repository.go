@@ -2,11 +2,12 @@ package repository
 
 import (
 	"errors"
+	"online_fashion_shop/api/model"
+	"online_fashion_shop/initializers"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"online_fashion_shop/api/dbs"
-	"online_fashion_shop/api/model"
-	"time"
 )
 
 type CartRepository interface {
@@ -46,11 +47,11 @@ func (searchOption CartSearchOption) ToQuery() primitive.M {
 
 // CartRepositoryImpl represents an implementation of the CartRepository interface
 type CartRepositoryImpl struct {
-	cartCollection dbs.Collection
+	cartCollection initializers.Collection
 }
 
 // NewCartRepositoryImpl creates a new instance of the CartRepositoryImpl
-func NewCartRepositoryImpl(cartCollection dbs.Collection) CartRepository {
+func NewCartRepositoryImpl(cartCollection initializers.Collection) CartRepository {
 	return &CartRepositoryImpl{
 		cartCollection: cartCollection,
 	}
@@ -58,7 +59,7 @@ func NewCartRepositoryImpl(cartCollection dbs.Collection) CartRepository {
 
 // Create inserts a new CartItem into the cartCollection
 func (cri *CartRepositoryImpl) Create(customerID string, item model.CartItem) (string, error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	item.CustomerId = customerID
 	item.CreatedAt = time.Now().UnixMilli()
@@ -73,7 +74,7 @@ func (cri *CartRepositoryImpl) Create(customerID string, item model.CartItem) (s
 
 // MultiCreate inserts multiple CartItems into the cartCollection
 func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []model.CartItem) ([]string, error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	var documents []interface{}
 	for _, item := range items {
@@ -96,7 +97,7 @@ func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []model.Cart
 // ListByCustomerId fetches all CartItems associated with a customerID
 func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]model.CartItem, error) {
 
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	var cartItems []model.CartItem
 	query := bson.M{"customer_id": customerID}
@@ -114,7 +115,7 @@ func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]model.Cart
 
 // GetBySearchOption fetches a CartItem based on a CartSearchOption object
 func (cri *CartRepositoryImpl) GetBySearchOption(searchOption CartSearchOption) (*model.CartItem, error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	var cartItem *model.CartItem
 	query := searchOption.ToQuery()
@@ -128,7 +129,7 @@ func (cri *CartRepositoryImpl) GetBySearchOption(searchOption CartSearchOption) 
 
 // DeleteByCustomerId removes all CartItems associated with a customerID
 func (cri *CartRepositoryImpl) DeleteByCustomerId(customerID string) error {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	query := bson.M{"customer_id": customerID}
 	_, err := cri.cartCollection.DeleteMany(ctx, query)
@@ -140,7 +141,7 @@ func (cri *CartRepositoryImpl) DeleteByCustomerId(customerID string) error {
 
 // Update updates a CartItem in the cartCollection
 func (cri *CartRepositoryImpl) Update(customerID string, cartItem model.CartItem) error {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	cartItem.UpdatedAt = time.Now().UnixMilli()
 	cartItem.UpdatedBy = customerID
@@ -159,7 +160,7 @@ func (cri *CartRepositoryImpl) Update(customerID string, cartItem model.CartItem
 }
 
 func (cri *CartRepositoryImpl) Delete(item model.CartItem) error {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	query := bson.M{"customer_id": item.CustomerId, "product_id": item.ProductId}
 	_, err := cri.cartCollection.DeleteMany(ctx, query)

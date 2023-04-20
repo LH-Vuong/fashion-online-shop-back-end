@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CartController struct {
