@@ -9,8 +9,8 @@ import (
 
 type ProductQuantityRepository interface {
 	Get(productId string) (*model.ProductQuantity, error)
-	GetByDetailId(productDetailId string) ([]model.ProductQuantity, error)
-	MultiGet(productIds []string) ([]model.ProductQuantity, error)
+	GetByDetailId(productDetailId string) ([]*model.ProductQuantity, error)
+	MultiGet(productIds []string) ([]*model.ProductQuantity, error)
 	Create(product model.ProductQuantity) error
 	Update(quantity model.ProductQuantity) error
 	Delete(id string) error
@@ -42,8 +42,8 @@ func (p *ProductQuantityRepositoryImpl) Get(productId string) (*model.ProductQua
 	return &quantity, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([]model.ProductQuantity, error) {
-	var quantities []model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([]*model.ProductQuantity, error) {
+	var quantities []*model.ProductQuantity
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
 
@@ -60,8 +60,8 @@ func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([
 	return quantities, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]model.ProductQuantity, error) {
-	var quantities []model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]*model.ProductQuantity, error) {
+	var quantities []*model.ProductQuantity
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
 	objectIds := make([]primitive.ObjectID, len(productIds))

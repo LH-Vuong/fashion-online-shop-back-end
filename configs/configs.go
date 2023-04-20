@@ -8,7 +8,7 @@ func init() {
 
 	viper.SetConfigName("env")
 	viper.SetConfigType("json")
-	viper.AddConfigPath("./test_configs")
+	viper.AddConfigPath("./configs")
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
