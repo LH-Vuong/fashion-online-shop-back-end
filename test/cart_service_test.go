@@ -70,10 +70,10 @@ func TestCartRepository(t *testing.T) {
 		}
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		err := cartRepo.Delete(cartItem)
+	t.Run("DeleteOne", func(t *testing.T) {
+		err := cartRepo.DeleteOne(cartItem.CustomerId, cartItem.ProductId)
 		if err != nil {
-			t.Errorf("Unexpected error during Delete(): %v", err)
+			t.Errorf("Unexpected error during DeleteOne(): %v", err)
 		}
 	})
 

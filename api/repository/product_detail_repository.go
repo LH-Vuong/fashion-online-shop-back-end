@@ -74,7 +74,7 @@ func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord
 
 	}
 	if len(genders) > 0 {
-		genderFilter := bson.M{"genders": bson.M{"$in": genders}}
+		genderFilter := bson.M{"gender": bson.M{"$in": genders}}
 		filters = append(filters, genderFilter)
 	}
 

@@ -12,11 +12,12 @@ import (
 type CartRepository interface {
 	Create(customerId string, item model.CartItem) (string, error)
 	MultiCreate(customerId string, items []model.CartItem) ([]string, error)
-	ListByCustomerId(customerId string) ([]model.CartItem, error)
+	ListByCustomerId(customerId string) ([]*model.CartItem, error)
 	GetBySearchOption(searchOption CartSearchOption) (*model.CartItem, error)
 	DeleteByCustomerId(customerId string) error
-	Delete(item model.CartItem) error
+	DeleteOne(customerId string, productId string) error
 	Update(customerId string, cartItem model.CartItem) error
+	DeleteAll(customerId string, productIds []string) error
 }
 
 type CartSearchOption struct {
@@ -94,11 +95,11 @@ func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []model.Cart
 }
 
 // ListByCustomerId fetches all CartItems associated with a customerID
-func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]model.CartItem, error) {
+func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]*model.CartItem, error) {
 
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
-	var cartItems []model.CartItem
+	var cartItems []*model.CartItem
 	query := bson.M{"customer_id": customerID}
 	cursor, err := cri.cartCollection.Find(ctx, query)
 	if err != nil {
@@ -158,14 +159,27 @@ func (cri *CartRepositoryImpl) Update(customerID string, cartItem model.CartItem
 	return nil
 }
 
-func (cri *CartRepositoryImpl) Delete(item model.CartItem) error {
+func (cri *CartRepositoryImpl) DeleteOne(customerId string, productId string) error {
 	ctx, cancel := dbs.InitContext()
 	defer cancel()
-	query := bson.M{"customer_id": item.CustomerId, "product_id": item.ProductId}
+	query := bson.M{"customer_id": customerId, "product_id": productId}
 	_, err := cri.cartCollection.DeleteMany(ctx, query)
 	if err != nil {
 		return errors.New("failed to remove CartItems: " + err.Error())
 	}
 	return nil
 
+}
+
+func (cri *CartRepositoryImpl) DeleteAll(customerId string, productIds []string) error {
+	ctx, cancel := dbs.InitContext()
+
+	defer cancel()
+
+	if len(productIds) < 1 {
+		return errors.New("delete empty list")
+	}
+	query := bson.M{"product_id": bson.M{"$in": productIds}, "customer_id": customerId}
+	_, err := cri.cartCollection.DeleteMany(ctx, query)
+	return err
 }
