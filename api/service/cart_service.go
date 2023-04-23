@@ -71,11 +71,10 @@ func (service *CartServiceImpl) CheckOut(customerId string) ([]string, error) {
 
 	var soldOutItemIds []string
 	for productId, cartItem := range cartItemMap {
-		if quantityMap[productId] == nil {
-
-		}
-		if cartItem.Quantity > quantityMap[productId].Quantity {
-			soldOutItemIds = append(soldOutItemIds, cartItem.ProductId)
+		if quantityMap[productId] != nil {
+			if cartItem.Quantity > quantityMap[productId].Quantity {
+				soldOutItemIds = append(soldOutItemIds, cartItem.ProductId)
+			}
 		}
 	}
 

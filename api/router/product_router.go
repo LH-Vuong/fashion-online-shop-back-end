@@ -10,8 +10,8 @@ import (
 func InitProductDetailRouter(s *gin.Engine, c *dig.Container) {
 	err := c.Invoke(func(productService service.ProductService) {
 		controller := controller.ProductController{Service: productService}
-		s.GET("/product/:id", controller.Get)
-		s.GET("/products", controller.List)
+		s.GET("api/product/:id", controller.Get)
+		s.GET("api/products", controller.List)
 	})
 
 	if err != nil {

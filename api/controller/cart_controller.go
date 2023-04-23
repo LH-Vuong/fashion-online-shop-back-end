@@ -2,6 +2,8 @@ package controller
 
 import (
 	"net/http"
+	"online_fashion_shop/api/common/errs"
+	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/service"
 
@@ -12,45 +14,109 @@ type CartController struct {
 	Service service.CartService
 }
 
+// Update Cart Items of User
+//
+//	@Summary		update cart of customer by received cart item
+//	@Description	Update cart item by delete all old cart items, then add received item to customer card
+//	@Tags			Cart
+//	@Accept			json
+//	@Produce		json
+//	@Param          CartRequest   body       request.UpdateCartRequest    true    "access token received after login"
+//	@Success		200				{object}	string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/cart [post]
 func (controller CartController) Update(c *gin.Context) {
-	var updateCartRequest request.CartRequest
+	var updateCartRequest request.UpdateCartRequest
 	c.BindJSON(updateCartRequest)
 
-	err := controller.Service.Update(updateCartRequest.CustomerId, updateCartRequest.Items)
+	cartItem := make([]model.CartItem, len(updateCartRequest.Items))
+
+	for index := range updateCartRequest.Items {
+		updateItem := updateCartRequest.Items[index]
+		cartItem[index] = model.CartItem{
+			CustomerId: updateCartRequest.CustomerId,
+			ProductId:  updateItem.ProductId,
+			Quantity:   updateItem.Quantity,
+		}
+	}
+
+	err := controller.Service.Update(updateCartRequest.CustomerId, cartItem)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
 	} else {
-		c.JSON(http.StatusOK, "Update Cart successfully")
+		c.JSON(200, gin.H{"status": "success", "message": "Update Cart successfully"})
 	}
 
 }
 
+// Get Cart Items of User
+//
+//	@Summary		get cart item
+//	@Description	get cart item by customer's id
+//	@Tags			Cart
+//	@Accept			json
+//	@Produce		json
+//	@Param          customer_token   path       string    true    "access token received after login"
+//	@Success		200				{object}	[]model.CartItem
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/product/{id} [get]
 func (controller CartController) Get(c *gin.Context) {
-	response, err := controller.Service.Get(c.Param("customer_id"))
+	cartItems, err := controller.Service.Get(c.Param("customer_id"))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
 	} else {
-		c.JSON(http.StatusOK, response)
+		c.JSON(200, gin.H{"status": "success", "data": cartItems})
 	}
 }
 
+// Add new item to card
+//
+//	@Summary		add item to cart
+//	@Description	add item to cart, return info of added item
+//	@Tags			Cart
+//	@Accept			json
+//	@Produce		json
+//	@Param          CartRequest   body       request.AddItemRequest    true    "Add item request"
+//	@Success		200				{object}	model.CartItem
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/cart [put]
 func (controller CartController) Add(c *gin.Context) {
-	var request request.CartRequest
-	err := c.BindJSON(&request)
+	var rq request.AddItemRequest
+	err := c.BindJSON(&rq)
 
 	if err != nil {
-		panic(err)
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	response, err := controller.Service.Add(request.CustomerId, request.Items[0])
+	addedItem, err := controller.Service.Add(rq.CustomerId, model.CartItem{ProductId: rq.ProductId, Quantity: rq.Quantity})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
 	} else {
-		c.JSON(http.StatusOK, response)
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": addedItem})
 	}
 
 }
 
+// Delete new item to card
+//
+//	@Summary		delete card item of customer cart
+//	@Description	Delete cart item by product id of customer
+//	@Tags			Cart
+//	@Accept			json
+//	@Produce		json
+//	@Param          customer_id   path       string    true    "customer's id"
+//	@Param          product_id    path       string    true    "product's id"
+//	@Success		200				{object}	string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/cart [delete]
 func (controller CartController) Delete(c *gin.Context) {
 
 	customerId := c.Param("customer_id")
@@ -58,19 +124,30 @@ func (controller CartController) Delete(c *gin.Context) {
 	err := controller.Service.DeleteOne(customerId, productId)
 
 	if err != nil {
-		panic(err)
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	c.JSON(http.StatusOK, "DeleteOne successfully")
-
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "DeleteOne successfully"})
 }
 
+// CheckOut items in cart
+//
+//	@Summary		Use to validate items of cart then modify it if invalid
+//	@Description	Check out customer cart then delete invalid item(sold out item) return list of sold-out Items' ID
+//	@Tags			Cart
+//	@Accept			json
+//	@Produce		json
+//	@Param          customer_id   path       string    true    "customer's id"
+//	@Success		200				{object}	[]string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/cart/checkout [get]
 func (controller CartController) CheckOut(c *gin.Context) {
-
 	customerId := c.Param("customer_id")
-	res, err := controller.Service.CheckOut(customerId)
+	soldItemIds, err := controller.Service.CheckOut(customerId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	c.JSON(http.StatusOK, res)
-
+	c.JSON(http.StatusOK, gin.H{"status": "success", "data": soldItemIds})
 }

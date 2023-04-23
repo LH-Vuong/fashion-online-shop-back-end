@@ -1,5 +1,66 @@
 basePath: /api/
 definitions:
+  model.CartItem:
+    properties:
+      color:
+        type: string
+      customer_id:
+        type: string
+      product_detail:
+        $ref: '#/definitions/model.Product'
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      size:
+        type: string
+    type: object
+  model.Product:
+    properties:
+      avr_rate:
+        type: number
+      brand:
+        type: string
+      description:
+        type: string
+      discount_amount:
+        type: number
+      discount_percent:
+        type: number
+      gender:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/model.ProductPhoto'
+        type: array
+      price:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      types:
+        items:
+          type: string
+        type: array
+    type: object
+  model.ProductPhoto:
+    properties:
+      color:
+        type: string
+      mainPhoto:
+        type: string
+      productId:
+        type: string
+      subPhotos:
+        items:
+          type: string
+        type: array
+    type: object
   model.SignInModel:
     properties:
       email:
@@ -48,6 +109,52 @@ definitions:
         type: string
       verified:
         type: boolean
+    type: object
+  request.AddItemRequest:
+    properties:
+      customer_id:
+        type: string
+      productId:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - customer_id
+    - productId
+    - quantity
+    type: object
+  request.UpdateCartRequest:
+    properties:
+      customer_id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/request.UpdateItem'
+        type: array
+    required:
+    - customer_id
+    - items
+    type: object
+  request.UpdateItem:
+    properties:
+      productId:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - productId
+    - quantity
+    type: object
+  response.ListProductResponse:
+    properties:
+      page:
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/model.Product'
+        type: array
+      total_page:
+        type: integer
     type: object
 externalDocs:
   description: OpenAPI
@@ -154,6 +261,224 @@ paths:
       summary: Verify user email
       tags:
       - auth
+  /cart:
+    delete:
+      consumes:
+      - application/json
+      description: Delete cart item by product id of customer
+      parameters:
+      - description: customer's id
+        in: path
+        name: customer_id
+        required: true
+        type: string
+      - description: product's id
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: delete card item of customer cart
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      description: Update cart item by delete all old cart items, then add received
+        item to customer card
+      parameters:
+      - description: access token received after login
+        in: body
+        name: CartRequest
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: update cart of customer by received cart item
+      tags:
+      - Cart
+    put:
+      consumes:
+      - application/json
+      description: add item to cart, return info of added item
+      parameters:
+      - description: Add item request
+        in: body
+        name: CartRequest
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CartItem'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: add item to cart
+      tags:
+      - Cart
+  /cart/checkout:
+    get:
+      consumes:
+      - application/json
+      description: Check out customer cart then delete invalid item(sold out item)
+        return list of sold-out Items' ID
+      parameters:
+      - description: customer's id
+        in: path
+        name: customer_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Use to validate items of cart then modify it if invalid
+      tags:
+      - Cart
+  /product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get the product info
+      parameters:
+      - description: product's id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: get product info
+      tags:
+      - product
+  /products/:
+    get:
+      consumes:
+      - application/json
+      description: list of the product
+      parameters:
+      - description: a list of brand name separated by commas
+        in: query
+        name: brands
+        type: string
+      - description: a list of color name separated by commas (FULL UPPERCASE format)
+        in: query
+        name: colors
+        type: string
+      - description: a list of tag name ['HOT','NEW','SALE'] separated by commas
+        in: query
+        name: tags
+        type: string
+      - description: a list of gender type ['KID','WOMEN','MEN'] separated by commas
+        in: query
+        name: genders
+        type: string
+      - description: a list of type name separated by commas
+        in: query
+        name: types
+        type: string
+      - description: Minimum of avg rate of product
+        in: query
+        name: rate
+        type: integer
+      - description: 'Range of values in format ''min_value,max_value'' '
+        in: query
+        name: price
+        type: string
+      - description: 'Key work relate to products'' name '
+        in: query
+        name: name
+        type: string
+      - description: current page's number
+        in: query
+        name: page
+        type: integer
+      - description: Length per page from '1' to '10000'
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: list of product
+      tags:
+      - product
   /users/me:
     get:
       consumes:

@@ -3,7 +3,9 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"math"
 	"net/http"
+	"online_fashion_shop/api/common/errs"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/service"
 	"strconv"
@@ -56,7 +58,7 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 
 	// Parse the price parameters
 
-	req.MaxPrice = 1000000000000
+	req.MaxPrice = math.MaxInt64
 	req.MinPrice = 0
 
 	if priceStr := queryValues.Get("price"); priceStr != "" {
@@ -110,20 +112,52 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 	return &req, nil
 }
 
+// Get Product
+//
+//	@Summary		get product info
+//	@Description	get the product info
+//	@Tags			product
+//	@Accept			json
+//	@Produce		json
+//	@Param          id     	path       string    true    "product's id"
+//	@Success		200				{object}	model.Product
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/product/{id} [get]
 func (cl ProductController) Get(c *gin.Context) {
 	productId := c.Param("id")
 	product := cl.Service.Get(productId)
-	c.JSON(200, product)
+	c.JSON(200, gin.H{"status": "success", "data": product})
 }
 
+// List Product
+//
+//	@Summary		list of product
+//	@Description	list of the product
+//	@Tags			product
+//	@Accept			json
+//	@Produce		json
+//	@Param          brands    	query       string    false    "a list of brand name separated by commas"
+//	@Param          colors    	query       string    false    "a list of color name separated by commas (FULL UPPERCASE format)"
+//	@Param          tags      	query       string    false    "a list of tag name ['HOT','NEW','SALE'] separated by commas"
+//	@Param          genders   	query       string    false    "a list of gender type ['KID','WOMEN','MEN'] separated by commas"
+//	@Param          types     	query       string    false    "a list of type name separated by commas"
+//	@Param          rate	  	query       int    	  false    "Minimum of avg rate of product"
+//	@Param          price	  	query       string	  false    "Range of values in format 'min_value,max_value' "
+//	@Param          name	  	query       string	  false    "Key work relate to products' name "
+//	@Param          page	  	query       int	   	  false    "current page's number"
+//	@Param          page_size	query       int		  false    "Length per page from '1' to '10000'"
+//	@Success		200				{object}	response.ListProductResponse
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/products/ [get]
 func (cl ProductController) List(c *gin.Context) {
 
 	req, err := parseListProductsRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	products := cl.Service.List(*req)
-	c.JSON(200, products)
-
+	c.JSON(200, gin.H{"status": "success", "data": products})
 }
