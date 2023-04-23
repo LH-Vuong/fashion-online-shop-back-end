@@ -6,6 +6,7 @@ import (
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/service"
+	"os/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,18 +31,22 @@ func (controller CartController) Update(c *gin.Context) {
 	var updateCartRequest request.UpdateCartRequest
 	c.BindJSON(updateCartRequest)
 
+	customer, isExit := c.MustGet("currentUser").(user.User)
+	if isExit {
+		errs.HandleFailStatus(c, "can not detect customer id", http.StatusUnauthorized)
+		return
+	}
 	cartItem := make([]model.CartItem, len(updateCartRequest.Items))
 
 	for index := range updateCartRequest.Items {
 		updateItem := updateCartRequest.Items[index]
 		cartItem[index] = model.CartItem{
-			CustomerId: updateCartRequest.CustomerId,
-			ProductId:  updateItem.ProductId,
-			Quantity:   updateItem.Quantity,
+			ProductId: updateItem.ProductId,
+			Quantity:  updateItem.Quantity,
 		}
 	}
 
-	err := controller.Service.Update(updateCartRequest.CustomerId, cartItem)
+	err := controller.Service.Update(customer.Uid, cartItem)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
@@ -58,13 +63,18 @@ func (controller CartController) Update(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          customer_token   path       string    true    "access token received after login"
 //	@Success		200				{object}	[]model.CartItem
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/product/{id} [get]
+//	@Router			/product [get]
 func (controller CartController) Get(c *gin.Context) {
-	cartItems, err := controller.Service.Get(c.Param("customer_id"))
+
+	customer, isExit := c.MustGet("currentUser").(user.User)
+	if isExit {
+		errs.HandleFailStatus(c, "can not detect customer id", http.StatusUnauthorized)
+		return
+	}
+	cartItems, err := controller.Service.Get(customer.Uid)
 
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
@@ -87,6 +97,12 @@ func (controller CartController) Get(c *gin.Context) {
 //	@Failure		401				{object}	string
 //	@Router			/cart [put]
 func (controller CartController) Add(c *gin.Context) {
+
+	customer, isExit := c.MustGet("currentUser").(user.User)
+	if isExit {
+		errs.HandleFailStatus(c, "can not detect customer id", http.StatusUnauthorized)
+		return
+	}
 	var rq request.AddItemRequest
 	err := c.BindJSON(&rq)
 
@@ -94,7 +110,7 @@ func (controller CartController) Add(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	addedItem, err := controller.Service.Add(rq.CustomerId, model.CartItem{ProductId: rq.ProductId, Quantity: rq.Quantity})
+	addedItem, err := controller.Service.Add(customer.Uid, model.CartItem{ProductId: rq.ProductId, Quantity: rq.Quantity})
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
@@ -111,17 +127,20 @@ func (controller CartController) Add(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          customer_id   path       string    true    "customer's id"
 //	@Param          product_id    path       string    true    "product's id"
 //	@Success		200				{object}	string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/cart [delete]
+//	@Router			/cart/:product_id [delete]
 func (controller CartController) Delete(c *gin.Context) {
 
-	customerId := c.Param("customer_id")
+	customer, isExit := c.MustGet("currentUser").(user.User)
+	if isExit {
+		errs.HandleFailStatus(c, "can not detect customer id", http.StatusUnauthorized)
+		return
+	}
 	productId := c.Param("product_id")
-	err := controller.Service.DeleteOne(customerId, productId)
+	err := controller.Service.DeleteOne(customer.Uid, productId)
 
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
@@ -137,14 +156,17 @@ func (controller CartController) Delete(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          customer_id   path       string    true    "customer's id"
 //	@Success		200				{object}	[]string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart/checkout [get]
 func (controller CartController) CheckOut(c *gin.Context) {
-	customerId := c.Param("customer_id")
-	soldItemIds, err := controller.Service.CheckOut(customerId)
+	customer, isExit := c.MustGet("currentUser").(user.User)
+	if isExit {
+		errs.HandleFailStatus(c, "can not detect customer id", http.StatusUnauthorized)
+		return
+	}
+	soldItemIds, err := controller.Service.CheckOut(customer.Uid)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return

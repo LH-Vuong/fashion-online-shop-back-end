@@ -248,7 +248,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/cart/:product_id": {
             "delete": {
                 "description": "Delete cart item by product id of customer",
                 "consumes": [
@@ -262,13 +264,6 @@ const docTemplate = `{
                 ],
                 "summary": "delete card item of customer cart",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "customer's id",
-                        "name": "customer_id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "product's id",
@@ -312,15 +307,6 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Use to validate items of cart then modify it if invalid",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "customer's id",
-                        "name": "customer_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -328,6 +314,44 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/product": {
+            "get": {
+                "description": "get cart item by customer's id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "get cart item",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.CartItem"
                             }
                         }
                     },
@@ -535,9 +559,6 @@ const docTemplate = `{
                 "color": {
                     "type": "string"
                 },
-                "customer_id": {
-                    "type": "string"
-                },
                 "product_detail": {
                     "$ref": "#/definitions/model.Product"
                 },
@@ -697,14 +718,10 @@ const docTemplate = `{
         "request.AddItemRequest": {
             "type": "object",
             "required": [
-                "customer_id",
                 "productId",
                 "quantity"
             ],
             "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
                 "productId": {
                     "type": "string"
                 },
@@ -716,13 +733,9 @@ const docTemplate = `{
         "request.UpdateCartRequest": {
             "type": "object",
             "required": [
-                "customer_id",
                 "items"
             ],
             "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
                 "items": {
                     "type": "array",
                     "items": {

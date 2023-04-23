@@ -1,7 +1,7 @@
 package model
 
 type CartItem struct {
-	CustomerId    string  `bson:"customer_id,omitempty" json:"customer_id"`
+	CustomerId    string  `bson:"customer_id,omitempty" json:"-"`
 	ProductId     string  `bson:"product_id" json:"product_id"`
 	Quantity      int     `bson:"quantity" json:"quantity"`
 	Color         string  `bson:"-" json:"color"`
