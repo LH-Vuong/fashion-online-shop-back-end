@@ -90,10 +90,13 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartI
 		return nil, err
 	}
 	productIds := make([]string, len(cartItems))
+
 	for index := range cartItems {
 		productIds[index] = cartItems[index].ProductId
 	}
+
 	productQuantities, err := service.quantityRepo.MultiGet(productIds)
+
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +122,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartI
 		item.Color = productQuantity.Color
 		item.Size = productQuantity.Size
 	}
+
 	return cartItems, err
 }
 

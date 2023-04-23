@@ -1,0 +1,185 @@
+basePath: /api/
+definitions:
+  model.SignInModel:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  model.SignUpModel:
+    properties:
+      email:
+        type: string
+      fullname:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      password_confirm:
+        type: string
+    required:
+    - email
+    - fullname
+    - password
+    - password_confirm
+    type: object
+  model.User:
+    properties:
+      avatar:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+      id:
+        type: string
+      phoneNumber:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      verified:
+        type: boolean
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: 127.0.0.1:8081
+info:
+  contact:
+    email: 19522482@gm.uit.edu.vn
+    name: vangxitrum
+    url: http://www.swagger.io/support
+  description: Online Shop API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Online Shop API
+  version: "1.0"
+paths:
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Login and set access token to header
+      parameters:
+      - description: User's credentials
+        in: body
+        name: SignInModel
+        required: true
+        schema:
+          $ref: '#/definitions/model.SignInModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint to allow a user to sign up with their details
+      parameters:
+      - description: User's profile
+        in: body
+        name: SignUpModel
+        required: true
+        schema:
+          $ref: '#/definitions/model.SignUpModel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: fail
+          schema:
+            type: string
+        "500":
+          description: error
+          schema:
+            type: string
+      summary: sign up user
+      tags:
+      - auth
+  /auth/verify:
+    get:
+      consumes:
+      - application/json
+      description: Verify user email using verification code
+      parameters:
+      - description: unique token
+        in: query
+        name: uniqueToken
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Verify user email
+      tags:
+      - auth
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: get the current user info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: get user info
+      tags:
+      - users
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

@@ -1,11 +1,12 @@
 package repository
 
 import (
+	"online_fashion_shop/api/model"
+	"online_fashion_shop/initializers"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"online_fashion_shop/api/dbs"
-	"online_fashion_shop/api/model"
 )
 
 type ProductRatingRepository interface {
@@ -15,12 +16,12 @@ type ProductRatingRepository interface {
 }
 
 type ProductRatingRepositoryImpl struct {
-	ratingCollection dbs.Collection
+	ratingCollection initializers.Collection
 }
 
 func (repository *ProductRatingRepositoryImpl) GetAvr(productId string) (avr model.AvrRate, err error) {
 
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	pipeline := mongo.Pipeline{
 		bson.D{{"$match", bson.D{{"rate_for", productId}}}},
@@ -43,7 +44,7 @@ func (repository *ProductRatingRepositoryImpl) GetAvr(productId string) (avr mod
 
 func (repository *ProductRatingRepositoryImpl) ListWithAvrRate(productIds []string) (ratings []model.AvrRate, err error) {
 
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
 	var filters []primitive.M
@@ -61,7 +62,7 @@ func (repository *ProductRatingRepositoryImpl) ListWithAvrRate(productIds []stri
 }
 
 func (repository *ProductRatingRepositoryImpl) List(productIds []string, value model.RangeValue[int]) (ratings []model.Rating, err error) {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
 	var filters []primitive.M
@@ -85,6 +86,6 @@ func (repository *ProductRatingRepositoryImpl) List(productIds []string, value m
 	return
 }
 
-func NewProductRatingRepositoryImpl(collection dbs.Collection) ProductRatingRepository {
+func NewProductRatingRepositoryImpl(collection initializers.Collection) ProductRatingRepository {
 	return &ProductRatingRepositoryImpl{collection}
 }
