@@ -160,13 +160,8 @@ func (cri *CartRepositoryImpl) Update(customerID string, cartItem model.CartItem
 	return nil
 }
 
-<<<<<<< HEAD
 func (cri *CartRepositoryImpl) DeleteOne(customerId string, productId string) error {
-	ctx, cancel := dbs.InitContext()
-=======
-func (cri *CartRepositoryImpl) Delete(item model.CartItem) error {
 	ctx, cancel := initializers.InitContext()
->>>>>>> feature/authentication
 	defer cancel()
 	query := bson.M{"customer_id": customerId, "product_id": productId}
 	_, err := cri.cartCollection.DeleteMany(ctx, query)
@@ -178,7 +173,7 @@ func (cri *CartRepositoryImpl) Delete(item model.CartItem) error {
 }
 
 func (cri *CartRepositoryImpl) DeleteAll(customerId string, productIds []string) error {
-	ctx, cancel := dbs.InitContext()
+	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
 

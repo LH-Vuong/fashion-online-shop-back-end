@@ -43,8 +43,8 @@ func (p *ProductQuantityRepositoryImpl) Get(productId string) (*model.ProductQua
 	return &quantity, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([]model.ProductQuantity, error) {
-	var quantities []model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([]*model.ProductQuantity, error) {
+	var quantities []*model.ProductQuantity
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
@@ -61,8 +61,8 @@ func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([
 	return quantities, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]model.ProductQuantity, error) {
-	var quantities []model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]*model.ProductQuantity, error) {
+	var quantities []*model.ProductQuantity
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	objectIds := make([]primitive.ObjectID, len(productIds))
