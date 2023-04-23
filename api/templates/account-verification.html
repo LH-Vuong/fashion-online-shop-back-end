@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Account Verification</title>
+  </head>
+  <body style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.6; color: #333; background-color: #f2f2f2; padding: 30px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #fff; border-radius: 5px; padding: 30px;" class="container">
+      <h1 style="font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px;">Account Verification</h1>
+      <p style="margin-top: 0; margin-bottom: 20px;">Dear {{.Fullname}},</p>
+      <p style="margin-top: 0; margin-bottom: 20px;">Thank you for creating a account. To complete the registration process, please click on the following button to verify your email address:</p>
+      <button style="display: inline-block; background-color: #007bff; color: #fff; font-size: 16px; font-weight: 700; padding: 10px 20px; text-align: center; border-radius: 5px; text-decoration: none; border: none;">
+        <a href="http://localhost:8081/api/auth/verify?uniqueToken={{.Token}}" style="color: white; text-decoration: none;">Verify Email</a>
+      </button>
+      <p style="margin-top: 0; margin-bottom: 20px;">If you did not create an account, please ignore this email.</p>
+      <p style="margin-top: 0; margin-bottom: 20px;">Thank you,</p>
+      <p style="margin-top: 0; margin-bottom: 20px;">Online Shop Team</p>
+    </div>
+  </body>
+</html>

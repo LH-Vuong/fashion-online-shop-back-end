@@ -3,28 +3,72 @@ package main
 import (
 	"log"
 	container "online_fashion_shop/api"
+	"online_fashion_shop/api/controller"
+	repository "online_fashion_shop/api/repository/user"
 	"online_fashion_shop/api/router"
+	"online_fashion_shop/api/service"
+	_ "online_fashion_shop/docs"
 	"online_fashion_shop/initializers"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+var (
+	server *gin.Engine
+
+	userRepo            repository.UserRepository
+	userService         service.UserService
+	authController      controller.AuthController
+	authRouteController router.AuthRouteController
+
+	userController      controller.UserController
+	userRouteController router.UserRouteController
+)
+
+func init() {
+
+}
+
 func main() {
-	server := gin.Default()
+	server = gin.Default()
 	config, err := initializers.LoadConfig(".")
 
 	if err != nil {
 		log.Fatal("🚀 Could not load environment variables", err)
 	}
+
 	initializers.ConnectDB(&config)
 
+	corConfig := cors.DefaultConfig()
+	corConfig.AllowOrigins = []string{"http://localhost:8081"}
+	corConfig.AllowMethods = []string{"*"}
+	corConfig.AllowCredentials = true
+	corConfig.AllowHeaders = []string{"Origin", "Content-Type"}
+
+	server.Use(cors.New(corConfig))
+
+	r := server.Group("api")
+
+	userRepo = repository.NewUserRepository(initializers.DB)
+	userService = service.NewUserServiceImpl(userRepo)
+	authController = controller.NewAuthController(userService)
+	authRouteController = router.NewAuthRouteController(authController)
+	authRouteController.AuthRoute(r)
+
+	userController = controller.NewUserController(userService)
+	userRouteController := router.NewUserRouteController(userController)
+	userRouteController.UserRoute(r)
+
 	container := container.BuildContainer()
+
 	server.Use(gin.Logger())
+
 	router.SetUp(server, container)
 
-	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Fatal(server.Run(":" + config.ServerPort))
 }
