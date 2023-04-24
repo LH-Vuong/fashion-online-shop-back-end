@@ -10,23 +10,24 @@ import (
 )
 
 type ProductDetailRepository interface {
-	Get(id string) (model.Product, error)
+	Get(id string) (*model.Product, error)
 	List(ids []string,
 		keyWord string,
 		tags []string,
 		brands []string,
 		productType []string,
 		gender []string,
-		priceRange model.RangeValue[int64], startAt int, length int) ([]model.Product, error)
+		priceRange model.RangeValue[int64], startAt int, length int) ([]*model.Product, int64, error)
 
-	ListBySearchOption(searchOption model.ProductSearchOption) ([]model.Product, error)
+	ListBySearchOption(searchOption model.ProductSearchOption) ([]*model.Product, int64, error)
+	ListByMultiId(ids []string) ([]*model.Product, error)
 }
 
 type ProductDetailRepositoryImpl struct {
 	collection initializers.Collection
 }
 
-func (repository *ProductDetailRepositoryImpl) Get(id string) (product model.Product, err error) {
+func (repository *ProductDetailRepositoryImpl) Get(id string) (product *model.Product, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	rs := repository.collection.FindOne(ctx, bson.D{})
@@ -42,7 +43,7 @@ func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord
 	priceRange model.RangeValue[int64],
 	beginAt int,
 	length int,
-) (products []model.Product, err error) {
+) (products []*model.Product, totalDocs int64, err error) {
 	var filters []primitive.M
 
 	var objectIds []primitive.ObjectID
@@ -94,19 +95,20 @@ func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord
 	opts := options.Find()
 	opts.SetSkip(int64(beginAt))
 	opts.SetLimit(int64(length))
+	totalDocs, err = repository.collection.CountDocuments(ctx, queryFilter)
 
-	rs, err := repository.collection.Find(ctx, queryFilter)
+	rs, err := repository.collection.Find(ctx, queryFilter, opts)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	err = rs.All(ctx, &products)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	return
 }
 
-func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption model.ProductSearchOption) ([]model.Product, error) {
+func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption model.ProductSearchOption) ([]*model.Product, int64, error) {
 	return repository.List(searchOption.Ids,
 		searchOption.KeyWord,
 		searchOption.Tags,
@@ -118,6 +120,23 @@ func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption m
 		searchOption.Length,
 	)
 
+}
+
+func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (products []*model.Product, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+
+	var objectIds []primitive.ObjectID
+	for _, id := range ids {
+		objectID, _ := primitive.ObjectIDFromHex(id)
+		objectIds = append(objectIds, objectID)
+	}
+	rs, err := repository.collection.Find(ctx, bson.M{"_id": bson.M{"_id": objectIds}})
+	if err != nil {
+		return nil, err
+	}
+	rs.All(ctx, products)
+	return
 }
 
 func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {

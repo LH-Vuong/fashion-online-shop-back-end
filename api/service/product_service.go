@@ -1,35 +1,37 @@
 package service
 
 import (
+	"math"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
-	"online_fashion_shop/api/model/response"
 	"online_fashion_shop/api/repository"
 )
 
 type ProductService interface {
-	Get(id string) model.Product
-	List(request request.ListProductsRequest) response.ListProductResponse
+	Get(id string) (*model.Product, error)
+	List(request request.ListProductsRequest) ([]*model.Product, int, error)
 }
 
 type ProductServiceImpl struct {
 	ProductDetailRepository repository.ProductDetailRepository
-	ProductPhotoRepository  repository.ProductPhotoRepository
+	PhotoService            PhotoService
 	ProductRatingRepository repository.ProductRatingRepository
 }
 
-func (service *ProductServiceImpl) Get(id string) model.Product {
+func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
 
 	product, err := service.ProductDetailRepository.Get(id)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	avr, err := service.getAvrRate(product.Id)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	product.AvrRate = avr
-	return product
+	photos, err := service.PhotoService.ListByProductId(id)
+	product.Photos = photos
+	return product, nil
 }
 
 func (service *ProductServiceImpl) getAvrRate(productId string) (avr float64, err error) {
@@ -42,42 +44,34 @@ func (service *ProductServiceImpl) getAvrRate(productId string) (avr float64, er
 	return
 }
 
-func getTotalPage(pageSize int, quantity int) (total int) {
-	total = quantity/pageSize + 1 // equal round up
-	return
-}
+func (s *ProductServiceImpl) addPhotosToProduct(products []*model.Product) error {
 
-func (service *ProductServiceImpl) listProductPhoto(products []model.Product) (photos []model.ProductPhoto, err error) {
-	var productIds []string
+	productIds := make([]string, len(products))
+	for index := range products {
+		productIds[index] = products[index].Id
+	}
+
+	photoMap, err := s.PhotoService.ListByMultiProductId(productIds)
+	if err != nil {
+		return err
+	}
+
 	for _, product := range products {
-		productIds = append(productIds, product.Id)
-	}
-
-	photos, err = service.ProductPhotoRepository.List(productIds)
-	return
-}
-
-func addPhotosToProduct(photos []model.ProductPhoto, products *[]model.Product) {
-	photoMap := make(map[string]model.ProductPhoto)
-	for _, photo := range photos {
-		photoMap[photo.ProductId] = photo
-	}
-
-	for i, product := range *products {
-		if photo, ok := photoMap[product.Id]; ok {
-			(*products)[i].Photos = append((*products)[i].Photos, photo)
+		if photos, ok := photoMap[product.Id]; ok {
+			product.Photos = photos
 		}
 	}
+	return nil
 }
 
-func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) response.ListProductResponse {
+func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*model.Product, int, error) {
 
 	priceRange := model.RangeValue[int64]{
 		From: productsRequest.MinPrice,
 		To:   productsRequest.MaxPrice,
 	}
 
-	products, err := service.ProductDetailRepository.List(
+	products, totalDocs, err := service.ProductDetailRepository.List(
 		[]string{},
 		productsRequest.KeyWord,
 		productsRequest.Tags,
@@ -87,28 +81,18 @@ func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequ
 		priceRange, (productsRequest.Page)*productsRequest.PageSize, productsRequest.PageSize,
 	)
 	if err != nil {
-		panic(err)
+		return nil, 0, err
 	}
-
-	productPhotos, err := service.listProductPhoto(products)
-
-	if err != nil {
-		panic(err)
-	}
-
-	addPhotosToProduct(productPhotos, &products)
-	return response.ListProductResponse{
-		Products:  products,
-		TotalPage: getTotalPage(productsRequest.PageSize, len(products)),
-		Page:      productsRequest.Page,
-	}
+	service.addPhotosToProduct(products)
+	numPages := int(math.Ceil(float64(totalDocs) / float64(productsRequest.PageSize)))
+	return products, numPages, nil
 }
 func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
 	productRatingRepo repository.ProductRatingRepository,
-	productPhotoRepo repository.ProductPhotoRepository) ProductService {
+	photoService PhotoService) ProductService {
 	return &ProductServiceImpl{
 		productDetailRepo,
-		productPhotoRepo,
+		photoService,
 		productRatingRepo,
 	}
 }

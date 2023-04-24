@@ -8,22 +8,29 @@ import (
 )
 
 type ProductPhotoRepository interface {
-	Get(productId string) (model.ProductPhoto, error)
-	List(productIds []string) ([]model.ProductPhoto, error)
+	ListByProductId(productId string) ([]*model.ProductPhoto, error)
+	ListByMultiProductId(productIds []string) ([]*model.ProductPhoto, error)
 }
 
 type ProductPhotoRepositoryImpl struct {
 	PhotoCollection initializers.Collection
 }
 
-func (repository *ProductPhotoRepositoryImpl) Get(productId string) (photo model.ProductPhoto, err error) {
+func (repository *ProductPhotoRepositoryImpl) ListByProductId(productId string) (photos []*model.ProductPhoto, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	repository.PhotoCollection.FindOne(ctx, bson.M{"product_id": productId}).Decode(photo)
+	rs, err := repository.PhotoCollection.Find(ctx, bson.M{"product_id": productId})
+	if err != nil {
+		return nil, err
+	}
+	err = rs.All(ctx, photos)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
-func (repository *ProductPhotoRepositoryImpl) List(productIds []string) (photos []model.ProductPhoto, err error) {
+func (repository *ProductPhotoRepositoryImpl) ListByMultiProductId(productIds []string) (photos []*model.ProductPhoto, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 

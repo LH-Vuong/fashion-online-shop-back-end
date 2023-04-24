@@ -1,7 +1,6 @@
 package service
 
 import (
-	"math"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/repository"
 )
@@ -132,19 +131,14 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*model.P
 		detailIds[index] = item.DetailId
 	}
 
-	productDetails, err := service.detailRepo.ListBySearchOption(model.ProductSearchOption{Ids: detailIds, PriceRange: model.RangeValue[int64]{
-		From: 0,
-		To:   math.MaxInt64,
-	}, StartAt: -1, Length: 10})
+	productDetails, err := service.detailRepo.ListByMultiId(detailIds)
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 	productDetailMap := make(map[string]*model.Product, len(productDetails))
 
 	for _, productDetail := range productDetails {
-
-		productDetailMap[productDetail.Id] = &productDetail
+		productDetailMap[productDetail.Id] = productDetail
 	}
 
 	return productDetailMap, nil
