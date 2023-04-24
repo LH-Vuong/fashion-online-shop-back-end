@@ -47,9 +47,9 @@ func providePhotoRepositoryImpl(client initializers.Client) repository.ProductPh
 	return repository.NewProductPhotoRepository(productPhotoCollection)
 }
 func provideProductServiceImpl(detailRepo repository.ProductDetailRepository,
-	photoRepo repository.ProductPhotoRepository,
+	photoService service.PhotoService,
 	ratingRepo repository.ProductRatingRepository) service.ProductService {
-	return service.NewProductServiceImpl(detailRepo, ratingRepo, photoRepo)
+	return service.NewProductServiceImpl(detailRepo, ratingRepo, photoService)
 }
 
 func provideMongoDbClient() initializers.Client {

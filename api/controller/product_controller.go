@@ -6,7 +6,9 @@ import (
 	"math"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
+	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
+	"online_fashion_shop/api/model/response"
 	"online_fashion_shop/api/service"
 	"strconv"
 	"strings"
@@ -126,7 +128,10 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 //	@Router			/product/{id} [get]
 func (cl ProductController) Get(c *gin.Context) {
 	productId := c.Param("id")
-	product := cl.Service.Get(productId)
+	product, err := cl.Service.Get(productId)
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+	}
 	c.JSON(200, gin.H{"status": "success", "data": product})
 }
 
@@ -147,7 +152,7 @@ func (cl ProductController) Get(c *gin.Context) {
 //	@Param          name	  	query       string	  false    "Key work relate to products' name "
 //	@Param          page	  	query       int	   	  false    "current page's number"
 //	@Param          page_size	query       int		  false    "Length per page from '1' to '10000'"
-//	@Success		200				{object}	response.ListProductResponse
+//	@Success		200				{object}	response.PagingResponse[*model.Product]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/products/ [get]
@@ -158,6 +163,16 @@ func (cl ProductController) List(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	products := cl.Service.List(*req)
-	c.JSON(200, gin.H{"status": "success", "data": products})
+	products, totalPages, err := cl.Service.List(*req)
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(200, response.PagingResponse[*model.Product]{
+		TotalPage: totalPages,
+		Page:      req.Page,
+		Status:    "success",
+		Data:      products,
+	})
 }
