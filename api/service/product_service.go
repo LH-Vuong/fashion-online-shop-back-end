@@ -29,6 +29,8 @@ func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
 		return nil, err
 	}
 	product.AvrRate = avr
+	photos, err := service.PhotoService.ListByProductId(id)
+	product.Photos = photos
 	return product, nil
 }
 
@@ -39,11 +41,6 @@ func (service *ProductServiceImpl) getAvrRate(productId string) (avr float64, er
 		return 5, err
 	}
 	avr = rs.AvrRate
-	return
-}
-
-func getTotalPage(pageSize int, quantity int) (total int) {
-	total = quantity/pageSize + 1 // equal round up
 	return
 }
 
