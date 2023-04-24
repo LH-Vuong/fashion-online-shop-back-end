@@ -20,6 +20,7 @@ type ProductDetailRepository interface {
 		priceRange model.RangeValue[int64], startAt int, length int) ([]*model.Product, int64, error)
 
 	ListBySearchOption(searchOption model.ProductSearchOption) ([]*model.Product, int64, error)
+	ListByMultiId(ids []string) ([]*model.Product, error)
 }
 
 type ProductDetailRepositoryImpl struct {
@@ -119,6 +120,23 @@ func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption m
 		searchOption.Length,
 	)
 
+}
+
+func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (products []*model.Product, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+
+	var objectIds []primitive.ObjectID
+	for _, id := range ids {
+		objectID, _ := primitive.ObjectIDFromHex(id)
+		objectIds = append(objectIds, objectID)
+	}
+	rs, err := repository.collection.Find(ctx, bson.M{"_id": bson.M{"_id": objectIds}})
+	if err != nil {
+		return nil, err
+	}
+	rs.All(ctx, products)
+	return
 }
 
 func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {

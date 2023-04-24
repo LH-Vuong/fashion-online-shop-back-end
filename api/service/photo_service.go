@@ -16,14 +16,14 @@ type PhotoServiceImpl struct {
 
 func NewPhotoServiceImpl(photoRepo repository.ProductPhotoRepository) PhotoService {
 	return PhotoServiceImpl{
-		PhotoRepo: photoRepo
+		PhotoRepo: photoRepo,
 	}
 }
 
 func (p PhotoServiceImpl) ListByMultiProductId(productIds []string) (map[string][]*model.ProductPhoto, error) {
 
 	photoMap := make(map[string][]*model.ProductPhoto, len(productIds))
-	photos, err := p.photoRepo.ListByMultiProductId(productIds)
+	photos, err := p.PhotoRepo.ListByMultiProductId(productIds)
 	if err != nil {
 		return nil, err
 	}
@@ -35,5 +35,5 @@ func (p PhotoServiceImpl) ListByMultiProductId(productIds []string) (map[string]
 }
 
 func (p PhotoServiceImpl) ListByProductId(productId string) ([]*model.ProductPhoto, error) {
-	return p.photoRepo.ListByProductId(productId)
+	return p.PhotoRepo.ListByProductId(productId)
 }

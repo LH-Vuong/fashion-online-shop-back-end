@@ -20,6 +20,7 @@ func init() {
 	container.Provide(provideProductQuantityRepositoryImpl)
 	container.Provide(provideCartRepositoryImpl)
 	container.Provide(provideCardServiceImpl)
+	container.Provide(providePhotoServiceImpl)
 }
 
 func BuildContainer() *dig.Container {
@@ -40,6 +41,10 @@ func provideProductRatingRepositoryImpl(client initializers.Client) repository.P
 func provideProductRepositoryImpl(mongoClient initializers.Client) repository.ProductDetailRepository {
 	productCollection := mongoClient.Database("fashion_shop").Collection("product")
 	return repository.NewProductRepositoryImpl(productCollection)
+}
+
+func providePhotoServiceImpl(photoRepo repository.ProductPhotoRepository) service.PhotoService {
+	return service.NewPhotoServiceImpl(photoRepo)
 }
 
 func providePhotoRepositoryImpl(client initializers.Client) repository.ProductPhotoRepository {
