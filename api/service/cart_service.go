@@ -16,7 +16,9 @@ type CartService interface {
 
 	DeleteAll(customerId string) error
 
-	CheckOut(customerId string) ([]string, error)
+	CheckOutAndDelete(customerId string) ([]string, error)
+
+	ListInvalidCartItem(customerId string) ([]string, error)
 }
 
 func NewCartServiceImpl(cartRepo repository.CartRepository,
@@ -54,7 +56,19 @@ func toProductQuantityMap(quantities []*model.ProductQuantity) map[string]*model
 	return quantityMap
 }
 
-func (service *CartServiceImpl) CheckOut(customerId string) ([]string, error) {
+func (service *CartServiceImpl) CheckOutAndDelete(customerId string) ([]string, error) {
+	invalidItems, err := service.ListInvalidCartItem(customerId)
+	if err != nil {
+		return nil, err
+	}
+	err = service.cartRepo.DeleteAll(customerId, invalidItems)
+	if err != nil {
+		return nil, err
+	}
+	return invalidItems, nil
+}
+
+func (service *CartServiceImpl) ListInvalidCartItem(customerId string) ([]string, error) {
 
 	items, err := service.cartRepo.ListByCustomerId(customerId)
 	if err != nil {
@@ -68,20 +82,20 @@ func (service *CartServiceImpl) CheckOut(customerId string) ([]string, error) {
 	}
 	quantityMap := toProductQuantityMap(quantities)
 
-	var soldOutItemIds []string
+	var invalidProduct []string
 	for productId, cartItem := range cartItemMap {
 		if quantityMap[productId] != nil {
 			if cartItem.Quantity > quantityMap[productId].Quantity {
-				soldOutItemIds = append(soldOutItemIds, cartItem.ProductId)
+				invalidProduct = append(invalidProduct, cartItem.ProductId)
+			}
+
+			if cartItem.Quantity < 1 {
+				invalidProduct = append(invalidProduct, cartItem.ProductId)
 			}
 		}
 	}
-
-	service.cartRepo.DeleteAll(customerId, soldOutItemIds)
-
-	return soldOutItemIds, nil
+	return invalidProduct, err
 }
-
 func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartItem, err error) {
 	cartItems, err = service.cartRepo.ListByCustomerId(customerId)
 	if err != nil {
