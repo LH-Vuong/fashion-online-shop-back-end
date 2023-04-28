@@ -3,26 +3,35 @@ package service
 import (
 	"fmt"
 	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/payment"
 	"online_fashion_shop/api/repository"
+	"time"
 )
 
 type OrderService interface {
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
-	Create(customerID string, paymentMethod model.PaymentMethod, addressInfo string, couponCode *string) (*model.OrderInfo, error)
+	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*model.OrderInfo, error)
 
 	// ListByCustomerID Get list of orders (order history of customer)
 	ListByCustomerID(customerID string, limit int, offset int) ([]*model.OrderInfo, error)
 }
 
 type OrderServiceImpl struct {
-	CouponService CouponService
-	CartService   CartService
-	OrderRepo     repository.OrderRepository
+	CouponService  CouponService
+	CartService    CartService
+	OrderRepo      repository.OrderRepository
+	paymentService PaymentService
 }
 
-func (svc *OrderServiceImpl) Create(customerID string, paymentMethod model.PaymentMethod, addressInfo string, couponCode *string) (*model.OrderInfo, error) {
+// init payment and modify order_info
+func (svc *OrderServiceImpl) PaymentProcessing(orderInfo *model.OrderInfo) error {
+
+	return nil
+}
+
+func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*model.OrderInfo, error) {
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
@@ -30,10 +39,6 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod model.Payme
 	}
 	if len(invalidItems) > 0 {
 		return nil, fmt.Errorf("Invalid Cart Item")
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	// Get the customer's cart items.
@@ -57,15 +62,28 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod model.Payme
 	if err != nil {
 		return nil, err
 	}
+	paymentInfo := payment.Detail{
+		Id:            "",
+		OrderId:       "",
+		Status:        payment.StatusInit,
+		OrderUrl:      nil,
+		CreatedAt:     time.Now().UnixMilli(),
+		PaymentMethod: paymentMethod,
+	}
 
 	order := model.OrderInfo{
 		CustomerId:     customerID,
-		PaymentMethod:  paymentMethod,
 		Address:        addressInfo,
 		CouponCode:     *couponCode,
 		CouponDiscount: coupon.DiscountAmount,
 		TotalPrice:     total,
 		Items:          cartItems,
+		PaymentInfo:    &paymentInfo,
+	}
+
+	if err = svc.paymentService.InitPayment(&order); err != nil {
+		order.PaymentInfo.LastUpdateAt = time.Now().UnixMilli()
+		order.PaymentInfo.Status = payment.StatusError
 	}
 
 	return svc.OrderRepo.Create(order)
