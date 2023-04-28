@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
@@ -9,12 +8,10 @@ import (
 	repository "online_fashion_shop/api/repository/user"
 	"online_fashion_shop/api/utils"
 	"online_fashion_shop/initializers"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/thanhpk/randstr"
 )
 
@@ -22,6 +19,17 @@ type UserService interface {
 	SignUp(*gin.Context, model.SignUpModel)
 	VerifyAccount(*gin.Context, string)
 	SignIn(*gin.Context, model.SignInModel)
+	ResendVerifyEmail(*gin.Context, string)
+	ChangeUserPassword(*gin.Context, model.ChangePasswordModel)
+
+	CreateUserAddress(*gin.Context, model.CreateUserAddressModel)
+	DeleteUserAddress(*gin.Context, string)
+	UpdateUserAddress(*gin.Context, model.UpdateUserAddressModel)
+	GetUserAddressList(*gin.Context, model.GetUserAddressListModel)
+
+	AddUserWishlistItem(*gin.Context, model.AddWishListModel)
+	DeleteUserWishlistItems(*gin.Context, model.DeleteWishListModel)
+	GetUserWishlist(*gin.Context, model.GetUserWishlistModel)
 }
 
 func NewUserServiceImpl(userRepo repository.UserRepository) UserService {
@@ -35,6 +43,18 @@ type UserServiceImpl struct {
 }
 
 func (service *UserServiceImpl) SignUp(ctx *gin.Context, payload model.SignUpModel) {
+	existEmail, err := service.userRepo.GetUserByEmail(ctx, payload.Email)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUser")
+		return
+	}
+
+	if existEmail != nil {
+		errs.HandleFailStatus(ctx, "User with that email has already existed!", http.StatusBadRequest)
+		return
+	}
+
 	if payload.Password != payload.PasswordConfirm {
 		errs.HandleFailStatus(ctx, "Password do not match!", http.StatusBadRequest)
 		return
@@ -48,7 +68,6 @@ func (service *UserServiceImpl) SignUp(ctx *gin.Context, payload model.SignUpMod
 	}
 
 	newUser := model.User{
-		Id:        uuid.New(),
 		Fullname:  payload.Fullname,
 		Password:  hashedPasswed,
 		Email:     payload.Email,
@@ -74,7 +93,6 @@ func (service *UserServiceImpl) SignUp(ctx *gin.Context, payload model.SignUpMod
 	verificationCode := utils.Encode(code)
 
 	newUserVerify := model.UserVerify{
-		Id:          uuid.New(),
 		UniqueToken: verificationCode,
 		UserId:      newUser.Id,
 		Status:      "active",
@@ -94,17 +112,13 @@ func (service *UserServiceImpl) SignUp(ctx *gin.Context, payload model.SignUpMod
 	}
 
 	filePath := "api/templates/account-verification.html"
-	fileInfo, err := os.Stat(filePath)
 
 	// Check if the file exists.
 	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("File does not exist")
-		} else {
-			fmt.Println("Error checking file existence:", err)
-		}
+		errs.HandleErrorStatus(ctx, err, "CreateUser")
+
+		return
 	} else {
-		fmt.Println("File exists with size", fileInfo.Size(), "bytes")
 		utils.SendVerifyEmail(&newUser, &emailData, filePath)
 	}
 
@@ -120,22 +134,34 @@ func (service *UserServiceImpl) VerifyAccount(ctx *gin.Context, uniqueToken stri
 		return
 	}
 
+	if existVerify == nil {
+		errs.HandleFailStatus(ctx, "Token is expired or not exist!", http.StatusBadRequest)
+
+		return
+	}
+
 	if existVerify.CreatedAt.Sub(time.Now()).Hours() > 6 {
 		errs.HandleFailStatus(ctx, "Token expired", http.StatusBadRequest)
 
 		return
 	}
 
-	existUser, err := service.userRepo.GetUserById(ctx, existVerify.UserId.String())
+	existUser, err := service.userRepo.GetUserById(ctx, existVerify.UserId)
 
 	if err != nil {
-		errs.HandleFailStatus(ctx, "User not found!", http.StatusNotFound)
+		errs.HandleFailStatus(ctx, "User's not found!", http.StatusNotFound)
+
+		return
 	}
 
 	existUser.Verified = true
 	existUser.UpdatedAt = time.Now()
 
 	_, err = service.userRepo.UpdateUser(ctx, existUser)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "VerifyAccount")
+	}
 
 	err = service.userRepo.DeleteUserVerify(ctx, existVerify)
 
@@ -185,4 +211,260 @@ func (service *UserServiceImpl) SignIn(ctx *gin.Context, payload model.SignInMod
 	ctx.SetCookie("logged_in", "true", config.AccessTokenMaxAge, "/", "", false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": existUser})
+}
+
+func (service *UserServiceImpl) ResendVerifyEmail(ctx *gin.Context, email string) {
+	existUser, err := service.userRepo.GetUserByEmail(ctx, email)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "ResendVerifyEmail")
+		return
+	}
+
+	if existUser == nil {
+		errs.HandleFailStatus(ctx, "User with that email does not exist!", http.StatusBadRequest)
+		return
+	}
+
+	if existUser.Verified {
+		errs.HandleFailStatus(ctx, "User with that email is already verified!", http.StatusBadRequest)
+		return
+	}
+
+	code := randstr.String(20)
+
+	verificationCode := utils.Encode(code)
+	newUserVerify := model.UserVerify{
+		UniqueToken: verificationCode,
+		UserId:      existUser.Id,
+		Status:      "active",
+		CreatedAt:   time.Now(),
+	}
+
+	_, err = service.userRepo.CreateUserVerify(ctx, &newUserVerify)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUser")
+		return
+	}
+
+	emailData := utils.VerifyEmailData{
+		Token:    verificationCode,
+		Fullname: existUser.Fullname,
+	}
+
+	filePath := "api/templates/account-verification.html"
+
+	// Check if the file exists.
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUser")
+		return
+	} else {
+		utils.SendVerifyEmail(existUser, &emailData, filePath)
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "New email has been seed to your email!"})
+}
+
+func (service *UserServiceImpl) ChangeUserPassword(ctx *gin.Context, payload model.ChangePasswordModel) {
+	if payload.Password != payload.PasswordConfirm {
+		errs.HandleFailStatus(ctx, "Password do not match!", http.StatusBadRequest)
+		return
+	}
+
+	currentUser := ctx.MustGet("currentUser").(model.User)
+
+	existUser, err := service.userRepo.GetUserById(ctx, currentUser.Id)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "ChangePassword")
+		return
+	}
+
+	if existUser == nil {
+		errs.HandleFailStatus(ctx, "User does not exist!", http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, err := utils.HashPassword(payload.Password)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "ChangePassword")
+	}
+
+	existUser.Password = hashedPassword
+	existUser.UpdatedAt = time.Now()
+
+	existUser, err = service.userRepo.UpdateUser(ctx, existUser)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "ChangePassword")
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": existUser})
+}
+
+func (service *UserServiceImpl) AddUserWishlistItem(ctx *gin.Context, payload model.AddWishListModel) {
+	//Todo: check product exist
+	currentUser := ctx.MustGet("currentUser").(model.User)
+	existWishlistItem, err := service.userRepo.GetUserWishlistItemByProductId(ctx, payload.ProductId)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "AddUserWishlistItem")
+		return
+	}
+
+	if existWishlistItem != nil {
+		errs.HandleFailStatus(ctx, "Wishlist item has already existed!", http.StatusBadRequest)
+		return
+	}
+
+	newWishlistItem := model.UserWishlist{
+		ProductId: payload.ProductId,
+		UserId:    currentUser.Id,
+		Status:    "active",
+		CreatedAt: time.Now(),
+	}
+
+	rs, err := service.userRepo.CreateWishlistItem(ctx, &newWishlistItem)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "AddUserWishlistItem")
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "data": rs})
+}
+
+func (service *UserServiceImpl) DeleteUserWishlistItems(ctx *gin.Context, payload model.DeleteWishListModel) {
+	var deletedWishlistItem []*model.UserWishlist
+	var rs []string
+	for _, val := range payload.DeleteIds {
+		existWishlistItem, err := service.userRepo.GetUserWishlistItemById(ctx, val)
+
+		if err != nil {
+			errs.HandleErrorStatus(ctx, err, "DeleteUserWishlistItems")
+			return
+		}
+
+		if existWishlistItem == nil {
+			errs.HandleFailStatus(ctx, "Wishlist item is not existed!", http.StatusBadRequest)
+		}
+
+		deletedWishlistItem = append(deletedWishlistItem, existWishlistItem)
+	}
+
+	for _, val := range deletedWishlistItem {
+		deletedId, err := service.userRepo.DeleteWishlistItem(ctx, val)
+
+		if err != nil {
+			errs.HandleErrorStatus(ctx, err, "DeleteUserWishlistItems")
+			return
+		}
+		rs = append(rs, deletedId)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rs})
+}
+
+func (service *UserServiceImpl) GetUserWishlist(ctx *gin.Context, payload model.GetUserWishlistModel) {
+	currentUser := ctx.MustGet("currentUser").(model.User)
+
+	rs, total, err := service.userRepo.GetUserWishlist(ctx, currentUser.Id, payload.Page, payload.PageSize)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUserWishlist")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rs, "total": total})
+}
+
+func (service *UserServiceImpl) CreateUserAddress(ctx *gin.Context, payload model.CreateUserAddressModel) {
+	currentUser := ctx.MustGet("currentUser").(model.User)
+
+	newAddress := model.UserAddress{
+		UserId:     currentUser.Id,
+		ProvinceId: payload.ProvinceId,
+		DistrictId: payload.DistrictId,
+		WardCode:   payload.WardCode,
+		Address:    payload.Address,
+		Name:       payload.Name,
+		CreatedAt:  time.Now(),
+	}
+
+	rs, err := service.userRepo.CreateUserAddress(ctx, &newAddress)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "data": rs})
+}
+
+func (service *UserServiceImpl) UpdateUserAddress(ctx *gin.Context, payload model.UpdateUserAddressModel) {
+	existAddress, err := service.userRepo.GetUserAddressById(ctx, payload.Id)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "UpdateUserAddress")
+		return
+	}
+
+	if existAddress == nil {
+		errs.HandleFailStatus(ctx, "User's Address is not existed!", http.StatusNotFound)
+		return
+	}
+
+	existAddress.Address = payload.Address
+	existAddress.ProvinceId = payload.ProvinceId
+	existAddress.DistrictId = payload.DistrictId
+	existAddress.WardCode = payload.WardCode
+	existAddress.Name = payload.Name
+	existAddress.UpdatedAt = time.Now()
+
+	rs, err := service.userRepo.UpdateUserAddress(ctx, existAddress)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "data": rs})
+}
+
+func (service *UserServiceImpl) DeleteUserAddress(ctx *gin.Context, addressId string) {
+	existAddress, err := service.userRepo.GetUserAddressById(ctx, addressId)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "DeleteUserAddress")
+		return
+	}
+
+	if existAddress == nil {
+		errs.HandleFailStatus(ctx, "User's address is not existed!", http.StatusNotFound)
+		return
+	}
+
+	rs, err := service.userRepo.DeleteUserAddress(ctx, existAddress)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "DeleteUserAddress")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rs})
+}
+
+func (service *UserServiceImpl) GetUserAddressList(ctx *gin.Context, payload model.GetUserAddressListModel) {
+	currentUser := ctx.MustGet("currentUser").(model.User)
+
+	rs, total, err := service.userRepo.GetUserAddressList(ctx, currentUser.Id, payload.Page, payload.PageSize)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUserAddressList")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rs, "total": total})
 }

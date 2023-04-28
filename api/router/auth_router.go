@@ -2,21 +2,20 @@ package router
 
 import (
 	"online_fashion_shop/api/controller"
+	"online_fashion_shop/api/service"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/dig"
 )
 
-type AuthRouteController struct {
-	authController controller.AuthController
-}
-
-func NewAuthRouteController(authController controller.AuthController) AuthRouteController {
-	return AuthRouteController{authController}
-}
-
-func (rc *AuthRouteController) AuthRoute(rg *gin.RouterGroup) {
-	router := rg.Group("/auth")
-	router.POST("/sign-up", rc.authController.SignUp)
-	router.POST("/sign-in", rc.authController.SignIn)
-	router.GET("/verify", rc.authController.VerifyAccount)
+func InitAuthRouter(s *gin.Engine, c *dig.Container) {
+	err := c.Invoke(func(userService service.UserService) {
+		controller := controller.AuthController{Service: userService}
+		s.POST("api/auth/sign-up", controller.SignUp)
+		s.POST("api/auth/sign-in", controller.SignIn)
+		s.GET("api/auth/verify", controller.VerifyAccount)
+	})
+	if err != nil {
+		panic(err)
+	}
 }

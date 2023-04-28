@@ -19,4 +19,8 @@ func (rc *UserRouteController) UserRoute(rg *gin.RouterGroup) {
 	router := rg.Group("/users")
 	router.Use(middleware.DeserializeUser())
 	router.GET("/me", rc.userController.GetMe)
+	router.GET("/address", rc.userController.GetUserAddressList)
+	router.POST("/address", rc.userController.CreateUserAddress)
+	router.PUT("/address", rc.userController.UpdateUserAddress)
+	router.DELETE("/address", rc.userController.DeleteUserAddress)
 }
