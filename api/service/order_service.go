@@ -3,8 +3,9 @@ package service
 import (
 	"fmt"
 	"online_fashion_shop/api/model"
-	"online_fashion_shop/api/model/payment"
+	"online_fashion_shop/api/model/order"
 	"online_fashion_shop/api/repository"
+	"online_fashion_shop/initializers/payment"
 	"time"
 )
 
@@ -12,26 +13,40 @@ type OrderService interface {
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
-	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*model.OrderInfo, error)
+	Create(customerID string, paymentMethod order.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error)
 
 	// ListByCustomerID Get list of orders (order history of customer)
-	ListByCustomerID(customerID string, limit int, offset int) ([]*model.OrderInfo, error)
+	ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int, error)
+
+	UpdatePaymentStatus(paymentId string, callbackData map[string]any, handle CallbackHandle) error
 }
 
 type OrderServiceImpl struct {
-	CouponService  CouponService
-	CartService    CartService
-	OrderRepo      repository.OrderRepository
-	paymentService PaymentService
+	CouponService CouponService
+	CartService   CartService
+	OrderRepo     repository.OrderRepository
+	Processor     payment.Processor
 }
 
-// init payment and modify order_info
-func (svc *OrderServiceImpl) PaymentProcessing(orderInfo *model.OrderInfo) error {
+type CallbackHandle func(info *order.OrderInfo, data map[string]any) error
 
+func (svc *OrderServiceImpl) UpdatePaymentStatus(paymentId string, data map[string]any, handle CallbackHandle) error {
+
+	orderInfo, err := svc.OrderRepo.GetOneByPaymentId(paymentId)
+	if err != nil {
+		return err
+	}
+
+	handle(orderInfo, data)
+
+	err = svc.OrderRepo.Update(*orderInfo)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*model.OrderInfo, error) {
+func (svc *OrderServiceImpl) Create(customerID string, paymentMethod order.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error) {
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
@@ -62,16 +77,16 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 	if err != nil {
 		return nil, err
 	}
-	paymentInfo := payment.Detail{
+	paymentInfo := order.PaymentDetail{
 		Id:            "",
 		OrderId:       "",
-		Status:        payment.StatusInit,
+		Status:        order.StatusInit,
 		OrderUrl:      nil,
 		CreatedAt:     time.Now().UnixMilli(),
 		PaymentMethod: paymentMethod,
 	}
 
-	order := model.OrderInfo{
+	orderInfo := order.OrderInfo{
 		CustomerId:     customerID,
 		Address:        addressInfo,
 		CouponCode:     *couponCode,
@@ -81,12 +96,14 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 		PaymentInfo:    &paymentInfo,
 	}
 
-	if err = svc.paymentService.InitPayment(&order); err != nil {
-		order.PaymentInfo.LastUpdateAt = time.Now().UnixMilli()
-		order.PaymentInfo.Status = payment.StatusError
+	svc.Processor.InitPayment(&orderInfo)
+
+	if err != nil {
+		orderInfo.PaymentInfo.PaymentAt = time.Now().UnixMilli()
+		orderInfo.PaymentInfo.Status = order.StatusError
 	}
 
-	return svc.OrderRepo.Create(order)
+	return svc.OrderRepo.Create(orderInfo)
 
 }
 
@@ -130,6 +147,6 @@ func calculateTotal(items []*model.CartItem, coupon *model.CouponInfo) (int64, e
 	return total, nil
 }
 
-func (svc *OrderServiceImpl) ListByCustomerID(customerID string, limit int, offset int) ([]*model.OrderInfo, error) {
+func (svc *OrderServiceImpl) ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int, error) {
 	return svc.OrderRepo.ListByCustomerId(customerID, limit, offset)
 }

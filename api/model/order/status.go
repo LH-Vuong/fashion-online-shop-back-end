@@ -1,4 +1,4 @@
-package payment
+package order
 
 type Status string
 

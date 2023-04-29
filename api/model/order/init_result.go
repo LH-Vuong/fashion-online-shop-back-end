@@ -1,4 +1,4 @@
-package payment
+package order
 
 type ZaloPayApiResult struct {
 	ZPTransToken  string `json:"zptranstoken"`

@@ -1,4 +1,4 @@
-package zalopay
+package payment
 
 import (
 	"encoding/json"
@@ -6,53 +6,52 @@ import (
 	"github.com/google/uuid"
 	"github.com/zpmep/hmacutil"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
-	"online_fashion_shop/api/model"
-	"online_fashion_shop/api/model/payment"
+	"online_fashion_shop/api/model/order"
 	"strconv"
 	"time"
 )
 
-type Config struct {
+type Processor interface {
+	InitPayment(info *order.OrderInfo) error
+	GetPaymentStatus(paymentId string) (order.Status, error)
+}
+
+type ZaloPaymentProcessor struct {
 	appid string
 	key1  string
 	key2  string
 }
 
-func HandlerCallBack(requestMac string, dataStr string, conf Config) error {
-	mac := hmacutil.HexStringEncode(hmacutil.SHA256, conf.key2, dataStr)
-
-	result := make(map[string]interface{})
+func IsValidCallback(requestMac string, dataStr string, key2 string) error {
+	mac := hmacutil.HexStringEncode(hmacutil.SHA256, key2, dataStr)
 
 	// kiểm tra callback hợp lệ (đến từ ZaloPay server)
 	if mac != requestMac {
 		// callback không hợp lệ
-		result["returncode"] = -1
-		result["returnmessage"] = "mac not equal"
-	} else {
-		// thanh toán thành công
-		result["returncode"] = 1
-		result["returnmessage"] = "success"
-
-		// merchant cập nhật trạng thái cho đơn hàng
-
-		var dataJSON map[string]interface{}
-		json.Unmarshal([]byte(dataStr), &dataJSON)
-		log.Println("update order's status = success where apptransid =", dataJSON["apptransid"])
+		return fmt.Errorf("invalid callback")
 	}
 	return nil
 }
 
-func InitPayment(info *model.OrderInfo, config Config) error {
+func HandleCallback(info *order.OrderInfo, data map[string]any) error {
+	info.PaymentInfo.PaymentAt = data["app_time"].(int64)
+	info.PaymentInfo.PaymentAt = data["server_time"].(int64)
+	info.PaymentInfo.Status = order.StatusApproved
+	info.PaymentInfo.ReceivedAmount = data["amount"].(int64)
+	info.PaymentInfo.UpdatedAt = time.Now().UnixMilli()
+	return nil
+}
+
+func (processor *ZaloPaymentProcessor) InitPayment(info *order.OrderInfo) error {
 
 	embeddata, _ := json.Marshal(nil)
 	items := fmt.Sprintf("[{\"order_id\":\"%s\"}]", info.Id)
 
 	// request data
 	params := make(url.Values)
-	params.Add("appid", config.appid)
+	params.Add("appid", processor.appid)
 	params.Add("amount", string(info.TotalPrice))
 	params.Add("appuser", "demo")
 	params.Add("embeddata", string(embeddata))
@@ -74,7 +73,7 @@ func InitPayment(info *model.OrderInfo, config Config) error {
 		params.Get("amount"),
 		params.Get("apptime"), params.Get("embeddata"),
 		params.Get("item"))
-	params.Add("mac", hmacutil.HexStringEncode(hmacutil.SHA256, config.key1, data))
+	params.Add("mac", hmacutil.HexStringEncode(hmacutil.SHA256, processor.key1, data))
 
 	// Content-Type: application/x-www-form-urlencoded
 	res, err := http.PostForm("https://sandbox.zalopay.com.vn/v001/tpe/createorder", params)
@@ -87,7 +86,7 @@ func InitPayment(info *model.OrderInfo, config Config) error {
 
 	body, _ := io.ReadAll(res.Body)
 
-	var result payment.ZaloPayApiResult
+	var result order.ZaloPayApiResult
 
 	if err = json.Unmarshal(body, &result); err != nil {
 		return err
@@ -95,22 +94,22 @@ func InitPayment(info *model.OrderInfo, config Config) error {
 
 	switch result.ReturnCode {
 	case 1:
-		info.PaymentInfo.Status = payment.StatusPending
+		info.PaymentInfo.Status = order.StatusPending
 	default:
-		info.PaymentInfo.Status = payment.StatusError
+		info.PaymentInfo.Status = order.StatusError
 	}
-	info.PaymentInfo.LastUpdateAt = time.Now().UnixMilli()
+	info.PaymentInfo.PaymentAt = time.Now().UnixMilli()
 
 	return nil
 }
 
-func GetPaymentStatus(paymentId string, config Config) (payment.Status, error) {
+func (processor *ZaloPaymentProcessor) GetPaymentStatus(paymentId string) (order.Status, error) {
 	params := make(url.Values)
-	params.Add("appid", config.appid)
+	params.Add("appid", processor.appid)
 	params.Add("apptransid", paymentId)
 
-	data := fmt.Sprintf("%s|%s|%s", config.appid, params.Get("apptransid"), config.key1) // appid|apptransid|key1
-	params.Add("mac", hmacutil.HexStringEncode(hmacutil.SHA256, config.key1, data))
+	data := fmt.Sprintf("%s|%s|%s", processor.appid, params.Get("apptransid"), processor.key1) // appid|apptransid|key1
+	params.Add("mac", hmacutil.HexStringEncode(hmacutil.SHA256, processor.key1, data))
 
 	res, err := http.Get("https://sandbox.zalopay.com.vn/v001/tpe/getstatusbyapptransid?" + params.Encode())
 
@@ -121,16 +120,16 @@ func GetPaymentStatus(paymentId string, config Config) (payment.Status, error) {
 
 	body, _ := io.ReadAll(res.Body)
 
-	var result payment.ZaloPayApiResult
+	var result order.ZaloPayApiResult
 
 	if err = json.Unmarshal(body, &result); err != nil {
 		return "", err
 	}
 
 	if result.ReturnCode != 1 {
-		return payment.StatusError, err
+		return order.StatusError, err
 	}
 
-	return payment.StatusApproved, nil
+	return order.StatusApproved, nil
 
 }
