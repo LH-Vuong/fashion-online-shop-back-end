@@ -1,5 +1,12 @@
 basePath: /api/
 definitions:
+  model.AddWishListModel:
+    properties:
+      product_id:
+        type: string
+    required:
+    - product_id
+    type: object
   model.CartItem:
     properties:
       color:
@@ -14,6 +21,34 @@ definitions:
         type: integer
       size:
         type: string
+    type: object
+  model.CreateUserAddressModel:
+    properties:
+      address:
+        type: string
+      district_id:
+        type: integer
+      name:
+        type: string
+      province_id:
+        type: integer
+      ward_code:
+        type: string
+    required:
+    - address
+    - district_id
+    - name
+    - province_id
+    - ward_code
+    type: object
+  model.DeleteWishListModel:
+    properties:
+      delete_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - delete_ids
     type: object
   model.Product:
     properties:
@@ -82,6 +117,7 @@ definitions:
         minLength: 8
         type: string
       password_confirm:
+        minLength: 8
         type: string
     required:
     - email
@@ -89,11 +125,31 @@ definitions:
     - password
     - password_confirm
     type: object
+  model.UpdateUserAddressModel:
+    properties:
+      address:
+        type: string
+      district_id:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      province_id:
+        type: integer
+      ward_code:
+        type: string
+    required:
+    - address
+    - district_id
+    - id
+    - name
+    - province_id
+    - ward_code
+    type: object
   model.User:
     properties:
-      avatar:
-        type: string
-      createdAt:
+      created_at:
         type: string
       email:
         type: string
@@ -101,14 +157,52 @@ definitions:
         type: string
       id:
         type: string
-      phoneNumber:
+      photo:
         type: string
       status:
         type: string
-      updatedAt:
+      updated_at:
         type: string
       verified:
         type: boolean
+    type: object
+  model.UserAddress:
+    properties:
+      created_at:
+        type: string
+      district_id:
+        type: integer
+      id:
+        type: string
+      is_default:
+        type: boolean
+      name:
+        type: string
+      province_id:
+        type: integer
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      ward_code:
+        type: string
+    type: object
+  model.UserWishlist:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      product_id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
     type: object
   request.AddItemRequest:
     properties:
@@ -145,14 +239,16 @@ definitions:
     - productId
     - quantity
     type: object
-  response.ListProductResponse:
+  response.PagingResponse-model_Product:
     properties:
-      page:
-        type: integer
-      products:
+      data:
         items:
           $ref: '#/definitions/model.Product'
         type: array
+      page:
+        type: integer
+      status:
+        type: string
       total_page:
         type: integer
     type: object
@@ -467,7 +563,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.ListProductResponse'
+            $ref: '#/definitions/response.PagingResponse-model_Product'
         "400":
           description: Bad Request
           schema:
@@ -479,6 +575,127 @@ paths:
       summary: list of product
       tags:
       - product
+  /users/address:
+    delete:
+      consumes:
+      - application/json
+      description: Detele user's address
+      parameters:
+      - description: User's address id
+        in: body
+        name: DeletedId
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserAddress'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Detele user's address
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get user's address list
+      parameters:
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.UserAddress'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get user's address list
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: create new user's address
+      parameters:
+      - description: User's address
+        in: body
+        name: CreateUserAddressModel
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateUserAddressModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserAddress'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: create user's address
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: update user's address
+      parameters:
+      - description: User's address
+        in: body
+        name: UpdateUserAddressModel
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateUserAddressModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserAddress'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: update user's address
+      tags:
+      - users
   /users/me:
     get:
       consumes:
@@ -499,9 +716,101 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: get user info
+      tags:
+      - users
+  /users/wishlist:
+    delete:
+      consumes:
+      - application/json
+      description: Detele user's wishlist item
+      parameters:
+      - description: User's wishlist item id
+        in: body
+        name: DeleteIds
+        required: true
+        schema:
+          $ref: '#/definitions/model.DeleteWishListModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Detele user's wishlist item
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get user's address list
+      parameters:
+      - in: query
+        name: page
+        required: true
+        type: integer
+      - in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.UserWishlist'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get user's address list
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: add user's wishlist item
+      parameters:
+      - description: User's wishlist item
+        in: body
+        name: AddWishListModel
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddWishListModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserWishlist'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: add user's wishlist item
       tags:
       - users
 securityDefinitions:

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"math"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
@@ -12,6 +11,8 @@ import (
 	"online_fashion_shop/api/service"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ProductController struct {
@@ -152,7 +153,7 @@ func (cl ProductController) Get(c *gin.Context) {
 //	@Param          name	  	query       string	  false    "Key work relate to products' name "
 //	@Param          page	  	query       int	   	  false    "current page's number"
 //	@Param          page_size	query       int		  false    "Length per page from '1' to '10000'"
-//	@Success		200				{object}	response.PagingResponse[*model.Product]
+//	@Success		200				{object}	response.PagingResponse[model.Product]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/products/ [get]

@@ -24,13 +24,13 @@ type UserRepository interface {
 
 	CreateWishlistItem(context.Context, *model.UserWishlist) (*model.UserWishlist, error)
 	DeleteWishlistItem(context.Context, *model.UserWishlist) (string, error)
-	GetUserWishlist(context.Context, string, int64, int64) (*[]model.UserWishlist, int64, error)
+	GetUserWishlist(context.Context, string, int64, int64) ([]*model.UserWishlist, int64, error)
 	GetUserWishlistItemByProductId(context.Context, string) (*model.UserWishlist, error)
 	GetUserWishlistItemById(context.Context, string) (*model.UserWishlist, error)
 
 	CreateUserAddress(context.Context, *model.UserAddress) (*model.UserAddress, error)
 	DeleteUserAddress(context.Context, *model.UserAddress) (string, error)
-	GetUserAddressList(context.Context, string, int64, int64) (*[]model.UserAddress, int64, error)
+	GetUserAddressList(context.Context, string, int64, int64) ([]*model.UserAddress, int64, error)
 	UpdateUserAddress(context.Context, *model.UserAddress) (*model.UserAddress, error)
 	GetUserAddressById(context.Context, string) (*model.UserAddress, error)
 }
@@ -261,7 +261,7 @@ func (r *userRepository) DeleteWishlistItem(ctx context.Context, userWislist *mo
 	return userWislist.Id, nil
 }
 
-func (r *userRepository) GetUserWishlist(ctx context.Context, userId string, page int64, pageSize int64) (wishlistItems *[]model.UserWishlist, total int64, err error) {
+func (r *userRepository) GetUserWishlist(ctx context.Context, userId string, page int64, pageSize int64) (wishlistItems []*model.UserWishlist, total int64, err error) {
 	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
@@ -313,11 +313,17 @@ func (r *userRepository) GetUserWishlistItemByProductId(ctx context.Context, pro
 }
 
 func (r *userRepository) GetUserWishlistItemById(ctx context.Context, id string) (wishlistItem *model.UserWishlist, err error) {
+	objId, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
 
-	query := bson.M{"_id": id}
+	query := bson.M{"_id": objId}
 
 	rs := r.userWishlistCollection.FindOne(ctx, query)
 
@@ -368,7 +374,7 @@ func (r *userRepository) DeleteUserAddress(ctx context.Context, userAddress *mod
 	return userAddress.Id, nil
 }
 
-func (r *userRepository) GetUserAddressList(ctx context.Context, userId string, page int64, pageSize int64) (userAddressList *[]model.UserAddress, total int64, err error) {
+func (r *userRepository) GetUserAddressList(ctx context.Context, userId string, page int64, pageSize int64) (userAddressList []*model.UserAddress, total int64, err error) {
 	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
@@ -385,7 +391,7 @@ func (r *userRepository) GetUserAddressList(ctx context.Context, userId string, 
 		return nil, 0, err
 	}
 
-	total, err = r.userCollection.CountDocuments(ctx, query)
+	total, err = r.userAddressCollection.CountDocuments(ctx, query)
 
 	if err != nil {
 		return nil, 0, err
@@ -437,11 +443,17 @@ func (r *userRepository) UpdateUserAddress(ctx context.Context, userAddress *mod
 }
 
 func (r *userRepository) GetUserAddressById(ctx context.Context, id string) (userAddress *model.UserAddress, err error) {
+	objId, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
 
-	query := bson.M{"_id": id}
+	query := bson.M{"_id": objId}
 
 	rs := r.userAddressCollection.FindOne(ctx, query)
 

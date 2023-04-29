@@ -89,11 +89,7 @@ func (uc *UserController) UpdateUserAddress(ctx *gin.Context) {
 //	@Failure		401				{object}	string
 //	@Router			/users/address [delete]
 func (uc *UserController) DeleteUserAddress(ctx *gin.Context) {
-	var deleteId string
-	if err := ctx.ShouldBindJSON(&deleteId); err != nil {
-		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
-		return
-	}
+	deleteId := ctx.PostForm("DeletedId")
 
 	uc.Service.DeleteUserAddress(ctx, deleteId)
 }
@@ -104,18 +100,83 @@ func (uc *UserController) DeleteUserAddress(ctx *gin.Context) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			GetUserAddressListModel		query		GetUserAddressListModel	true	"User's address filter"
-//	@Success		200				{object}	[]*model.UserAddress
+//	@Param			GetUserAddressListModel		query		model.GetUserAddressListModel	true	"User's address filter"
+//	@Success		200				{object}	[]model.UserAddress
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/users/address [delete]
+//	@Router			/users/address [get]
 func (uc *UserController) GetUserAddressList(ctx *gin.Context) {
 	var payload model.GetUserAddressListModel
+
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
+		return
+	}
+
+	uc.Service.GetUserAddressList(ctx, payload)
+}
+
+// Add User's Wishlist Item
+//	@Summary		add user's wishlist item
+//	@Description	add user's wishlist item
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			AddWishListModel		body		model.AddWishListModel	true	"User's wishlist item"
+//	@Success		200				{object}	model.UserWishlist
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/users/wishlist [post]
+func (uc *UserController) AddUserWishlist(ctx *gin.Context) {
+	var payload model.AddWishListModel
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
 		return
 	}
 
-	uc.Service.GetUserAddressList(ctx, payload)
+	uc.Service.AddUserWishlistItem(ctx, payload)
+}
+
+// Delete User's wishlist item
+//	@Summary		Detele user's wishlist item
+//	@Description	Detele user's wishlist item
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			DeleteIds		body		model.DeleteWishListModel	true	"User's wishlist item id"
+//	@Success		200				{object}	[]string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/users/wishlist [delete]
+func (uc *UserController) DeleteUserWishlist(ctx *gin.Context) {
+	var payload model.DeleteWishListModel
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
+		return
+	}
+
+	uc.Service.DeleteUserWishlistItems(ctx, payload)
+}
+
+// Get User's Address List
+//	@Summary		Get user's address list
+//	@Description	Get user's address list
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			GetUserAddressListModel		query		model.GetUserAddressListModel	true	"User's address filter"
+//	@Success		200				{object}	[]model.UserWishlist
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/users/wishlist [get]
+func (uc *UserController) GetUserWishlist(ctx *gin.Context) {
+	var payload model.GetUserWishlistModel
+
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
+		return
+	}
+
+	uc.Service.GetUserWishlist(ctx, payload)
 }

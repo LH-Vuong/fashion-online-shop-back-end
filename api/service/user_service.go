@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/thanhpk/randstr"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserService interface {
@@ -310,8 +312,10 @@ func (service *UserServiceImpl) AddUserWishlistItem(ctx *gin.Context, payload mo
 	existWishlistItem, err := service.userRepo.GetUserWishlistItemByProductId(ctx, payload.ProductId)
 
 	if err != nil {
-		errs.HandleErrorStatus(ctx, err, "AddUserWishlistItem")
-		return
+		if err != mongo.ErrNoDocuments {
+			errs.HandleErrorStatus(ctx, err, "AddUserWishlistItem")
+			return
+		}
 	}
 
 	if existWishlistItem != nil {
@@ -415,6 +419,8 @@ func (service *UserServiceImpl) UpdateUserAddress(ctx *gin.Context, payload mode
 		errs.HandleFailStatus(ctx, "User's Address is not existed!", http.StatusNotFound)
 		return
 	}
+
+	fmt.Print(existAddress)
 
 	existAddress.Address = payload.Address
 	existAddress.ProvinceId = payload.ProvinceId

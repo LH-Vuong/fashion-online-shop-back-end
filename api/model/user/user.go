@@ -65,8 +65,8 @@ type UpdateUserAddressModel struct {
 }
 
 type GetUserAddressListModel struct {
-	Page     int64 `json:"page" binding:"required"`
-	PageSize int64 `json:"page_size" binding:"required"`
+	Page     int64 `form:"page" binding:"required"`
+	PageSize int64 `form:"page_size" binding:"required"`
 }
 
 type SignUpModel struct {
@@ -90,8 +90,8 @@ type DeleteWishListModel struct {
 }
 
 type GetUserWishlistModel struct {
-	Page     int64 `json:"page" binding:"required"`
-	PageSize int64 `json:"page_size" binding:"required"`
+	Page     int64 `form:"page" binding:"required"`
+	PageSize int64 `form:"page_size" binding:"required"`
 }
 
 type ChangePasswordModel struct {

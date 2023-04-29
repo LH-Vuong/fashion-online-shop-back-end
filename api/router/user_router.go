@@ -3,24 +3,29 @@ package router
 import (
 	"online_fashion_shop/api/controller"
 	middleware "online_fashion_shop/api/middlewares"
+	"online_fashion_shop/api/service"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/dig"
 )
 
-type UserRouteController struct {
-	userController controller.UserController
-}
-
-func NewUserRouteController(userController controller.UserController) UserRouteController {
-	return UserRouteController{userController}
-}
-
-func (rc *UserRouteController) UserRoute(rg *gin.RouterGroup) {
-	router := rg.Group("/users")
-	router.Use(middleware.DeserializeUser())
-	router.GET("/me", rc.userController.GetMe)
-	router.GET("/address", rc.userController.GetUserAddressList)
-	router.POST("/address", rc.userController.CreateUserAddress)
-	router.PUT("/address", rc.userController.UpdateUserAddress)
-	router.DELETE("/address", rc.userController.DeleteUserAddress)
+func InitUserRouter(s *gin.Engine, c *dig.Container) {
+	err := c.Invoke(func(userService service.UserService) {
+		controller := controller.UserController{Service: userService}
+		router := s.Group("api/users")
+		{
+			router.Use(middleware.DeserializeUser())
+			router.GET("/me", controller.GetMe)
+			router.GET("/address", controller.GetUserAddressList)
+			router.POST("/address", controller.CreateUserAddress)
+			router.PUT("/address", controller.UpdateUserAddress)
+			router.DELETE("/address", controller.DeleteUserAddress)
+			router.GET("/wishlist", controller.GetUserWishlist)
+			router.POST("/wishlist", controller.AddUserWishlist)
+			router.DELETE("/wishlist", controller.DeleteUserWishlist)
+		}
+	})
+	if err != nil {
+		panic(err)
+	}
 }
