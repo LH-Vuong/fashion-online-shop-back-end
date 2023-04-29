@@ -33,6 +33,7 @@ func init() {
 }
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	server = gin.Default()
 	config, err := initializers.LoadConfig(".")
 
@@ -85,7 +86,6 @@ func main() {
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@host		127.0.0.1:8081
 //	@BasePath	/api/
 
 //	@securityDefinitions.basic	BasicAuth
