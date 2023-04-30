@@ -70,7 +70,7 @@ definitions:
         type: string
       photos:
         items:
-          $ref: '#/definitions/model.ProductPhoto'
+          type: string
         type: array
       price:
         type: integer
@@ -79,19 +79,6 @@ definitions:
           type: string
         type: array
       types:
-        items:
-          type: string
-        type: array
-    type: object
-  model.ProductPhoto:
-    properties:
-      color:
-        type: string
-      mainPhoto:
-        type: string
-      productId:
-        type: string
-      subPhotos:
         items:
           type: string
         type: array
@@ -204,6 +191,66 @@ definitions:
       user_id:
         type: string
     type: object
+  order.OrderInfo:
+    properties:
+      address:
+        type: string
+      coupon_code:
+        type: string
+      coupon_discount:
+        type: integer
+      customer_id:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/model.CartItem'
+        type: array
+      payment_info:
+        $ref: '#/definitions/payment.PaymentDetail'
+      total:
+        type: integer
+    type: object
+  payment.Method:
+    enum:
+    - ZALO_PAY
+    - COD
+    type: string
+    x-enum-varnames:
+    - ZaloPayMethod
+    - CODMethod
+  payment.PaymentDetail:
+    properties:
+      created_at:
+        type: integer
+      order_url:
+        type: string
+      payment_at:
+        type: integer
+      payment_id:
+        type: string
+      payment_method:
+        $ref: '#/definitions/payment.Method'
+      received_amount:
+        type: integer
+      status:
+        $ref: '#/definitions/payment.Status'
+      updated_at:
+        type: integer
+    type: object
+  payment.Status:
+    enum:
+    - INIT
+    - PENDING
+    - CANCEL
+    - ERROR
+    type: string
+    x-enum-varnames:
+    - StatusInit
+    - StatusPending
+    - StatusCancel
+    - StatusError
   request.AddItemRequest:
     properties:
       customer_id:
@@ -216,6 +263,15 @@ definitions:
     - customer_id
     - productId
     - quantity
+    type: object
+  request.CreateOrderRequest:
+    properties:
+      address_info:
+        type: string
+      coupon_code:
+        type: string
+      payment_method:
+        $ref: '#/definitions/payment.Method'
     type: object
   request.UpdateCartRequest:
     properties:
@@ -245,17 +301,29 @@ definitions:
         items:
           $ref: '#/definitions/model.Product'
         type: array
-      page:
+      length:
         type: integer
       status:
         type: string
-      total_page:
+      total:
+        type: integer
+    type: object
+  response.PagingResponse-order_OrderInfo:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/order.OrderInfo'
+        type: array
+      length:
+        type: integer
+      status:
+        type: string
+      total:
         type: integer
     type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
-host: 127.0.0.1:8081
 info:
   contact:
     email: 19522482@gm.uit.edu.vn
@@ -482,6 +550,69 @@ paths:
       summary: Use to validate items of cart then modify it if invalid
       tags:
       - Cart
+  /order/:
+    put:
+      consumes:
+      - application/json
+      description: Create order by customer's. Will delete all items of customer's
+        cart
+      parameters:
+      - description: access token received after login
+        in: body
+        name: OrderRequest
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/order.OrderInfo'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Creat order
+      tags:
+      - order
+  /orders/:
+    get:
+      consumes:
+      - application/json
+      description: List order by customer id
+      parameters:
+      - description: index of first item, default is 0
+        in: query
+        name: off_set
+        type: integer
+      - description: max length of response, default is 10
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PagingResponse-order_OrderInfo'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: list of customer's order
+      tags:
+      - order
   /product/{id}:
     get:
       consumes:
@@ -549,7 +680,7 @@ paths:
         in: query
         name: name
         type: string
-      - description: current page's number
+      - description: current page's number ,start at 1
         in: query
         name: page
         type: integer

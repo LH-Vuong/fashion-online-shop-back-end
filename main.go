@@ -4,6 +4,7 @@ import (
 	"log"
 	container "online_fashion_shop/api"
 	"online_fashion_shop/api/router"
+	"online_fashion_shop/api/worker"
 	_ "online_fashion_shop/docs"
 	"online_fashion_shop/initializers"
 
@@ -41,6 +42,7 @@ func main() {
 	router.SetUp(server, container)
 
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	worker.Run()
 
 	log.Fatal(server.Run(":" + config.ServerPort))
 }

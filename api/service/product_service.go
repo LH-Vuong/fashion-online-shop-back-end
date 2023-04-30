@@ -1,7 +1,6 @@
 package service
 
 import (
-	"math"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/repository"
@@ -9,13 +8,27 @@ import (
 
 type ProductService interface {
 	Get(id string) (*model.Product, error)
-	List(request request.ListProductsRequest) ([]*model.Product, int, error)
+	List(request request.ListProductsRequest) ([]*model.Product, int64, error)
 }
 
 type ProductServiceImpl struct {
 	ProductDetailRepository repository.ProductDetailRepository
 	PhotoService            PhotoService
 	ProductRatingRepository repository.ProductRatingRepository
+}
+
+func ConvertPhotosToUrls(photos []*model.ProductPhoto) []string {
+
+	var urls []string
+
+	for _, photo := range photos {
+		urls = append(urls, photo.MainPhoto)
+		for _, subPhoto := range photo.SubPhotos {
+			urls = append(urls, subPhoto)
+		}
+	}
+	return urls
+
 }
 
 func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
@@ -30,7 +43,7 @@ func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
 	}
 	product.AvrRate = avr
 	photos, err := service.PhotoService.ListByProductId(id)
-	product.Photos = photos
+	product.Photos = ConvertPhotosToUrls(photos)
 	return product, nil
 }
 
@@ -58,13 +71,13 @@ func (s *ProductServiceImpl) addPhotosToProduct(products []*model.Product) error
 
 	for _, product := range products {
 		if photos, ok := photoMap[product.Id]; ok {
-			product.Photos = photos
+			product.Photos = ConvertPhotosToUrls(photos)
 		}
 	}
 	return nil
 }
 
-func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*model.Product, int, error) {
+func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*model.Product, int64, error) {
 
 	priceRange := model.RangeValue[int64]{
 		From: productsRequest.MinPrice,
@@ -84,8 +97,8 @@ func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequ
 		return nil, 0, err
 	}
 	service.addPhotosToProduct(products)
-	numPages := int(math.Ceil(float64(totalDocs) / float64(productsRequest.PageSize)))
-	return products, numPages, nil
+
+	return products, totalDocs, nil
 }
 func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
 	productRatingRepo repository.ProductRatingRepository,

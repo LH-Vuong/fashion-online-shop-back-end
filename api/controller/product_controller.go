@@ -86,9 +86,9 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 	if pageStr := queryValues.Get("page"); pageStr != "" {
 		page, err := strconv.Atoi(pageStr)
 		if err != nil {
-			return nil, err
+			page = 1
 		}
-		req.Page = page
+		req.Page = page - 1
 	} else {
 		req.Page = 0
 	}
@@ -96,7 +96,7 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 		pageSize, err := strconv.Atoi(pageSizeStr)
 
 		if err != nil {
-			return nil, err
+			pageSize = 10
 		}
 
 		if pageSize > request.PageMaximum {
@@ -109,7 +109,7 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 
 		req.PageSize = pageSize
 	} else {
-		req.PageSize = request.PageMinimum
+		req.PageSize = 10
 	}
 
 	return &req, nil
@@ -151,7 +151,7 @@ func (cl ProductController) Get(c *gin.Context) {
 //	@Param          rate	  	query       int    	  false    "Minimum of avg rate of product"
 //	@Param          price	  	query       string	  false    "Range of values in format 'min_value,max_value' "
 //	@Param          name	  	query       string	  false    "Key work relate to products' name "
-//	@Param          page	  	query       int	   	  false    "current page's number"
+//	@Param          page	  	query       int	   	  false    "current page's number ,start at 1"
 //	@Param          page_size	query       int		  false    "Length per page from '1' to '10000'"
 //	@Success		200				{object}	response.PagingResponse[model.Product]
 //	@Failure		400				{object}	string
@@ -164,16 +164,16 @@ func (cl ProductController) List(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	products, totalPages, err := cl.Service.List(*req)
+	products, total, err := cl.Service.List(*req)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	c.JSON(200, response.PagingResponse[*model.Product]{
-		TotalPage: totalPages,
-		Page:      req.Page,
-		Status:    "success",
-		Data:      products,
+		Total:  total,
+		Length: len(products),
+		Status: "success",
+		Data:   products,
 	})
 }

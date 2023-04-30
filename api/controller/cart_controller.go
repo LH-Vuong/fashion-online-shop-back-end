@@ -144,7 +144,7 @@ func (controller CartController) Delete(c *gin.Context) {
 //	@Router			/cart/checkout [get]
 func (controller CartController) CheckOut(c *gin.Context) {
 	customerId := c.Param("customer_id")
-	soldItemIds, err := controller.Service.CheckOut(customerId)
+	soldItemIds, err := controller.Service.CheckOutAndDelete(customerId)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
