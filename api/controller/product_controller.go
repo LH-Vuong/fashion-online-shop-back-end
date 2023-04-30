@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"math"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
@@ -12,6 +11,8 @@ import (
 	"online_fashion_shop/api/service"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ProductController struct {

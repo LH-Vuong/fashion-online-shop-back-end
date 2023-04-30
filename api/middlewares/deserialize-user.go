@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
@@ -10,12 +11,13 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func DeserializeUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var access_token string
-		fmt.Println(ctx.Cookie("access_token"))
 		cookie, err := ctx.Cookie("access_token")
 
 		authorizationHeader := ctx.Request.Header.Get("Authorization")
@@ -39,14 +41,46 @@ func DeserializeUser() gin.HandlerFunc {
 			return
 		}
 
-		var user model.User
-		result := initializers.DB.First(&user, "id = ?", fmt.Sprint(sub))
-		if result.Error != nil {
-			errs.HandleFailStatus(ctx, "The user belonging to this token no logger exists", http.StatusForbidden)
+		user, err := getUserById(ctx, fmt.Sprint(sub), config)
+
+		if err != nil {
+			errs.HandleFailStatus(ctx, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		ctx.Set("currentUser", user)
+		ctx.Set("currentUser", *user)
 		ctx.Next()
 	}
+}
+
+func getUserById(ctx context.Context, userId string, config initializers.Config) (user *model.User, err error) {
+	var cl initializers.Client
+
+	cl, err = initializers.NewClient(config.MongoUrl)
+
+	if err != nil {
+		return nil, err
+	}
+
+	userCollection := cl.Database("fashion_shop").Collection("user")
+
+	objId, err := primitive.ObjectIDFromHex(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ct, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	rs := userCollection.FindOne(ct, bson.M{"_id": objId})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = rs.Decode(&user)
+
+	return
 }
