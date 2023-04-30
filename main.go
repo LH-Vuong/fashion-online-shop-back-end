@@ -7,6 +7,7 @@ import (
 	repository "online_fashion_shop/api/repository/user"
 	"online_fashion_shop/api/router"
 	"online_fashion_shop/api/service"
+	"online_fashion_shop/api/worker"
 	_ "online_fashion_shop/docs"
 	"online_fashion_shop/initializers"
 
@@ -40,7 +41,7 @@ func main() {
 		log.Fatal("🚀 Could not load environment variables", err)
 	}
 
-	initializers.ConnectDB(&config)
+	//initializers.ConnectDB(&config)
 
 	corConfig := cors.DefaultConfig()
 	corConfig.AllowOrigins = []string{"http://localhost:8081"}
@@ -49,7 +50,6 @@ func main() {
 	corConfig.AllowHeaders = []string{"Origin", "Content-Type"}
 
 	server.Use(cors.New(corConfig))
-
 	r := server.Group("api")
 
 	userRepo = repository.NewUserRepository(initializers.DB)
@@ -69,6 +69,7 @@ func main() {
 	router.SetUp(server, container)
 
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	worker.Run()
 
 	log.Fatal(server.Run(":" + config.ServerPort))
 }

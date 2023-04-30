@@ -1,7 +1,6 @@
 package service
 
 import (
-	"math"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/repository"
@@ -9,7 +8,7 @@ import (
 
 type ProductService interface {
 	Get(id string) (*model.Product, error)
-	List(request request.ListProductsRequest) ([]*model.Product, int, error)
+	List(request request.ListProductsRequest) ([]*model.Product, int64, error)
 }
 
 type ProductServiceImpl struct {
@@ -64,7 +63,7 @@ func (s *ProductServiceImpl) addPhotosToProduct(products []*model.Product) error
 	return nil
 }
 
-func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*model.Product, int, error) {
+func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*model.Product, int64, error) {
 
 	priceRange := model.RangeValue[int64]{
 		From: productsRequest.MinPrice,
@@ -84,8 +83,8 @@ func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequ
 		return nil, 0, err
 	}
 	service.addPhotosToProduct(products)
-	numPages := int(math.Ceil(float64(totalDocs) / float64(productsRequest.PageSize)))
-	return products, numPages, nil
+
+	return products, totalDocs, nil
 }
 func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
 	productRatingRepo repository.ProductRatingRepository,

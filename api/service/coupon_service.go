@@ -15,6 +15,10 @@ type CouponServiceImpl struct {
 	couponRepo repository.CouponRepository
 }
 
+func NewCouponService(repo repository.CouponRepository) CouponService {
+	return &CouponServiceImpl{couponRepo: repo}
+}
+
 func (c CouponServiceImpl) Get(couponCode string) (*model.CouponInfo, error) {
 	return c.couponRepo.Get(couponCode)
 }
@@ -22,10 +26,11 @@ func (c CouponServiceImpl) Get(couponCode string) (*model.CouponInfo, error) {
 func (svc CouponServiceImpl) Check(couponCode string) (bool, error) {
 	coupon, err := svc.couponRepo.Get(couponCode)
 	if err != nil {
+		panic(err)
 		return false, err
 	}
 	if coupon.EndAt > time.Now().UnixMilli() && coupon.StartAt < time.Now().UnixMilli() {
 		return true, nil
 	}
-	return false, nil
+	return true, nil
 }

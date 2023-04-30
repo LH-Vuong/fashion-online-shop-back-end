@@ -3,7 +3,7 @@ package middleware
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"online_fashion_shop/initializers/payment"
+	"online_fashion_shop/initializers/zalopay"
 )
 
 func ValidateZaloPayCallback(ctx *gin.Context) {
@@ -14,7 +14,7 @@ func ValidateZaloPayCallback(ctx *gin.Context) {
 	}
 	mac := cbData["mac"].(string)
 	dataStr := cbData["data"].(string)
-	err = payment.IsValidCallback(mac, dataStr, "key2")
+	err = zalopay.IsValidCallback(mac, dataStr, "key2")
 	if err != nil {
 		return
 	}

@@ -163,16 +163,16 @@ func (cl ProductController) List(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	products, totalPages, err := cl.Service.List(*req)
+	products, total, err := cl.Service.List(*req)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	c.JSON(200, response.PagingResponse[*model.Product]{
-		TotalPage: totalPages,
-		Page:      req.Page,
-		Status:    "success",
-		Data:      products,
+		Total:  total,
+		Length: len(products),
+		Status: "success",
+		Data:   products,
 	})
 }

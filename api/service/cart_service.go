@@ -130,7 +130,12 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartI
 			//with item not found product quantity will be fill by empty values
 			continue
 		}
-		item.ProductDetail = *productDetailMap[productQuantity.DetailId]
+
+		if detailId, ok := productDetailMap[productQuantity.DetailId]; ok {
+			item.ProductDetail = *detailId
+
+		}
+
 		item.Color = productQuantity.Color
 		item.Size = productQuantity.Size
 	}

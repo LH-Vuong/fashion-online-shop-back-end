@@ -2,10 +2,12 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/order"
+	"online_fashion_shop/api/model/payment"
 	"online_fashion_shop/api/repository"
-	"online_fashion_shop/initializers/payment"
+	"online_fashion_shop/initializers/zalopay"
 	"time"
 )
 
@@ -13,24 +15,38 @@ type OrderService interface {
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
-	Create(customerID string, paymentMethod order.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error)
+	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error)
 
 	// ListByCustomerID Get list of orders (order history of customer)
-	ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int, error)
+	ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int64, error)
 
-	UpdatePaymentStatus(paymentId string, callbackData map[string]any, handle CallbackHandle) error
+	UpdateWithCallbackData(paymentId string, callbackData map[string]any, handle CallbackHandle) error
 }
 
 type OrderServiceImpl struct {
 	CouponService CouponService
 	CartService   CartService
 	OrderRepo     repository.OrderRepository
-	Processor     payment.Processor
+	Processor     zalopay.Processor
+}
+
+func NewOrderServiceImpl(couponService CouponService,
+	cartService CartService,
+	orderRepo repository.OrderRepository,
+	processor zalopay.Processor) OrderService {
+
+	//worker.AddTask(2, UpdateOrderTask, orderRepo, processor)
+	return &OrderServiceImpl{
+		CouponService: couponService,
+		CartService:   cartService,
+		OrderRepo:     orderRepo,
+		Processor:     processor,
+	}
 }
 
 type CallbackHandle func(info *order.OrderInfo, data map[string]any) error
 
-func (svc *OrderServiceImpl) UpdatePaymentStatus(paymentId string, data map[string]any, handle CallbackHandle) error {
+func (svc *OrderServiceImpl) UpdateWithCallbackData(paymentId string, data map[string]any, handle CallbackHandle) error {
 
 	orderInfo, err := svc.OrderRepo.GetOneByPaymentId(paymentId)
 	if err != nil {
@@ -46,7 +62,7 @@ func (svc *OrderServiceImpl) UpdatePaymentStatus(paymentId string, data map[stri
 	return nil
 }
 
-func (svc *OrderServiceImpl) Create(customerID string, paymentMethod order.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error) {
+func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error) {
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
@@ -77,10 +93,9 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod order.Metho
 	if err != nil {
 		return nil, err
 	}
-	paymentInfo := order.PaymentDetail{
-		Id:            "",
-		OrderId:       "",
-		Status:        order.StatusInit,
+	paymentInfo := payment.PaymentDetail{
+		PaymentId:     "",
+		Status:        payment.StatusInit,
 		OrderUrl:      nil,
 		CreatedAt:     time.Now().UnixMilli(),
 		PaymentMethod: paymentMethod,
@@ -89,18 +104,29 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod order.Metho
 	orderInfo := order.OrderInfo{
 		CustomerId:     customerID,
 		Address:        addressInfo,
-		CouponCode:     *couponCode,
+		CouponCode:     couponCode,
 		CouponDiscount: coupon.DiscountAmount,
 		TotalPrice:     total,
 		Items:          cartItems,
 		PaymentInfo:    &paymentInfo,
 	}
 
-	svc.Processor.InitPayment(&orderInfo)
+	if paymentMethod == payment.ZaloPayMethod {
+		err = svc.Processor.InitPayment(&orderInfo)
+	}
+	if paymentMethod == payment.CODMethod {
+		orderInfo.PaymentInfo.PaymentMethod = paymentMethod
+		orderInfo.PaymentInfo.Status = payment.StatusApproved
+	}
 
 	if err != nil {
 		orderInfo.PaymentInfo.PaymentAt = time.Now().UnixMilli()
-		orderInfo.PaymentInfo.Status = order.StatusError
+		orderInfo.PaymentInfo.Status = payment.StatusError
+	} else {
+		err := svc.CartService.DeleteAll(customerID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return svc.OrderRepo.Create(orderInfo)
@@ -136,7 +162,7 @@ func calculateTotal(items []*model.CartItem, coupon *model.CouponInfo) (int64, e
 		if coupon.DiscountAmount > 0 {
 			total -= coupon.DiscountAmount
 		} else if coupon.DiscountPercent > 0 {
-			total *= int64(1.0 - coupon.DiscountPercent/100.0)
+			total *= int64(1.0 - coupon.DiscountPercent)
 		}
 	}
 
@@ -147,6 +173,29 @@ func calculateTotal(items []*model.CartItem, coupon *model.CouponInfo) (int64, e
 	return total, nil
 }
 
-func (svc *OrderServiceImpl) ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int, error) {
+func (svc *OrderServiceImpl) ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int64, error) {
 	return svc.OrderRepo.ListByCustomerId(customerID, limit, offset)
+}
+
+func UpdateOrderTask(orderRepo repository.OrderRepository, processor zalopay.Processor) {
+
+	orders, err := orderRepo.ListPendingOrder()
+	if err != nil {
+		log.Println("Error When svc.OrderRepo.ListPendingOrder")
+	}
+	for _, orderInfo := range orders {
+		if orderInfo.PaymentInfo.PaymentMethod == payment.ZaloPayMethod {
+			status, err := processor.GetPaymentStatus(orderInfo.PaymentInfo.PaymentId)
+			if err != nil {
+				log.Println("Error When svc.Processor.GetPaymentStatus")
+			}
+			orderInfo.PaymentInfo.Status = status
+			err = orderRepo.Update(*orderInfo)
+			if err != nil {
+				log.Println("Error When err = orderRepo.Update(*orderInfo)")
+			}
+		}
+
+	}
+
 }
