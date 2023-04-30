@@ -7,6 +7,7 @@ import (
 	"online_fashion_shop/api/model/order"
 	"online_fashion_shop/api/model/payment"
 	"online_fashion_shop/api/repository"
+	"online_fashion_shop/api/worker"
 	"online_fashion_shop/initializers/zalopay"
 	"time"
 )
@@ -35,7 +36,7 @@ func NewOrderServiceImpl(couponService CouponService,
 	orderRepo repository.OrderRepository,
 	processor zalopay.Processor) OrderService {
 
-	//worker.AddTask(2, UpdateOrderTask, orderRepo, processor)
+	worker.AddTask(15*60, UpdateOrderTask, orderRepo, processor)
 	return &OrderServiceImpl{
 		CouponService: couponService,
 		CartService:   cartService,

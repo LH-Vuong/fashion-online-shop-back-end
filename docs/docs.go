@@ -346,6 +346,101 @@ const docTemplate = `{
                 }
             }
         },
+        "/order/": {
+            "put": {
+                "description": "Create order by customer's. Will delete all items of customer's cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Creat order",
+                "parameters": [
+                    {
+                        "description": "access token received after login",
+                        "name": "OrderRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/order.OrderInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/": {
+            "get": {
+                "description": "List order by customer id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "list of customer's order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "index of first item, default is 0",
+                        "name": "off_set",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "max length of response, default is 10",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PagingResponse-order_OrderInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/product/{id}": {
             "get": {
                 "description": "get the product info",
@@ -454,7 +549,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "current page's number",
+                        "description": "current page's number ,start at 1",
                         "name": "page",
                         "in": "query"
                     },
@@ -469,7 +564,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.ListProductResponse"
+                            "$ref": "#/definitions/response.PagingResponse-model_Product"
                         }
                     },
                     "400": {
@@ -582,7 +677,7 @@ const docTemplate = `{
                 "photos": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ProductPhoto"
+                        "type": "string"
                     }
                 },
                 "price": {
@@ -595,26 +690,6 @@ const docTemplate = `{
                     }
                 },
                 "types": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "model.ProductPhoto": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "mainPhoto": {
-                    "type": "string"
-                },
-                "productId": {
-                    "type": "string"
-                },
-                "subPhotos": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -694,6 +769,93 @@ const docTemplate = `{
                 }
             }
         },
+        "order.OrderInfo": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "coupon_code": {
+                    "type": "string"
+                },
+                "coupon_discount": {
+                    "type": "integer"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CartItem"
+                    }
+                },
+                "payment_info": {
+                    "$ref": "#/definitions/payment.PaymentDetail"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "payment.Method": {
+            "type": "string",
+            "enum": [
+                "ZALO_PAY",
+                "COD"
+            ],
+            "x-enum-varnames": [
+                "ZaloPayMethod",
+                "CODMethod"
+            ]
+        },
+        "payment.PaymentDetail": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "integer"
+                },
+                "order_url": {
+                    "type": "string"
+                },
+                "payment_at": {
+                    "type": "integer"
+                },
+                "payment_id": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "$ref": "#/definitions/payment.Method"
+                },
+                "received_amount": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/payment.Status"
+                },
+                "updated_at": {
+                    "type": "integer"
+                }
+            }
+        },
+        "payment.Status": {
+            "type": "string",
+            "enum": [
+                "INIT",
+                "PENDING",
+                "CANCEL",
+                "ERROR"
+            ],
+            "x-enum-varnames": [
+                "StatusInit",
+                "StatusPending",
+                "StatusCancel",
+                "StatusError"
+            ]
+        },
         "request.AddItemRequest": {
             "type": "object",
             "required": [
@@ -710,6 +872,20 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.CreateOrderRequest": {
+            "type": "object",
+            "properties": {
+                "address_info": {
+                    "type": "string"
+                },
+                "coupon_code": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "$ref": "#/definitions/payment.Method"
                 }
             }
         },
@@ -746,19 +922,42 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ListProductResponse": {
+        "response.PagingResponse-model_Product": {
             "type": "object",
             "properties": {
-                "page": {
-                    "type": "integer"
-                },
-                "products": {
+                "data": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Product"
                     }
                 },
-                "total_page": {
+                "length": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PagingResponse-order_OrderInfo": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderInfo"
+                    }
+                },
+                "length": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total": {
                     "type": "integer"
                 }
             }

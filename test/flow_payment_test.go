@@ -46,6 +46,13 @@ func TestFlow(t *testing.T) {
 		cartService.Add(customerId, item2)
 	})
 
+	t.Run("List", func(t *testing.T) {
+		_, _, err := orderRepo.ListByCustomerId(customerId, 10, 0)
+		if err != nil {
+			t.Errorf("false")
+		}
+	})
+
 	t.Run("Create Order", func(t *testing.T) {
 		info, err := orderService.Create(customerId, payment.ZaloPayMethod, "KHU_A", &couponCode)
 		if err != nil {

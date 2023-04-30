@@ -17,6 +17,20 @@ type ProductServiceImpl struct {
 	ProductRatingRepository repository.ProductRatingRepository
 }
 
+func ConvertPhotosToUrls(photos []*model.ProductPhoto) []string {
+
+	var urls []string
+
+	for _, photo := range photos {
+		urls = append(urls, photo.MainPhoto)
+		for _, subPhoto := range photo.SubPhotos {
+			urls = append(urls, subPhoto)
+		}
+	}
+	return urls
+
+}
+
 func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
 
 	product, err := service.ProductDetailRepository.Get(id)
@@ -29,7 +43,7 @@ func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
 	}
 	product.AvrRate = avr
 	photos, err := service.PhotoService.ListByProductId(id)
-	product.Photos = photos
+	product.Photos = ConvertPhotosToUrls(photos)
 	return product, nil
 }
 
@@ -57,7 +71,7 @@ func (s *ProductServiceImpl) addPhotosToProduct(products []*model.Product) error
 
 	for _, product := range products {
 		if photos, ok := photoMap[product.Id]; ok {
-			product.Photos = photos
+			product.Photos = ConvertPhotosToUrls(photos)
 		}
 	}
 	return nil

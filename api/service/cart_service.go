@@ -98,6 +98,10 @@ func (service *CartServiceImpl) ListInvalidCartItem(customerId string) ([]string
 }
 func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartItem, err error) {
 	cartItems, err = service.cartRepo.ListByCustomerId(customerId)
+
+	if len(cartItems) == 0 {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

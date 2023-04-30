@@ -83,9 +83,9 @@ func (repo *OrderRepositoryImpl) ListByCustomerId(customerID string, limit int, 
 	defer cursor.Close(ctx)
 
 	// Decode the orders into order.OrderInfo objects.
-	orders := make([]*order.OrderInfo, 0, limit)
+	orders := make([]*order.OrderInfo, limit)
 
-	err = cursor.All(ctx, orders)
+	err = cursor.All(ctx, &orders)
 
 	if err != nil {
 		return nil, 0, err
