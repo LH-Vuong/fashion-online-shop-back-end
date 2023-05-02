@@ -28,10 +28,11 @@ func main() {
 	}
 
 	corConfig := cors.DefaultConfig()
-	corConfig.AllowOrigins = []string{"http://localhost:8081,http://localhost:3000"}
+	corConfig.AllowOrigins = []string{"*"}
 	corConfig.AllowMethods = []string{"*"}
+	corConfig.AllowHeaders = []string{"*"}
+
 	corConfig.AllowCredentials = true
-	corConfig.AllowHeaders = []string{"Origin", "Content-Type"}
 
 	server.Use(cors.New(corConfig))
 
