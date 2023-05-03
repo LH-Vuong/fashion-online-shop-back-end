@@ -5,6 +5,7 @@ import (
 	"online_fashion_shop/api/common/errs"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/request"
+	"online_fashion_shop/api/model/response"
 	"online_fashion_shop/api/service"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +59,7 @@ func (controller CartController) Update(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Success		200				{object}	[]model.CartItem
+//	@Success		200				{object}	response.BaseResponse[[]model.CartItem]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart [get]
@@ -69,7 +70,11 @@ func (controller CartController) Get(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	} else {
-		c.JSON(200, gin.H{"status": "success", "data": cartItems})
+		c.JSON(200, response.BaseResponse[[]*model.CartItem]{
+			Data:    cartItems,
+			Message: "",
+			Status:  "success",
+		})
 	}
 }
 
