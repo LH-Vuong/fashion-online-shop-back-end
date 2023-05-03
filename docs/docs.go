@@ -161,6 +161,39 @@ const docTemplate = `{
             }
         },
         "/cart": {
+            "get": {
+                "description": "get List cart item by access_token of user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "List customer's cart item",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_model_CartItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "add item to cart, return info of added item",
                 "consumes": [
@@ -969,7 +1002,7 @@ const docTemplate = `{
                 "product_detail": {
                     "$ref": "#/definitions/model.Product"
                 },
-                "product_id": {
+                "product_quantity_id": {
                     "type": "string"
                 },
                 "quantity": {
@@ -1380,6 +1413,23 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.BaseResponse-array_model_CartItem": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CartItem"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
