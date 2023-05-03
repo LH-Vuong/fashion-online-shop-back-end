@@ -15,7 +15,7 @@ definitions:
         type: string
       product_detail:
         $ref: '#/definitions/model.Product'
-      product_id:
+      product_quantity_id:
         type: string
       quantity:
         type: integer
@@ -457,6 +457,30 @@ paths:
           schema:
             type: string
       summary: delete card item of customer cart
+      tags:
+      - Cart
+    get:
+      consumes:
+      - application/json
+      description: get List cart item by access_token of user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.CartItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List customer's cart item
       tags:
       - Cart
     post:

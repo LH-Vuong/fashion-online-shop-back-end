@@ -53,16 +53,15 @@ func (controller CartController) Update(c *gin.Context) {
 
 // Get Cart Items of User
 //
-//	@Summary		get cart item
-//	@Description	get cart item by customer's id
+//	@Summary		List customer's cart item
+//	@Description	get List cart item by access_token of user
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          customer_token   path       string    true    "access token received after login"
 //	@Success		200				{object}	[]model.CartItem
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/product/{id} [get]
+//	@Router			/cart [get]
 func (controller CartController) Get(c *gin.Context) {
 	cartItems, err := controller.Service.Get(c.Param("customer_id"))
 
