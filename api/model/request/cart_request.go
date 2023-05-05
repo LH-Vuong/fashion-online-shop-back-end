@@ -1,10 +1,12 @@
 package request
 
-import "online_fashion_shop/api/model"
+import (
+	"online_fashion_shop/api/model/cart"
+)
 
 type CartRequest struct {
-	CustomerId string           `json:"customer_id" binding:"required"`
-	Items      []model.CartItem `json:"items" binding:"required"`
+	CustomerId string          `json:"customer_id" binding:"required"`
+	Items      []cart.CartItem `json:"items" binding:"required"`
 }
 
 type UpdateCartRequest struct {
@@ -24,7 +26,7 @@ type UpdateItem struct {
 }
 
 type CartCheckOutRequest struct {
-	IsReady        bool             `json:"is_ready"`
-	BackOrderItems []model.CartItem `json:"able_to_order"`
-	FunFilledItems []model.CartItem `json:"fun_filled_items"`
+	IsReady        bool            `json:"is_ready"`
+	BackOrderItems []cart.CartItem `json:"able_to_order"`
+	FunFilledItems []cart.CartItem `json:"fun_filled_items"`
 }

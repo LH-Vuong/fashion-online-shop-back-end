@@ -1,4 +1,4 @@
-package model
+package coupon
 
 type CouponInfo struct {
 	Code            string  `json:"code" bson:"code"`

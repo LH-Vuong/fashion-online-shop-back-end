@@ -1,4 +1,4 @@
-package model
+package rating
 
 type AvrRate struct {
 	ProductId string  `bson:"_id"`

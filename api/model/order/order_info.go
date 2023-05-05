@@ -1,7 +1,7 @@
 package order
 
 import (
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/cart"
 	"online_fashion_shop/api/model/payment"
 )
 
@@ -13,5 +13,5 @@ type OrderInfo struct {
 	CouponDiscount int64                  `bson:"coupon_discount,omitempty"json:"coupon_discount"`
 	PaymentInfo    *payment.PaymentDetail `json:"payment_info" bson:"payment_info,omitempty"`
 	TotalPrice     int64                  `bson:"total,omitempty" json:"total"`
-	Items          []*model.CartItem      `json:"items"bson:"items,omitempty"`
+	Items          []*cart.CartItem       `json:"items"bson:"items,omitempty"`
 }

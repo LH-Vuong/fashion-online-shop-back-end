@@ -1,13 +1,13 @@
 package service
 
 import (
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/api/repository"
 )
 
 type PhotoService interface {
-	ListByMultiProductId(productIds []string) (map[string][]*model.ProductPhoto, error)
-	ListByProductId(productId string) ([]*model.ProductPhoto, error)
+	ListByMultiProductId(productIds []string) (map[string][]*product.ProductPhoto, error)
+	ListByProductId(productId string) ([]*product.ProductPhoto, error)
 }
 
 type PhotoServiceImpl struct {
@@ -20,9 +20,9 @@ func NewPhotoServiceImpl(photoRepo repository.ProductPhotoRepository) PhotoServi
 	}
 }
 
-func (p PhotoServiceImpl) ListByMultiProductId(productIds []string) (map[string][]*model.ProductPhoto, error) {
+func (p PhotoServiceImpl) ListByMultiProductId(productIds []string) (map[string][]*product.ProductPhoto, error) {
 
-	photoMap := make(map[string][]*model.ProductPhoto, len(productIds))
+	photoMap := make(map[string][]*product.ProductPhoto, len(productIds))
 	photos, err := p.PhotoRepo.ListByMultiProductId(productIds)
 	if err != nil {
 		return nil, err
@@ -34,6 +34,6 @@ func (p PhotoServiceImpl) ListByMultiProductId(productIds []string) (map[string]
 	return photoMap, nil
 }
 
-func (p PhotoServiceImpl) ListByProductId(productId string) ([]*model.ProductPhoto, error) {
+func (p PhotoServiceImpl) ListByProductId(productId string) ([]*product.ProductPhoto, error) {
 	return p.PhotoRepo.ListByProductId(productId)
 }

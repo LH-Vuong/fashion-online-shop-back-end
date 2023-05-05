@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	container "online_fashion_shop/api"
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/cart"
 	"online_fashion_shop/api/model/payment"
 	"online_fashion_shop/api/repository"
 	"online_fashion_shop/api/service"
@@ -26,14 +26,14 @@ func TestFlow(t *testing.T) {
 	var orderRepo repository.OrderRepository
 	container.Inject(&orderRepo)
 	var paymentID string
-	item1 := model.CartItem{
+	item1 := cart.CartItem{
 		CustomerId: customerId,
 		ProductId:  "642965d8d2aea624550b98ce",
 		Quantity:   10,
 		Color:      "RED",
 		Size:       "XXL",
 	}
-	item2 := model.CartItem{
+	item2 := cart.CartItem{
 		CustomerId: customerId,
 		ProductId:  "643909b67f100dc4309bcd71",
 		Quantity:   10,

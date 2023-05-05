@@ -1,4 +1,6 @@
-package model
+package product
+
+import "online_fashion_shop/api/model"
 
 type ProductSearchOption struct {
 	Ids         []string
@@ -7,7 +9,7 @@ type ProductSearchOption struct {
 	Brands      []string
 	ProductType []string
 	Gender      []string
-	PriceRange  RangeValue[int64]
+	PriceRange  model.RangeValue[int64]
 	StartAt     int
 	Length      int
 }

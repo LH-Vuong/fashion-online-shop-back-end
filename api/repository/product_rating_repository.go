@@ -2,6 +2,7 @@ package repository
 
 import (
 	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/rating"
 	"online_fashion_shop/initializers"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -10,16 +11,16 @@ import (
 )
 
 type ProductRatingRepository interface {
-	GetAvr(productId string) (model.AvrRate, error)
-	List(productIds []string, value model.RangeValue[int]) ([]model.Rating, error)
-	ListWithAvrRate(productIds []string) ([]model.AvrRate, error)
+	GetAvr(productId string) (rating.AvrRate, error)
+	List(productIds []string, value model.RangeValue[int]) ([]rating.Rating, error)
+	ListWithAvrRate(productIds []string) ([]rating.AvrRate, error)
 }
 
 type ProductRatingRepositoryImpl struct {
 	ratingCollection initializers.Collection
 }
 
-func (repository *ProductRatingRepositoryImpl) GetAvr(productId string) (avr model.AvrRate, err error) {
+func (repository *ProductRatingRepositoryImpl) GetAvr(productId string) (avr rating.AvrRate, err error) {
 
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
@@ -42,7 +43,7 @@ func (repository *ProductRatingRepositoryImpl) GetAvr(productId string) (avr mod
 	return
 }
 
-func (repository *ProductRatingRepositoryImpl) ListWithAvrRate(productIds []string) (ratings []model.AvrRate, err error) {
+func (repository *ProductRatingRepositoryImpl) ListWithAvrRate(productIds []string) (ratings []rating.AvrRate, err error) {
 
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
@@ -61,7 +62,7 @@ func (repository *ProductRatingRepositoryImpl) ListWithAvrRate(productIds []stri
 	return
 }
 
-func (repository *ProductRatingRepositoryImpl) List(productIds []string, value model.RangeValue[int]) (ratings []model.Rating, err error) {
+func (repository *ProductRatingRepositoryImpl) List(productIds []string, value model.RangeValue[int]) (ratings []rating.Rating, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 

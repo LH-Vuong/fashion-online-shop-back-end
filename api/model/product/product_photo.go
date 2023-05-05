@@ -1,4 +1,4 @@
-package model
+package product
 
 type ProductPhoto struct {
 	MainPhoto string   `bson:"main_photo"`

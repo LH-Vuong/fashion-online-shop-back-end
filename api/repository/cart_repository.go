@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/cart"
 	"online_fashion_shop/initializers"
 	"time"
 
@@ -11,13 +11,13 @@ import (
 )
 
 type CartRepository interface {
-	Create(customerId string, item model.CartItem) (string, error)
-	MultiCreate(customerId string, items []model.CartItem) ([]string, error)
-	ListByCustomerId(customerId string) ([]*model.CartItem, error)
-	GetBySearchOption(searchOption CartSearchOption) (*model.CartItem, error)
+	Create(customerId string, item cart.CartItem) (string, error)
+	MultiCreate(customerId string, items []cart.CartItem) ([]string, error)
+	ListByCustomerId(customerId string) ([]*cart.CartItem, error)
+	GetBySearchOption(searchOption CartSearchOption) (*cart.CartItem, error)
 	DeleteByCustomerId(customerId string) error
 	DeleteOne(customerId string, productId string) error
-	Update(customerId string, cartItem model.CartItem) error
+	Update(customerId string, cartItem cart.CartItem) error
 	DeleteAll(customerId string, productIds []string) error
 }
 
@@ -59,7 +59,7 @@ func NewCartRepositoryImpl(cartCollection initializers.Collection) CartRepositor
 }
 
 // Create inserts a new CartItem into the cartCollection
-func (cri *CartRepositoryImpl) Create(customerID string, item model.CartItem) (string, error) {
+func (cri *CartRepositoryImpl) Create(customerID string, item cart.CartItem) (string, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	item.CustomerId = customerID
@@ -74,7 +74,7 @@ func (cri *CartRepositoryImpl) Create(customerID string, item model.CartItem) (s
 }
 
 // MultiCreate inserts multiple CartItems into the cartCollection
-func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []model.CartItem) ([]string, error) {
+func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []cart.CartItem) ([]string, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	var documents []interface{}
@@ -96,11 +96,11 @@ func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []model.Cart
 }
 
 // ListByCustomerId fetches all CartItems associated with a customerID
-func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]*model.CartItem, error) {
+func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]*cart.CartItem, error) {
 
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	var cartItems []*model.CartItem
+	var cartItems []*cart.CartItem
 	query := bson.M{"customer_id": customerID}
 	cursor, err := cri.cartCollection.Find(ctx, query)
 	if err != nil {
@@ -115,10 +115,10 @@ func (cri *CartRepositoryImpl) ListByCustomerId(customerID string) ([]*model.Car
 }
 
 // GetBySearchOption fetches a CartItem based on a CartSearchOption object
-func (cri *CartRepositoryImpl) GetBySearchOption(searchOption CartSearchOption) (*model.CartItem, error) {
+func (cri *CartRepositoryImpl) GetBySearchOption(searchOption CartSearchOption) (*cart.CartItem, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	var cartItem *model.CartItem
+	var cartItem *cart.CartItem
 	query := searchOption.ToQuery()
 	err := cri.cartCollection.FindOne(ctx, query).Decode(&cartItem)
 	if err != nil {
@@ -141,7 +141,7 @@ func (cri *CartRepositoryImpl) DeleteByCustomerId(customerID string) error {
 }
 
 // Update updates a CartItem in the cartCollection
-func (cri *CartRepositoryImpl) Update(customerID string, cartItem model.CartItem) error {
+func (cri *CartRepositoryImpl) Update(customerID string, cartItem cart.CartItem) error {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	cartItem.UpdatedAt = time.Now().UnixMilli()
