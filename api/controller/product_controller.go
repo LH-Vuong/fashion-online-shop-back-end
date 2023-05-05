@@ -181,3 +181,58 @@ func (cl ProductController) List(c *gin.Context) {
 		Data:   products,
 	})
 }
+
+// Create
+//
+//	@Summary		create a new product
+//	@Description	create a new product and return created result
+//	@Tags			product
+//	@Accept			json
+//	@Produce		json
+//	@Param          request     		body       product.Product   true    "info of created product"
+//	@Success		200				{object}	response.BaseResponse[product.Product]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/product [put]
+func (cl ProductController) Create(c *gin.Context) {
+	var createdProduct product.Product
+	c.BindJSON(&createdProduct)
+	rs, err := cl.Service.Create(createdProduct)
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, response.BaseResponse[product.Product]{
+		Data:    *rs,
+		Message: "created one",
+		Status:  "success",
+	})
+}
+
+// Update
+//
+//	@Summary		update info of product
+//	@Description	provide fields will be updated, fields don't provide will be omitted , and updated result
+//	@Tags			product
+//	@Accept			json
+//	@Produce		json
+//	@Param          request     		body       product.Product   true    "fields want to update with provided value"
+//	@Success		200				{object}	response.BaseResponse[product.Product]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/product [post]
+func (cl ProductController) Update(c *gin.Context) {
+	var updateProduct product.Product
+	c.BindJSON(&updateProduct)
+	rs, err := cl.Service.Update(updateProduct)
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, response.BaseResponse[product.Product]{
+		Data:    *rs,
+		Message: "updated one",
+		Status:  "success",
+	})
+
+}

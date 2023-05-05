@@ -5,11 +5,14 @@ import (
 	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/repository"
+	"time"
 )
 
 type ProductService interface {
 	Get(id string) (*product.Product, error)
 	List(request request.ListProductsRequest) ([]*product.Product, int64, error)
+	Update(updateInfo product.Product) (*product.Product, error)
+	Create(productInfo product.Product) (*product.Product, error)
 }
 
 type ProductServiceImpl struct {
@@ -31,6 +34,18 @@ func ConvertPhotosToUrls(photos []*product.ProductPhoto) []string {
 	}
 	return urls
 
+}
+
+func (service *ProductServiceImpl) Update(updateInfo product.Product) (*product.Product, error) {
+	updateInfo.UpdatedAt = time.Now().UnixMilli()
+
+	//TODO implement me
+	panic("implement me")
+}
+
+func (service *ProductServiceImpl) Create(productInfo product.Product) (*product.Product, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (service *ProductServiceImpl) Get(id string) (*product.Product, error) {
