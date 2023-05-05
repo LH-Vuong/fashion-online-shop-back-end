@@ -5,7 +5,7 @@ import (
 	"math"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/model/response"
 	"online_fashion_shop/api/service"
@@ -123,17 +123,21 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 //	@Accept			json
 //	@Produce		json
 //	@Param          id     	path       string    true    "product's id"
-//	@Success		200				{object}	model.Product
+//	@Success		200				{object}	response.BaseResponse[product.Product]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/product/{id} [get]
 func (cl ProductController) Get(c *gin.Context) {
 	productId := c.Param("id")
-	product, err := cl.Service.Get(productId)
+	productDetail, err := cl.Service.Get(productId)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 	}
-	c.JSON(200, gin.H{"status": "success", "data": product})
+	c.JSON(200, response.BaseResponse[product.Product]{
+		Data:    *productDetail,
+		Message: "",
+		Status:  "success",
+	})
 }
 
 // List Product
@@ -153,7 +157,7 @@ func (cl ProductController) Get(c *gin.Context) {
 //	@Param          name	  	query       string	  false    "Key work relate to products' name "
 //	@Param          page	  	query       int	   	  false    "current page's number ,start at 1"
 //	@Param          page_size	query       int		  false    "Length per page from '1' to '10000'"
-//	@Success		200				{object}	response.PagingResponse[model.Product]
+//	@Success		200				{object}	response.PagingResponse[product.Product]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/products/ [get]
@@ -170,7 +174,7 @@ func (cl ProductController) List(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, response.PagingResponse[*model.Product]{
+	c.JSON(200, response.PagingResponse[*product.Product]{
 		Total:  total,
 		Length: len(products),
 		Status: "success",

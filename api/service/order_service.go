@@ -3,7 +3,8 @@ package service
 import (
 	"fmt"
 	"log"
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/cart"
+	"online_fashion_shop/api/model/coupon"
 	"online_fashion_shop/api/model/order"
 	"online_fashion_shop/api/model/payment"
 	"online_fashion_shop/api/repository"
@@ -134,7 +135,7 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 
 }
 
-func (svc *OrderServiceImpl) getCoupon(couponCode *string) (*model.CouponInfo, error) {
+func (svc *OrderServiceImpl) getCoupon(couponCode *string) (*coupon.CouponInfo, error) {
 
 	if couponCode == nil {
 		return nil, nil
@@ -152,7 +153,7 @@ func (svc *OrderServiceImpl) getCoupon(couponCode *string) (*model.CouponInfo, e
 	return svc.CouponService.Get(*couponCode)
 }
 
-func calculateTotal(items []*model.CartItem, coupon *model.CouponInfo) (int64, error) {
+func calculateTotal(items []*cart.CartItem, coupon *coupon.CouponInfo) (int64, error) {
 	var total int64
 
 	for _, item := range items {

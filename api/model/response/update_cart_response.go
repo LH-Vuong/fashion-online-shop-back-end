@@ -1,8 +1,10 @@
 package response
 
-import "online_fashion_shop/api/model"
+import (
+	"online_fashion_shop/api/model/cart"
+)
 
 type UpdateCartResponse struct {
-	CartItems []model.CartItem `json:"cart_items"`
-	isSuccess bool             `json:"is_success"`
+	CartItems []cart.CartItem `json:"cart_items"`
+	isSuccess bool            `json:"is_success"`
 }

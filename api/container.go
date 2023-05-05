@@ -30,7 +30,7 @@ func init() {
 	container.Provide(provideOrderService)
 	container.Provide(provideOrderRepositoryImpl)
 	container.Provide(provideZaloPayProcessor)
-
+	container.Provide(provideQuantityService)
 }
 
 func BuildContainer() *dig.Container {
@@ -41,6 +41,10 @@ func Inject[A any](dependency *A) error {
 	return container.Invoke(func(value A) {
 		*dependency = value
 	})
+}
+
+func provideQuantityService(quantityRepo repository.ProductQuantityRepository) service.ProductQuantityService {
+	return service.NewProductQuantityServiceImpl(quantityRepo)
 }
 
 func provideProductRatingRepositoryImpl(client initializers.Client) repository.ProductRatingRepository {
@@ -63,8 +67,9 @@ func providePhotoRepositoryImpl(client initializers.Client) repository.ProductPh
 }
 func provideProductServiceImpl(detailRepo repository.ProductDetailRepository,
 	photoService service.PhotoService,
-	ratingRepo repository.ProductRatingRepository) service.ProductService {
-	return service.NewProductServiceImpl(detailRepo, ratingRepo, photoService)
+	ratingRepo repository.ProductRatingRepository,
+	quantityService service.ProductQuantityService) service.ProductService {
+	return service.NewProductServiceImpl(detailRepo, ratingRepo, photoService, quantityService)
 }
 
 func provideMongoDbClient() initializers.Client {

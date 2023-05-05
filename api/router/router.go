@@ -12,4 +12,5 @@ func SetUp(s *gin.Engine, container *dig.Container) {
 	InitOrderRouter(s, container)
 	InitAuthRouter(s, container)
 	InitUserRouter(s, container)
+	InitInventoryRouter(s, container)
 }

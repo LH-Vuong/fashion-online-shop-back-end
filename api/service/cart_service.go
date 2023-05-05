@@ -1,16 +1,17 @@
 package service
 
 import (
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/cart"
+	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/api/repository"
 )
 
 type CartService interface {
-	Get(customerId string) ([]*model.CartItem, error)
+	Get(customerId string) ([]*cart.CartItem, error)
 
-	Update(customerId string, items []model.CartItem) error
+	Update(customerId string, items []cart.CartItem) error
 
-	Add(customerId string, cartItem model.CartItem) (*model.CartItem, error)
+	Add(customerId string, cartItem cart.CartItem) (*cart.CartItem, error)
 
 	DeleteOne(customerId string, productId string) error
 
@@ -37,8 +38,8 @@ type CartServiceImpl struct {
 	detailRepo   repository.ProductDetailRepository
 }
 
-func toCartItemMap(items []*model.CartItem) map[string]*model.CartItem {
-	cartItemMap := make(map[string]*model.CartItem, len(items))
+func toCartItemMap(items []*cart.CartItem) map[string]*cart.CartItem {
+	cartItemMap := make(map[string]*cart.CartItem, len(items))
 
 	for _, item := range items {
 		cartItemMap[item.ProductId] = item
@@ -46,9 +47,9 @@ func toCartItemMap(items []*model.CartItem) map[string]*model.CartItem {
 	return cartItemMap
 }
 
-func toProductQuantityMap(quantities []*model.ProductQuantity) map[string]*model.ProductQuantity {
+func toProductQuantityMap(quantities []*product.ProductQuantity) map[string]*product.ProductQuantity {
 
-	quantityMap := make(map[string]*model.ProductQuantity, len(quantities))
+	quantityMap := make(map[string]*product.ProductQuantity, len(quantities))
 
 	for _, quantity := range quantities {
 		quantityMap[quantity.Id] = quantity
@@ -96,7 +97,7 @@ func (service *CartServiceImpl) ListInvalidCartItem(customerId string) ([]string
 	}
 	return invalidProduct, err
 }
-func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartItem, err error) {
+func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartItem, err error) {
 	cartItems, err = service.cartRepo.ListByCustomerId(customerId)
 
 	if len(cartItems) == 0 {
@@ -116,7 +117,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartI
 	if err != nil {
 		return nil, err
 	}
-	quantityMap := make(map[string]*model.ProductQuantity, len(productQuantities))
+	quantityMap := make(map[string]*product.ProductQuantity, len(productQuantities))
 	for _, item := range productQuantities {
 
 		quantityMap[item.Id] = item
@@ -147,7 +148,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*model.CartI
 	return cartItems, err
 }
 
-func (service *CartServiceImpl) getProductDetailMap(productQuantities []*model.ProductQuantity) (map[string]*model.Product, error) {
+func (service *CartServiceImpl) getProductDetailMap(productQuantities []*product.ProductQuantity) (map[string]*product.Product, error) {
 
 	detailIds := make([]string, len(productQuantities))
 	for index, item := range productQuantities {
@@ -158,7 +159,7 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*model.P
 	if err != nil {
 		return nil, err
 	}
-	productDetailMap := make(map[string]*model.Product, len(productDetails))
+	productDetailMap := make(map[string]*product.Product, len(productDetails))
 
 	for _, productDetail := range productDetails {
 		productDetailMap[productDetail.Id] = productDetail
@@ -168,7 +169,7 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*model.P
 
 }
 
-func (service *CartServiceImpl) Update(customerId string, items []model.CartItem) error {
+func (service *CartServiceImpl) Update(customerId string, items []cart.CartItem) error {
 
 	err := service.cartRepo.DeleteByCustomerId(customerId)
 	if err != nil {
@@ -182,7 +183,7 @@ func (service *CartServiceImpl) Update(customerId string, items []model.CartItem
 	return nil
 }
 
-func (service *CartServiceImpl) Add(customerId string, addItem model.CartItem) (*model.CartItem, error) {
+func (service *CartServiceImpl) Add(customerId string, addItem cart.CartItem) (*cart.CartItem, error) {
 
 	item, err := service.cartRepo.GetBySearchOption(repository.CartSearchOption{CustomerId: customerId, ProductId: addItem.ProductId})
 	if item == nil {

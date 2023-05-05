@@ -1,8 +1,10 @@
 package service
 
-import "online_fashion_shop/api/model"
+import (
+	"online_fashion_shop/api/model/rating"
+)
 
 type RateService interface {
-	Get(id string) model.Rating
-	List(productIds []string) model.Rating
+	Get(id string) rating.Rating
+	List(productIds []string) rating.Rating
 }
