@@ -31,7 +31,7 @@ func main() {
 	corConfig.AllowOrigins = []string{"http://localhost:8081,http://localhost:3000"}
 	corConfig.AllowMethods = []string{"*"}
 	corConfig.AllowCredentials = true
-	corConfig.AllowHeaders = []string{"Origin", "Content-Type"}
+	corConfig.AllowHeaders = []string{"*"}
 
 	server.Use(cors.New(corConfig))
 
