@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/initializers"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,27 +12,28 @@ import (
 )
 
 type ProductDetailRepository interface {
-	Get(id string) (*model.Product, error)
+	Get(id string) (*product.Product, error)
 	List(ids []string,
 		keyWord string,
 		tags []string,
 		brands []string,
 		productType []string,
 		gender []string,
-		priceRange model.RangeValue[int64], startAt int, length int) ([]*model.Product, int64, error)
+		priceRange model.RangeValue[int64], startAt int, length int) ([]*product.Product, int64, error)
 
-	ListBySearchOption(searchOption model.ProductSearchOption) ([]*model.Product, int64, error)
-	ListByMultiId(ids []string) ([]*model.Product, error)
+	ListBySearchOption(searchOption product.ProductSearchOption) ([]*product.Product, int64, error)
+	ListByMultiId(ids []string) ([]*product.Product, error)
 }
 
 type ProductDetailRepositoryImpl struct {
 	collection initializers.Collection
 }
 
-func (repository *ProductDetailRepositoryImpl) Get(id string) (product *model.Product, err error) {
+func (repository *ProductDetailRepositoryImpl) Get(id string) (product *product.Product, err error) {
 	ctx, cancel := initializers.InitContext()
+	objectId, _ := primitive.ObjectIDFromHex(id)
 	defer cancel()
-	rs := repository.collection.FindOne(ctx, bson.D{})
+	rs := repository.collection.FindOne(ctx, bson.M{"_id": objectId})
 	err = rs.Decode(&product)
 	return
 }
@@ -44,7 +46,7 @@ func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord
 	priceRange model.RangeValue[int64],
 	beginAt int,
 	length int,
-) (products []*model.Product, totalDocs int64, err error) {
+) (products []*product.Product, totalDocs int64, err error) {
 	var filters []primitive.M
 
 	var objectIds []primitive.ObjectID
@@ -109,7 +111,7 @@ func (repository *ProductDetailRepositoryImpl) List(productIds []string, keyWord
 	return
 }
 
-func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption model.ProductSearchOption) ([]*model.Product, int64, error) {
+func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption product.ProductSearchOption) ([]*product.Product, int64, error) {
 	return repository.List(searchOption.Ids,
 		searchOption.KeyWord,
 		searchOption.Tags,
@@ -123,7 +125,7 @@ func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption m
 
 }
 
-func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (products []*model.Product, err error) {
+func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (products []*product.Product, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	if len(ids) < 1 {

@@ -161,6 +161,39 @@ const docTemplate = `{
             }
         },
         "/cart": {
+            "get": {
+                "description": "get List cart item by access_token of user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "List customer's cart item",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_cart_CartItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "add item to cart, return info of added item",
                 "consumes": [
@@ -188,7 +221,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.CartItem"
+                            "$ref": "#/definitions/cart.CartItem"
                         }
                     },
                     "400": {
@@ -325,10 +358,271 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory": {
+            "put": {
+                "description": "New product quantity by size and color of product If the quantity of an existing one with the same size and color or not found product detail will throw error.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "init product quantity for product size and color",
+                "parameters": [
+                    {
+                        "description": "id of product detail",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductQuantity"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Increase the amount of a product by product_quantity_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "add more product to inventory",
+                "parameters": [
+                    {
+                        "description": "quantity_id represent for amount of product's size \u0026 color ",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.ProductQuantity"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-product_ProductQuantity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/with_detail/:detail_id": {
+            "delete": {
+                "description": "Delete many by detail_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Delete many by detail_id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of product detail",
+                        "name": "detail_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/with_detail/{detail_id}": {
+            "get": {
+                "description": "List product's quantity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "List by detail_id(product_id)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of product detail",
+                        "name": "detail_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_product_ProductQuantity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/inventory/{quantity_id}": {
+            "get": {
+                "description": "Get one by quantity_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Get one by quantity_id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of product detail",
+                        "name": "quantity_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-product_ProductQuantity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete many by quantity_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Delete many by quantity_id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "quantity_id represent quantity of size \u0026 color \u0026 detail_id(product_id)",
+                        "name": "quantity_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-string"
                         }
                     },
                     "400": {
@@ -467,7 +761,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Product"
+                            "$ref": "#/definitions/response.BaseResponse-product_Product"
                         }
                     },
                     "400": {
@@ -564,7 +858,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.PagingResponse-model_Product"
+                            "$ref": "#/definitions/response.PagingResponse-product_Product"
                         }
                     },
                     "400": {
@@ -946,18 +1240,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.AddWishListModel": {
-            "type": "object",
-            "required": [
-                "product_id"
-            ],
-            "properties": {
-                "product_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.CartItem": {
+        "cart.CartItem": {
             "type": "object",
             "properties": {
                 "color": {
@@ -967,15 +1250,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "product_detail": {
-                    "$ref": "#/definitions/model.Product"
+                    "$ref": "#/definitions/product.Product"
                 },
-                "product_id": {
+                "product_quantity_id": {
                     "type": "string"
                 },
                 "quantity": {
                     "type": "integer"
                 },
                 "size": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AddWishListModel": {
+            "type": "object",
+            "required": [
+                "product_id"
+            ],
+            "properties": {
+                "product_id": {
                     "type": "string"
                 }
             }
@@ -1014,56 +1308,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "delete_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "model.Product": {
-            "type": "object",
-            "properties": {
-                "avr_rate": {
-                    "type": "number"
-                },
-                "brand": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "discount_amount": {
-                    "type": "number"
-                },
-                "discount_percent": {
-                    "type": "number"
-                },
-                "gender": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "photos": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "price": {
-                    "type": "integer"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "types": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -1251,7 +1495,7 @@ const docTemplate = `{
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.CartItem"
+                        "$ref": "#/definitions/cart.CartItem"
                     }
                 },
                 "payment_info": {
@@ -1316,6 +1560,82 @@ const docTemplate = `{
                 "StatusCancel",
                 "StatusError"
             ]
+        },
+        "product.Product": {
+            "type": "object",
+            "properties": {
+                "avr_rate": {
+                    "type": "number"
+                },
+                "brand": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "discount_amount": {
+                    "type": "number"
+                },
+                "discount_percent": {
+                    "type": "number"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "product_quantities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ProductQuantity"
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "product.ProductQuantity": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "detail_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "string"
+                }
+            }
         },
         "request.AddItemRequest": {
             "type": "object",
@@ -1383,13 +1703,118 @@ const docTemplate = `{
                 }
             }
         },
-        "response.PagingResponse-model_Product": {
+        "response.BaseResponse-any": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-array_cart_CartItem": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.Product"
+                        "$ref": "#/definitions/cart.CartItem"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-array_product_ProductQuantity": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/product.ProductQuantity"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-array_string": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-product_Product": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/product.Product"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-product_ProductQuantity": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/product.ProductQuantity"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-string": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PagingResponse-order_OrderInfo": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/order.OrderInfo"
                     }
                 },
                 "length": {
@@ -1403,13 +1828,13 @@ const docTemplate = `{
                 }
             }
         },
-        "response.PagingResponse-order_OrderInfo": {
+        "response.PagingResponse-product_Product": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/order.OrderInfo"
+                        "$ref": "#/definitions/product.Product"
                     }
                 },
                 "length": {

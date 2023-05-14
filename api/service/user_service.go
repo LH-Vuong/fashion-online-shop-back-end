@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
@@ -419,8 +418,6 @@ func (service *UserServiceImpl) UpdateUserAddress(ctx *gin.Context, payload mode
 		errs.HandleFailStatus(ctx, "User's Address is not existed!", http.StatusNotFound)
 		return
 	}
-
-	fmt.Print(existAddress)
 
 	existAddress.Address = payload.Address
 	existAddress.ProvinceId = payload.ProvinceId

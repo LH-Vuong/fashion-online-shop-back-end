@@ -1,13 +1,13 @@
 package service
 
 import (
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/coupon"
 	"online_fashion_shop/api/repository"
 	"time"
 )
 
 type CouponService interface {
-	Get(code string) (*model.CouponInfo, error)
+	Get(code string) (*coupon.CouponInfo, error)
 	Check(code string) (bool, error)
 }
 
@@ -19,7 +19,7 @@ func NewCouponService(repo repository.CouponRepository) CouponService {
 	return &CouponServiceImpl{couponRepo: repo}
 }
 
-func (c CouponServiceImpl) Get(couponCode string) (*model.CouponInfo, error) {
+func (c CouponServiceImpl) Get(couponCode string) (*coupon.CouponInfo, error) {
 	return c.couponRepo.Get(couponCode)
 }
 

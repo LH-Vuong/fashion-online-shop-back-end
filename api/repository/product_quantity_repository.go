@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"online_fashion_shop/api/model"
+	"go.mongodb.org/mongo-driver/mongo"
+	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/initializers"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -9,12 +10,14 @@ import (
 )
 
 type ProductQuantityRepository interface {
-	Get(productId string) (*model.ProductQuantity, error)
-	GetByDetailId(productDetailId string) ([]*model.ProductQuantity, error)
-	MultiGet(productIds []string) ([]*model.ProductQuantity, error)
-	Create(product model.ProductQuantity) error
-	Update(quantity model.ProductQuantity) error
+	Get(productId string) (*product.ProductQuantity, error)
+	GetBySearchOption(searchOption product.QuantitySearchOption) (*product.ProductQuantity, error)
+	GetByDetailId(productDetailId string) ([]*product.ProductQuantity, error)
+	MultiGet(productIds []string) ([]*product.ProductQuantity, error)
+	Create(product product.ProductQuantity) error
+	Update(quantity product.ProductQuantity) error
 	Delete(id string) error
+	DeleteManyByDetailId(detailId string) error
 }
 
 func NewProductQuantityRepositoryImpl(quantityCollection initializers.Collection) ProductQuantityRepository {
@@ -27,13 +30,54 @@ type ProductQuantityRepositoryImpl struct {
 	quantityCollection initializers.Collection
 }
 
-func (p *ProductQuantityRepositoryImpl) Get(productId string) (*model.ProductQuantity, error) {
-	var quantity model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) DeleteManyByDetailId(detailId string) error {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	_, err := p.quantityCollection.DeleteMany(ctx, bson.M{"detail_id": detailId})
+	return err
+}
+
+func (p *ProductQuantityRepositoryImpl) GetBySearchOption(searchOption product.QuantitySearchOption) (*product.ProductQuantity, error) {
+	var productQuantity product.ProductQuantity
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	// Perform search on quantityCollection based on provided parameters
+	filter := bson.M{}
+
+	if searchOption.Id != "" {
+		filter["id"] = searchOption.Id
+	}
+
+	if searchOption.DetailId != "" {
+		filter["detail_id"] = searchOption.DetailId
+	}
+
+	if searchOption.Color != "" {
+		filter["color"] = searchOption.Color
+	}
+
+	if searchOption.Size != "" {
+		filter["size"] = searchOption.Size
+	}
+
+	err := p.quantityCollection.FindOne(ctx, filter).Decode(&productQuantity)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // return nil, nil if no matching document found
+		}
+		return nil, err
+	}
+
+	return &productQuantity, nil
+}
+
+func (p *ProductQuantityRepositoryImpl) Get(productId string) (*product.ProductQuantity, error) {
+	var quantity product.ProductQuantity
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	id, err := primitive.ObjectIDFromHex(productId)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	query := bson.M{"_id": id}
 	err = p.quantityCollection.FindOne(ctx, query).Decode(&quantity)
@@ -43,8 +87,8 @@ func (p *ProductQuantityRepositoryImpl) Get(productId string) (*model.ProductQua
 	return &quantity, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([]*model.ProductQuantity, error) {
-	var quantities []*model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([]*product.ProductQuantity, error) {
+	var quantities []*product.ProductQuantity
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
@@ -61,8 +105,8 @@ func (p *ProductQuantityRepositoryImpl) GetByDetailId(productDetailId string) ([
 	return quantities, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]*model.ProductQuantity, error) {
-	var quantities []*model.ProductQuantity
+func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]*product.ProductQuantity, error) {
+	var quantities []*product.ProductQuantity
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	objectIds := make([]primitive.ObjectID, len(productIds))
@@ -82,10 +126,11 @@ func (p *ProductQuantityRepositoryImpl) MultiGet(productIds []string) ([]*model.
 	return quantities, nil
 }
 
-func (p *ProductQuantityRepositoryImpl) Create(quantity model.ProductQuantity) error {
+func (p *ProductQuantityRepositoryImpl) Create(quantity product.ProductQuantity) error {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-
+	//ignore id
+	quantity.Id = ""
 	_, err := p.quantityCollection.InsertOne(ctx, &quantity)
 	if err != nil {
 		return err
@@ -94,7 +139,7 @@ func (p *ProductQuantityRepositoryImpl) Create(quantity model.ProductQuantity) e
 	return nil
 }
 
-func (p *ProductQuantityRepositoryImpl) Update(quantity model.ProductQuantity) error {
+func (p *ProductQuantityRepositoryImpl) Update(quantity product.ProductQuantity) error {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 
@@ -111,9 +156,12 @@ func (p *ProductQuantityRepositoryImpl) Update(quantity model.ProductQuantity) e
 func (p *ProductQuantityRepositoryImpl) Delete(id string) error {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-
-	query := bson.M{"_id": id}
-	_, err := p.quantityCollection.DeleteOne(ctx, query)
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	query := bson.M{"_id": objectId}
+	_, err = p.quantityCollection.DeleteOne(ctx, query)
 	if err != nil {
 		return err
 	}

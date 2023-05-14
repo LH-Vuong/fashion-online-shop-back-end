@@ -3,8 +3,9 @@ package controller
 import (
 	"net/http"
 	"online_fashion_shop/api/common/errs"
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/cart"
 	"online_fashion_shop/api/model/request"
+	"online_fashion_shop/api/model/response"
 	"online_fashion_shop/api/service"
 
 	"github.com/gin-gonic/gin"
@@ -30,11 +31,11 @@ func (controller CartController) Update(c *gin.Context) {
 	var updateCartRequest request.UpdateCartRequest
 	c.BindJSON(updateCartRequest)
 
-	cartItem := make([]model.CartItem, len(updateCartRequest.Items))
+	cartItem := make([]cart.CartItem, len(updateCartRequest.Items))
 
 	for index := range updateCartRequest.Items {
 		updateItem := updateCartRequest.Items[index]
-		cartItem[index] = model.CartItem{
+		cartItem[index] = cart.CartItem{
 			CustomerId: updateCartRequest.CustomerId,
 			ProductId:  updateItem.ProductId,
 			Quantity:   updateItem.Quantity,
@@ -53,16 +54,15 @@ func (controller CartController) Update(c *gin.Context) {
 
 // Get Cart Items of User
 //
-//	@Summary		get cart item
-//	@Description	get cart item by customer's id
+//	@Summary		List customer's cart item
+//	@Description	get List cart item by access_token of user
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          customer_token   path       string    true    "access token received after login"
-//	@Success		200				{object}	[]model.CartItem
+//	@Success		200				{object}	response.BaseResponse[[]cart.CartItem]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/product/{id} [get]
+//	@Router			/cart [get]
 func (controller CartController) Get(c *gin.Context) {
 	cartItems, err := controller.Service.Get(c.Param("customer_id"))
 
@@ -70,7 +70,11 @@ func (controller CartController) Get(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	} else {
-		c.JSON(200, gin.H{"status": "success", "data": cartItems})
+		c.JSON(200, response.BaseResponse[[]*cart.CartItem]{
+			Data:    cartItems,
+			Message: "",
+			Status:  "success",
+		})
 	}
 }
 
@@ -82,7 +86,7 @@ func (controller CartController) Get(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param          CartRequest   body       request.AddItemRequest    true    "Add item request"
-//	@Success		200				{object}	model.CartItem
+//	@Success		200				{object}	cart.CartItem
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart [put]
@@ -94,7 +98,7 @@ func (controller CartController) Add(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	addedItem, err := controller.Service.Add(rq.CustomerId, model.CartItem{ProductId: rq.ProductId, Quantity: rq.Quantity})
+	addedItem, err := controller.Service.Add(rq.CustomerId, cart.CartItem{ProductId: rq.ProductId, Quantity: rq.Quantity})
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,7 +142,7 @@ func (controller CartController) Delete(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param          customer_id   path       string    true    "customer's id"
-//	@Success		200				{object}	[]string
+//	@Success		200				{object}	 response.BaseResponse[[]string]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart/checkout [get]
@@ -149,5 +153,9 @@ func (controller CartController) CheckOut(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": soldItemIds})
+	c.JSON(http.StatusOK, response.BaseResponse[[]string]{
+		Data:    soldItemIds,
+		Message: "list of deleted item",
+		Status:  "success",
+	})
 }

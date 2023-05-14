@@ -2,22 +2,24 @@ package service
 
 import (
 	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/repository"
 )
 
 type ProductService interface {
-	Get(id string) (*model.Product, error)
-	List(request request.ListProductsRequest) ([]*model.Product, int64, error)
+	Get(id string) (*product.Product, error)
+	List(request request.ListProductsRequest) ([]*product.Product, int64, error)
 }
 
 type ProductServiceImpl struct {
 	ProductDetailRepository repository.ProductDetailRepository
 	PhotoService            PhotoService
 	ProductRatingRepository repository.ProductRatingRepository
+	QuantityService         ProductQuantityService
 }
 
-func ConvertPhotosToUrls(photos []*model.ProductPhoto) []string {
+func ConvertPhotosToUrls(photos []*product.ProductPhoto) []string {
 
 	var urls []string
 
@@ -31,7 +33,7 @@ func ConvertPhotosToUrls(photos []*model.ProductPhoto) []string {
 
 }
 
-func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
+func (service *ProductServiceImpl) Get(id string) (*product.Product, error) {
 
 	product, err := service.ProductDetailRepository.Get(id)
 	if err != nil {
@@ -43,6 +45,14 @@ func (service *ProductServiceImpl) Get(id string) (*model.Product, error) {
 	}
 	product.AvrRate = avr
 	photos, err := service.PhotoService.ListByProductId(id)
+	if err != nil {
+		return nil, err
+	}
+	quantities, err := service.QuantityService.ListByDetailId(id)
+	if err != nil {
+		return nil, err
+	}
+	product.ProductQuantities = quantities
 	product.Photos = ConvertPhotosToUrls(photos)
 	return product, nil
 }
@@ -57,7 +67,7 @@ func (service *ProductServiceImpl) getAvrRate(productId string) (avr float64, er
 	return
 }
 
-func (s *ProductServiceImpl) addPhotosToProduct(products []*model.Product) error {
+func (s *ProductServiceImpl) addPhotosToProduct(products []*product.Product) error {
 
 	productIds := make([]string, len(products))
 	for index := range products {
@@ -77,7 +87,7 @@ func (s *ProductServiceImpl) addPhotosToProduct(products []*model.Product) error
 	return nil
 }
 
-func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*model.Product, int64, error) {
+func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*product.Product, int64, error) {
 
 	priceRange := model.RangeValue[int64]{
 		From: productsRequest.MinPrice,
@@ -102,10 +112,11 @@ func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequ
 }
 func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
 	productRatingRepo repository.ProductRatingRepository,
-	photoService PhotoService) ProductService {
+	photoService PhotoService, quantityService ProductQuantityService) ProductService {
 	return &ProductServiceImpl{
 		productDetailRepo,
 		photoService,
 		productRatingRepo,
+		quantityService,
 	}
 }

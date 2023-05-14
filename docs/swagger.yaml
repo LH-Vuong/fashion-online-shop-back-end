@@ -1,26 +1,26 @@
 basePath: /api/
 definitions:
-  model.AddWishListModel:
-    properties:
-      product_id:
-        type: string
-    required:
-    - product_id
-    type: object
-  model.CartItem:
+  cart.CartItem:
     properties:
       color:
         type: string
       customer_id:
         type: string
       product_detail:
-        $ref: '#/definitions/model.Product'
-      product_id:
+        $ref: '#/definitions/product.Product'
+      product_quantity_id:
         type: string
       quantity:
         type: integer
       size:
         type: string
+    type: object
+  model.AddWishListModel:
+    properties:
+      product_id:
+        type: string
+    required:
+    - product_id
     type: object
   model.CreateUserAddressModel:
     properties:
@@ -49,39 +49,6 @@ definitions:
         type: array
     required:
     - delete_ids
-    type: object
-  model.Product:
-    properties:
-      avr_rate:
-        type: number
-      brand:
-        type: string
-      description:
-        type: string
-      discount_amount:
-        type: number
-      discount_percent:
-        type: number
-      gender:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      photos:
-        items:
-          type: string
-        type: array
-      price:
-        type: integer
-      tags:
-        items:
-          type: string
-        type: array
-      types:
-        items:
-          type: string
-        type: array
     type: object
   model.SignInModel:
     properties:
@@ -205,7 +172,7 @@ definitions:
         type: string
       items:
         items:
-          $ref: '#/definitions/model.CartItem'
+          $ref: '#/definitions/cart.CartItem'
         type: array
       payment_info:
         $ref: '#/definitions/payment.PaymentDetail'
@@ -251,6 +218,56 @@ definitions:
     - StatusPending
     - StatusCancel
     - StatusError
+  product.Product:
+    properties:
+      avr_rate:
+        type: number
+      brand:
+        type: string
+      description:
+        type: string
+      discount_amount:
+        type: number
+      discount_percent:
+        type: number
+      gender:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      price:
+        type: integer
+      product_quantities:
+        items:
+          $ref: '#/definitions/product.ProductQuantity'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      types:
+        items:
+          type: string
+        type: array
+    type: object
+  product.ProductQuantity:
+    properties:
+      color:
+        type: string
+      detail_id:
+        type: string
+      id:
+        type: string
+      quantity:
+        type: integer
+      size:
+        type: string
+    type: object
   request.AddItemRequest:
     properties:
       customer_id:
@@ -295,11 +312,79 @@ definitions:
     - productId
     - quantity
     type: object
-  response.PagingResponse-model_Product:
+  response.BaseResponse-any:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-array_cart_CartItem:
     properties:
       data:
         items:
-          $ref: '#/definitions/model.Product'
+          $ref: '#/definitions/cart.CartItem'
+        type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-array_product_ProductQuantity:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/product.ProductQuantity'
+        type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-array_string:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-product_Product:
+    properties:
+      data:
+        $ref: '#/definitions/product.Product'
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-product_ProductQuantity:
+    properties:
+      data:
+        $ref: '#/definitions/product.ProductQuantity'
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-string:
+    properties:
+      data:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.PagingResponse-order_OrderInfo:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/order.OrderInfo'
         type: array
       length:
         type: integer
@@ -308,11 +393,11 @@ definitions:
       total:
         type: integer
     type: object
-  response.PagingResponse-order_OrderInfo:
+  response.PagingResponse-product_Product:
     properties:
       data:
         items:
-          $ref: '#/definitions/order.OrderInfo'
+          $ref: '#/definitions/product.Product'
         type: array
       length:
         type: integer
@@ -459,6 +544,28 @@ paths:
       summary: delete card item of customer cart
       tags:
       - Cart
+    get:
+      consumes:
+      - application/json
+      description: get List cart item by access_token of user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_cart_CartItem'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List customer's cart item
+      tags:
+      - Cart
     post:
       consumes:
       - application/json
@@ -506,7 +613,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.CartItem'
+            $ref: '#/definitions/cart.CartItem'
         "400":
           description: Bad Request
           schema:
@@ -536,9 +643,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: string
-            type: array
+            $ref: '#/definitions/response.BaseResponse-array_string'
         "400":
           description: Bad Request
           schema:
@@ -550,6 +655,182 @@ paths:
       summary: Use to validate items of cart then modify it if invalid
       tags:
       - Cart
+  /inventory:
+    post:
+      consumes:
+      - application/json
+      description: Increase the amount of a product by product_quantity_id
+      parameters:
+      - description: 'quantity_id represent for amount of product''s size & color '
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.ProductQuantity'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-product_ProductQuantity'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: add more product to inventory
+      tags:
+      - inventory
+    put:
+      consumes:
+      - application/json
+      description: New product quantity by size and color of product If the quantity
+        of an existing one with the same size and color or not found product detail
+        will throw error.
+      parameters:
+      - description: id of product detail
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.ProductQuantity'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: init product quantity for product size and color
+      tags:
+      - inventory
+  /inventory/{quantity_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete many by quantity_id
+      parameters:
+      - description: quantity_id represent quantity of size & color & detail_id(product_id)
+        in: path
+        name: quantity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete many by quantity_id
+      tags:
+      - inventory
+    get:
+      consumes:
+      - application/json
+      description: Get one by quantity_id
+      parameters:
+      - description: id of product detail
+        in: path
+        name: quantity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-product_ProductQuantity'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get one by quantity_id
+      tags:
+      - inventory
+  /inventory/with_detail/:detail_id:
+    delete:
+      consumes:
+      - application/json
+      description: Delete many by detail_id
+      parameters:
+      - description: id of product detail
+        in: path
+        name: detail_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete many by detail_id
+      tags:
+      - inventory
+  /inventory/with_detail/{detail_id}:
+    get:
+      consumes:
+      - application/json
+      description: List product's quantity
+      parameters:
+      - description: id of product detail
+        in: path
+        name: detail_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_product_ProductQuantity'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List by detail_id(product_id)
+      tags:
+      - inventory
   /order/:
     put:
       consumes:
@@ -630,7 +911,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Product'
+            $ref: '#/definitions/response.BaseResponse-product_Product'
         "400":
           description: Bad Request
           schema:
@@ -694,7 +975,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.PagingResponse-model_Product'
+            $ref: '#/definitions/response.PagingResponse-product_Product'
         "400":
           description: Bad Request
           schema:

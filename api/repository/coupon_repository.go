@@ -2,23 +2,23 @@ package repository
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
-	"online_fashion_shop/api/model"
+	"online_fashion_shop/api/model/coupon"
 	"online_fashion_shop/initializers"
 )
 
 type CouponRepository interface {
-	Get(couponCode string) (*model.CouponInfo, error)
+	Get(couponCode string) (*coupon.CouponInfo, error)
 }
 
 type CouponRepositoryImpl struct {
 	CouponCollection initializers.Collection
 }
 
-func (repo *CouponRepositoryImpl) Get(couponCode string) (*model.CouponInfo, error) {
+func (repo *CouponRepositoryImpl) Get(couponCode string) (*coupon.CouponInfo, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	filter := bson.M{"code": couponCode}
-	var coupon model.CouponInfo
+	var coupon coupon.CouponInfo
 	err := repo.CouponCollection.FindOne(ctx, filter).Decode(&coupon)
 	if err != nil {
 		return nil, err
