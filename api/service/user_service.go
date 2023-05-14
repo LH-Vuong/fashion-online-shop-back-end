@@ -207,8 +207,8 @@ func (service *UserServiceImpl) SignIn(ctx *gin.Context, payload model.SignInMod
 		return
 	}
 
-	ctx.SetCookie("access_token", access_token, config.AccessTokenMaxAge, "/", "", true, true)
-	ctx.SetCookie("refresh_token", refresh_token, config.RefreshTokenMaxAge, "/", "", true, true)
+	ctx.SetCookie("access_token", access_token, config.AccessTokenMaxAge*60, "/", "", true, true)
+	ctx.SetCookie("refresh_token", refresh_token, config.RefreshTokenMaxAge*60, "/", "", true, true)
 	ctx.SetCookie("logged_in", "true", config.AccessTokenMaxAge, "/", "", true, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": existUser})
