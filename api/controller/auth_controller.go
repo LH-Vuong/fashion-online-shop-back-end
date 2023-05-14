@@ -17,6 +17,7 @@ func NewAuthController(service service.UserService) AuthController {
 }
 
 // SignUp User godoc
+//
 //	@Summary		sign up user
 //	@Description	Endpoint to allow a user to sign up with their details
 //	@Tags			auth
@@ -39,6 +40,7 @@ func (c AuthController) SignUp(ctx *gin.Context) {
 }
 
 // Verify Email godoc
+//
 //	@Summary		Verify user email
 //	@Description	Verify user email using verification code
 //	@Tags			auth
@@ -56,6 +58,7 @@ func (c AuthController) VerifyAccount(ctx *gin.Context) {
 }
 
 // Verify Email godoc
+//
 //	@Summary		Login
 //	@Description	Login and set access token to header
 //	@Tags			auth

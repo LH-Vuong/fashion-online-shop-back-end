@@ -11,6 +11,7 @@ import (
 func InitAuthRouter(s *gin.Engine, c *dig.Container) {
 	err := c.Invoke(func(userService service.UserService) {
 		controller := controller.AuthController{Service: userService}
+
 		s.POST("api/auth/sign-up", controller.SignUp)
 		s.POST("api/auth/sign-in", controller.SignIn)
 		s.GET("api/auth/verify", controller.VerifyAccount)
