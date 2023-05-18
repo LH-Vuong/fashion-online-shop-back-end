@@ -6,6 +6,7 @@ import (
 	userrepo "online_fashion_shop/api/repository/user"
 	"online_fashion_shop/api/service"
 	"online_fashion_shop/initializers"
+	"online_fashion_shop/initializers/storage"
 	"online_fashion_shop/initializers/zalopay"
 
 	"go.uber.org/dig"
@@ -31,6 +32,7 @@ func init() {
 	container.Provide(provideOrderRepositoryImpl)
 	container.Provide(provideZaloPayProcessor)
 	container.Provide(provideQuantityService)
+	container.Provide(provideAzurePhotoStorage)
 }
 
 func BuildContainer() *dig.Container {
@@ -57,8 +59,17 @@ func provideProductRepositoryImpl(mongoClient initializers.Client) repository.Pr
 	return repository.NewProductRepositoryImpl(productCollection)
 }
 
-func providePhotoServiceImpl(photoRepo repository.ProductPhotoRepository) service.PhotoService {
-	return service.NewPhotoServiceImpl(photoRepo)
+func providePhotoServiceImpl(photoRepo repository.ProductPhotoRepository, photoStorage storage.PhotoStorage) service.PhotoService {
+	return service.NewPhotoServiceImpl(photoRepo, photoStorage)
+}
+
+func provideAzurePhotoStorage() storage.PhotoStorage {
+	confi, err := initializers.LoadConfig("../")
+	if err != nil {
+		panic(err)
+	}
+	return storage.NewAzureStorageBlob(confi.AzureStorageBlobContainer, confi.AzureStorageBlobKey2)
+
 }
 
 func providePhotoRepositoryImpl(client initializers.Client) repository.ProductPhotoRepository {

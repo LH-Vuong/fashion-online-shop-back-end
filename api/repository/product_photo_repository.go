@@ -9,11 +9,48 @@ import (
 
 type ProductPhotoRepository interface {
 	ListByProductId(productId string) ([]*product.ProductPhoto, error)
+	GetOne(productId string) (*product.ProductPhoto, error)
 	ListByMultiProductId(productIds []string) ([]*product.ProductPhoto, error)
+	InsertOne(photo product.ProductPhoto) error
+	DeleteByProductId(productId string) error
 }
 
 type ProductPhotoRepositoryImpl struct {
 	PhotoCollection initializers.Collection
+}
+
+func (repository *ProductPhotoRepositoryImpl) GetOne(productId string) (*product.ProductPhoto, error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	println(productId)
+	rs := repository.PhotoCollection.FindOne(ctx, bson.M{"product_id": productId})
+	var photo product.ProductPhoto
+	err := rs.Decode(&photo)
+	if err != nil {
+		return nil, err
+	}
+	return &photo, nil
+}
+
+func (repository *ProductPhotoRepositoryImpl) InsertOne(photo product.ProductPhoto) error {
+
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	_, err := repository.PhotoCollection.InsertOne(ctx, photo)
+	return err
+}
+
+func (repository *ProductPhotoRepositoryImpl) DeleteByProductId(productId string) error {
+
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+
+	_, err := repository.PhotoCollection.DeleteOne(ctx, bson.M{"product_id": productId})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repository *ProductPhotoRepositoryImpl) ListByProductId(productId string) (photos []*product.ProductPhoto, err error) {

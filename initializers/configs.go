@@ -34,6 +34,9 @@ type Config struct {
 	ZaloKey1  string `mapstructure:"ZALO_KEY1"`
 	ZaloKey2  string `mapstructure:"ZALO_KEY2"`
 	ZaloAppId string `mapstructure:"ZALO_APP_ID"`
+
+	AzureStorageBlobContainer string `mapstructure:"AZURE_STORAGE_BLOB_CONTAINER"`
+	AzureStorageBlobKey2      string `mapstructure:"AZURE_STORAGE_BLOB_KEY2"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

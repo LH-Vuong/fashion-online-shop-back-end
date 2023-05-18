@@ -12,6 +12,8 @@ func InitProductDetailRouter(s *gin.Engine, c *dig.Container) {
 		controller := controller.ProductController{Service: productService}
 		s.GET("api/product/:id", controller.Get)
 		s.GET("api/products", controller.List)
+		s.POST("api/product/:product_id", controller.Update)
+		s.PUT("api/product", controller.Create)
 	})
 
 	if err != nil {
