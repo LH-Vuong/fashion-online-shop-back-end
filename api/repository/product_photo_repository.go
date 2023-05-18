@@ -22,7 +22,6 @@ type ProductPhotoRepositoryImpl struct {
 func (repository *ProductPhotoRepositoryImpl) GetOne(productId string) (*product.ProductPhoto, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	println(productId)
 	rs := repository.PhotoCollection.FindOne(ctx, bson.M{"product_id": productId})
 	var photo product.ProductPhoto
 	err := rs.Decode(&photo)

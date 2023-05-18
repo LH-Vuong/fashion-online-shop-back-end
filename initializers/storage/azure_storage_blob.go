@@ -47,23 +47,6 @@ var uploadOption = azblob.UploadStreamToBlockBlobOptions{
 	BlobHTTPHeaders: azblob.BlobHTTPHeaders{ContentType: "image"},
 }
 
-//func (asb *AzureStorageBlob) containerUrl() (*azblob.BlockBlobURL, error) {
-//	// Create a connection string to your Azure Storage account
-//	connectionString := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", asb.AccountName, asb.AccountKey)
-//	// Create a BlobServiceClient object
-//	credential, err := azblob.NewSharedKeyCredential(connectionString, asb.AccountKey)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	p := azblob.NewPipeline(credential, azblob.PipelineOptions{})
-//	cURL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/photo", asb.AccountName))
-//	containerURL := azblob.NewContainerURL(*cURL, p)
-//	uuid, err := uuid2.NewUUID()
-//	blobURL := containerURL.NewBlockBlobURL(uuid.String())
-//	return &blobURL, err
-//}
-
 func (asb *AzureStorageBlob) createPipeline() (*pipeline.Pipeline, error) {
 	credential, err := azblob.NewSharedKeyCredential(asb.AccountName, asb.AccountKey)
 	if err != nil {
