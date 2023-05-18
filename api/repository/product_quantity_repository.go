@@ -82,7 +82,7 @@ func (p *ProductQuantityRepositoryImpl) Get(productId string) (*product.ProductQ
 	query := bson.M{"_id": id}
 	err = p.quantityCollection.FindOne(ctx, query).Decode(&quantity)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &quantity, nil
 }

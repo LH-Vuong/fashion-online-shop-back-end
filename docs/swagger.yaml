@@ -894,6 +894,72 @@ paths:
       summary: list of customer's order
       tags:
       - order
+  /product:
+    post:
+      consumes:
+      - application/json
+      description: provide fields will be updated, fields don't provide will be omitted
+        , and updated result
+      parameters:
+      - description: fields want to update with provided value
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.Product'
+      - description: fields want to update with provided value
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-product_Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: update info of product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: create a new product and return created result
+      parameters:
+      - description: info of created product
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-product_Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: create a new product
+      tags:
+      - product
   /product/{id}:
     get:
       consumes:
@@ -923,6 +989,107 @@ paths:
       summary: get product info
       tags:
       - product
+  /product_photo:
+    delete:
+      consumes:
+      - application/json
+      description: remove photo from photo store by url
+      parameters:
+      - description: photo_url
+        in: query
+        name: photo_url
+        required: true
+        type: string
+      - description: photo_url
+        in: query
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete one by proto_url
+      tags:
+      - Photo
+  /product_photos/{product_id}:
+    delete:
+      consumes:
+      - application/json
+      description: remove all photos which belong product
+      parameters:
+      - description: product_id
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete all photos by product_id
+      tags:
+      - Photo
+  /product_photos/upload/{product_id}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create one if product has no photos yet, or add image(s) to photo
+        list
+      parameters:
+      - description: ID of the product to add photos to
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: The image(s) to upload
+        in: formData
+        items:
+          type: file
+        name: photo_files[]
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Upload image(s) to product photo to add photos
+      tags:
+      - Photo
   /products/:
     get:
       consumes:

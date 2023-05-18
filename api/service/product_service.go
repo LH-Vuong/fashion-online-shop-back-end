@@ -10,6 +10,8 @@ import (
 type ProductService interface {
 	Get(id string) (*product.Product, error)
 	List(request request.ListProductsRequest) ([]*product.Product, int64, error)
+	Update(updateInfo *product.Product) error
+	Create(productInfo *product.Product) error
 }
 
 type ProductServiceImpl struct {
@@ -24,13 +26,23 @@ func ConvertPhotosToUrls(photos []*product.ProductPhoto) []string {
 	var urls []string
 
 	for _, photo := range photos {
-		urls = append(urls, photo.MainPhoto)
+		if photo.MainPhoto != "" {
+			urls = append(urls, photo.MainPhoto)
+		}
 		for _, subPhoto := range photo.SubPhotos {
 			urls = append(urls, subPhoto)
 		}
 	}
 	return urls
 
+}
+
+func (service *ProductServiceImpl) Update(updateInfo *product.Product) error {
+	return service.ProductDetailRepository.Update(updateInfo)
+}
+
+func (service *ProductServiceImpl) Create(productInfo *product.Product) error {
+	return service.ProductDetailRepository.Create(productInfo)
 }
 
 func (service *ProductServiceImpl) Get(id string) (*product.Product, error) {

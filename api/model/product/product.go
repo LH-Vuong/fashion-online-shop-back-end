@@ -1,16 +1,16 @@
 package product
 
 type Product struct {
-	Id                string             `bson:"_id" json:"id"`
-	Name              string             `bson:"name" json:"name"`
-	Tags              []string           `bson:"tags" json:"tags"`
-	Types             []string           `bson:"types" json:"types"`
-	Brand             string             `bson:"brand" json:"brand"`
-	DiscountAmount    float64            `bson:"discount_amount" json:"discount_amount"`
-	DiscountPercent   float64            `bson:"discount_percent" json:"discount_percent"`
-	Gender            string             `bson:"gender" json:"gender"`
-	Price             int64              `bson:"price" json:"price"`
-	Description       string             `bson:"description" json:"description"`
+	Id                string             `bson:"_id,omitempty" json:"id"`
+	Name              string             `bson:"name,omitempty" json:"name"`
+	Tags              []string           `bson:"tags,omitempty" json:"tags"`
+	Types             []string           `bson:"types,omitempty" json:"types"`
+	Brand             string             `bson:"brand,omitempty" json:"brand"`
+	DiscountAmount    float64            `bson:"discount_amount,omitempty" json:"discount_amount"`
+	DiscountPercent   float64            `bson:"discount_percent,omitempty" json:"discount_percent"`
+	Gender            string             `bson:"gender,omitempty" json:"gender"`
+	Price             int64              `bson:"price,omitempty" json:"price"`
+	Description       string             `bson:"description,omitempty" json:"description"`
 	Photos            []string           `bson:"-" json:"photos"`
 	ProductQuantities []*ProductQuantity `json:"product_quantities" bson:"-"`
 	AvrRate           float64            `bson:"-" json:"avr_rate"`

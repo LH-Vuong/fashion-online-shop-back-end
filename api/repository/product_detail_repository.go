@@ -5,6 +5,7 @@ import (
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/initializers"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,10 +24,54 @@ type ProductDetailRepository interface {
 
 	ListBySearchOption(searchOption product.ProductSearchOption) ([]*product.Product, int64, error)
 	ListByMultiId(ids []string) ([]*product.Product, error)
+	Update(product *product.Product) error
+	Create(product *product.Product) error
 }
 
 type ProductDetailRepositoryImpl struct {
 	collection initializers.Collection
+}
+
+func (repo *ProductDetailRepositoryImpl) Update(product *product.Product) error {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	id, err := primitive.ObjectIDFromHex(product.Id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+
+	product.Id = ""
+	product.UpdatedAt = time.Now().UnixMilli()
+	update := bson.M{
+		"$set": *product,
+	}
+
+	_, err = repo.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (repo *ProductDetailRepositoryImpl) Create(product *product.Product) error {
+
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	now := time.Now().UnixMilli()
+	product.CreatedAt = now
+	product.UpdatedAt = now
+	product.Id = ""
+	// Insert the product document into the collection
+	res, err := repo.collection.InsertOne(ctx, *product)
+	if err != nil {
+		return err
+	}
+
+	product.Id = res.(primitive.ObjectID).Hex()
+
+	return nil
 }
 
 func (repository *ProductDetailRepositoryImpl) Get(id string) (product *product.Product, err error) {
