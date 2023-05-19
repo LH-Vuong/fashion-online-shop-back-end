@@ -6,7 +6,7 @@ type Product struct {
 	Tags              []string           `bson:"tags,omitempty" json:"tags"`
 	Types             []string           `bson:"types,omitempty" json:"types"`
 	Brand             string             `bson:"brand,omitempty" json:"brand"`
-	DiscountAmount    float64            `bson:"discount_amount,omitempty" json:"discount_amount"`
+	DiscountAmount    float64            `bson:"discount_amount,omitempty" json:"-"`
 	DiscountPercent   float64            `bson:"discount_percent,omitempty" json:"discount_percent"`
 	Gender            string             `bson:"gender,omitempty" json:"gender"`
 	Price             int64              `bson:"price,omitempty" json:"price"`

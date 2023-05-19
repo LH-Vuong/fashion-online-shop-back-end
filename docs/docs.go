@@ -1073,12 +1073,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "a list of color name separated by commas (FULL UPPERCASE format)",
-                        "name": "colors",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "description": "a list of tag name ['HOT','NEW','SALE'] separated by commas",
                         "name": "tags",
                         "in": "query"
@@ -1093,12 +1087,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "a list of type name separated by commas",
                         "name": "types",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Minimum of avg rate of product",
-                        "name": "rate",
                         "in": "query"
                     },
                     {
@@ -1131,6 +1119,76 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.PagingResponse-product_Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/brands": {
+            "get": {
+                "description": "List distinct brands of products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "List distinct brands of products",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/types": {
+            "get": {
+                "description": "List distinct types of products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "List distinct types of products",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
                         }
                     },
                     "400": {
@@ -1844,9 +1902,6 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
-                },
-                "discount_amount": {
-                    "type": "number"
                 },
                 "discount_percent": {
                     "type": "number"
