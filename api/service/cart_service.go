@@ -209,8 +209,6 @@ func (service *CartServiceImpl) Update(customerId string, items []*cart.CartItem
 	if err != nil {
 		return err
 	}
-	println("get item len")
-	println(len(items))
 	_, err = service.cartRepo.MultiCreate(customerId, items)
 	if err != nil {
 		return err

@@ -40,12 +40,12 @@ func ToCartResponse(cartItems []*cart.CartItem) []*response.CartItem {
 
 // Update Cart Items of User
 //
-//	@Summary		update cart of customer by received cart item
-//	@Description	Update cart item by delete all old cart items, then add received item to customer card
+//	@Summary		Update the cart of the current customer with the items received in the request body
+//	@Description	Delete all the previous cart items of the customer by using their access token then add the items received in the request body to their cart.
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          CartRequest   body       []request.CartItem    true    "access token received after login"
+//	@Param          CartRequest   body       []request.CartItem    true    "Array of cart items to be added to the customer's cart"
 //	@Success		200				{object}	string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
@@ -74,10 +74,10 @@ func (controller CartController) Update(c *gin.Context) {
 
 }
 
-// Get Cart Items of User
+// Get Cart Items of Customer
 //
-//	@Summary		List customer's cart item
-//	@Description	get List cart item by access_token of user
+//	@Summary		Get the cart items of the current user
+//	@Description	Retrieve a list of cart items for the current Customer by using their access token.
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
@@ -102,14 +102,14 @@ func (controller CartController) Get(c *gin.Context) {
 
 }
 
-// AddMany new items to card
+// AddMany items to card
 //
-//	@Summary		add items to cart
-//	@Description	add items to cart, return info of added item
+//	@Summary		Add multiple items to the cart
+//	@Description	Adds multiple items to the cart and returns the information of the added items ,by using their access token.If an item already exists in the cart,its quantity will be updated.
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          CartRequest   body      []request.CartItem    true    "AddMany item request"
+//	@Param          CartRequest   body      []request.CartItem    true    "Array of cart items to be added to the cart"
 //	@Success		200				{object}	response.BaseResponse[[]response.CartItem]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
@@ -148,8 +148,8 @@ func (controller CartController) AddMany(c *gin.Context) {
 
 // Delete one item in cart
 //
-//	@Summary		delete one item in cart
-//	@Description	Delete cart item which specifies by product_id and customer_auth code
+//	@Summary		Delete a single item from the cart
+//	@Description	Deletes a cart item specified by the product ID and the customer authentication code.
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
@@ -171,8 +171,8 @@ func (controller CartController) Delete(c *gin.Context) {
 
 // DeleteMany  items in customer cart
 //
-//	@Summary		delete all items in cart
-//	@Description	Delete all item in cart
+//	@Summary		Delete all items from the cart
+//	@Description	Deletes all items from the customer's cart by using their access token
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
@@ -195,8 +195,10 @@ func (controller CartController) DeleteMany(c *gin.Context) {
 
 // CheckOut items in cart
 //
-//	@Summary		Use to validate items of cart then modify it if invalid
-//	@Description	Check out customer cart then delete invalid item(sold out item) return list of sold-out Items' ID.Use before make order to ensure order will valid
+//	@Summary		Validate and modify the items in the cart
+//	@Description	Validates the items in the customer's cart and modifies them if any items are invalid, such as sold-out items.
+//	Returns the list of sold-out items' IDs that have been removed from the cart.
+//	Use this method before placing an order to ensure that the order is valid.
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json

@@ -162,7 +162,7 @@ const docTemplate = `{
         },
         "/cart": {
             "get": {
-                "description": "get List cart item by access_token of user",
+                "description": "Retrieve a list of cart items for the current Customer by using their access token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -172,7 +172,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "List customer's cart item",
+                "summary": "Get the cart items of the current user",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -195,7 +195,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "add items to cart, return info of added item",
+                "description": "Adds multiple items to the cart and returns the information of the added items ,by using their access token.If an item already exists in the cart,its quantity will be updated.",
                 "consumes": [
                     "application/json"
                 ],
@@ -205,10 +205,10 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "add items to cart",
+                "summary": "Add multiple items to the cart",
                 "parameters": [
                     {
-                        "description": "AddMany item request",
+                        "description": "Array of cart items to be added to the cart",
                         "name": "CartRequest",
                         "in": "body",
                         "required": true,
@@ -242,7 +242,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Update cart item by delete all old cart items, then add received item to customer card",
+                "description": "Delete all the previous cart items of the customer by using their access token then add the items received in the request body to their cart.",
                 "consumes": [
                     "application/json"
                 ],
@@ -252,10 +252,10 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "update cart of customer by received cart item",
+                "summary": "Update the cart of the current customer with the items received in the request body",
                 "parameters": [
                     {
-                        "description": "access token received after login",
+                        "description": "Array of cart items to be added to the customer's cart",
                         "name": "CartRequest",
                         "in": "body",
                         "required": true,
@@ -289,7 +289,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete all item in cart",
+                "description": "Deletes all items from the customer's cart by using their access token",
                 "consumes": [
                     "application/json"
                 ],
@@ -299,7 +299,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "delete all items in cart",
+                "summary": "Delete all items from the cart",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -324,7 +324,7 @@ const docTemplate = `{
         },
         "/cart/checkout": {
             "get": {
-                "description": "Check out customer cart then delete invalid item(sold out item) return list of sold-out Items' ID.Use before make order to ensure order will valid",
+                "description": "Validates the items in the customer's cart and modifies them if any items are invalid, such as sold-out items.",
                 "consumes": [
                     "application/json"
                 ],
@@ -334,7 +334,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Use to validate items of cart then modify it if invalid",
+                "summary": "Validate and modify the items in the cart",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -359,7 +359,7 @@ const docTemplate = `{
         },
         "/cart/{product_id}": {
             "delete": {
-                "description": "Delete cart item which specifies by product_id and customer_auth code",
+                "description": "Deletes a cart item specified by the product ID and the customer authentication code.",
                 "consumes": [
                     "application/json"
                 ],
@@ -369,7 +369,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "delete one item in cart",
+                "summary": "Delete a single item from the cart",
                 "parameters": [
                     {
                         "type": "string",
@@ -491,50 +491,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/inventory/with_detail/:detail_id": {
-            "delete": {
-                "description": "Delete many by detail_id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "inventory"
-                ],
-                "summary": "Delete many by detail_id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of product detail",
-                        "name": "detail_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/inventory/with_detail/{detail_id}": {
             "get": {
                 "description": "List product's quantity",
@@ -562,6 +518,48 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.BaseResponse-array_product_ProductQuantity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete many by detail_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Delete many by detail_id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of product detail",
+                        "name": "detail_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-string"
                         }
                     },
                     "400": {

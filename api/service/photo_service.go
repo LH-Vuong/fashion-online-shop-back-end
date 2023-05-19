@@ -67,8 +67,6 @@ func (p *PhotoServiceImpl) UploadPhoto(files []io.Reader, productId string) ([]s
 
 	curPhoto, err := p.PhotoRepo.GetOne(productId)
 	if curPhoto != nil {
-		println("appen new one")
-		println(len(curPhoto.SubPhotos))
 		paths = append(paths, curPhoto.SubPhotos...)
 	}
 	err = p.PhotoRepo.DeleteByProductId(productId)

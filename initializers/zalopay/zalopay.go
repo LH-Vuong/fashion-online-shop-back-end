@@ -104,8 +104,6 @@ func (processor *ZaloPaymentProcessor) InitPayment(info *order.OrderInfo) error 
 	body, _ := io.ReadAll(res.Body)
 
 	var result payment.ZaloPayApiResult
-	println("BODY")
-	println(string(body))
 	if err = json.Unmarshal(body, &result); err != nil {
 		return err
 	}
@@ -124,7 +122,6 @@ func (processor *ZaloPaymentProcessor) InitPayment(info *order.OrderInfo) error 
 
 func (processor *ZaloPaymentProcessor) GetPaymentStatus(paymentId string) (payment.Status, error) {
 	data := fmt.Sprintf("%v|%s|%s", processor.appid, paymentId, processor.key1) // appid|apptransid|key1
-	println(data)
 	params := map[string]interface{}{
 		"app_id":       processor.appid,
 		"app_trans_id": paymentId,

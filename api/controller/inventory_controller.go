@@ -50,8 +50,7 @@ func (ic InventoryController) Create(ctx *gin.Context) {
 //	@Router			/inventory/{quantity_id} [delete]
 func (ic InventoryController) DeleteById(ctx *gin.Context) {
 	quantityId := ctx.Param("quantity_id")
-	println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	println(quantityId)
+
 	err := ic.Service.DeleteOne(quantityId)
 	if err != nil {
 		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
@@ -75,7 +74,7 @@ func (ic InventoryController) DeleteById(ctx *gin.Context) {
 //	@Success		200				{object}	response.BaseResponse[string]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/inventory/with_detail/:detail_id [delete]
+//	@Router			/inventory/with_detail/{detail_id} [delete]
 func (ic InventoryController) DeleteByDetailId(ctx *gin.Context) {
 	quantityId := ctx.Param("detail_id")
 	err := ic.Service.DeleteManyByDetailId(quantityId)
@@ -164,8 +163,6 @@ func (ic InventoryController) ListByDetailId(ctx *gin.Context) {
 //	@Router			/inventory/{quantity_id} [get]
 func (ic InventoryController) Get(ctx *gin.Context) {
 	quantityId := ctx.Param("quantity_id")
-
-	println(quantityId)
 	rs, err := ic.Service.Get(quantityId)
 	if err != nil {
 		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
