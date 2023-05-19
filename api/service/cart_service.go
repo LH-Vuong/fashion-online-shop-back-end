@@ -9,7 +9,9 @@ import (
 type CartService interface {
 	Get(customerId string) ([]*cart.CartItem, error)
 
-	Update(customerId string, items []cart.CartItem) error
+	Update(customerId string, items []*cart.CartItem) error
+
+	AddMany(customerId string, items []*cart.CartItem) ([]*cart.CartItem, error)
 
 	Add(customerId string, cartItem cart.CartItem) (*cart.CartItem, error)
 
@@ -36,6 +38,37 @@ type CartServiceImpl struct {
 	cartRepo     repository.CartRepository
 	quantityRepo repository.ProductQuantityRepository
 	detailRepo   repository.ProductDetailRepository
+}
+
+func (service *CartServiceImpl) AddMany(customerId string, items []*cart.CartItem) ([]*cart.CartItem, error) {
+	curItems, err := service.cartRepo.ListByCustomerId(customerId)
+	itemMap := toCartItemMap(curItems)
+	if err != nil {
+		return nil, err
+	}
+
+	//check item has exited one before add,
+	for _, addItem := range items {
+		if exitedItem, ok := itemMap[addItem.ProductId]; ok {
+			exitedItem.Quantity = exitedItem.Quantity + addItem.Quantity
+		} else {
+			curItems = append(curItems, addItem)
+		}
+	}
+
+	err = service.DeleteAll(customerId)
+	if err != nil {
+		return nil, err
+	}
+	_, err = service.cartRepo.MultiCreate(customerId, curItems)
+	if err != nil {
+		return nil, err
+	}
+	curItems, err = service.Get(customerId)
+	if err != nil {
+		return nil, err
+	}
+	return curItems, nil
 }
 
 func toCartItemMap(items []*cart.CartItem) map[string]*cart.CartItem {
@@ -119,7 +152,6 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 	}
 	quantityMap := make(map[string]*product.ProductQuantity, len(productQuantities))
 	for _, item := range productQuantities {
-
 		quantityMap[item.Id] = item
 	}
 
@@ -138,7 +170,6 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 
 		if detailId, ok := productDetailMap[productQuantity.DetailId]; ok {
 			item.ProductDetail = *detailId
-
 		}
 
 		item.Color = productQuantity.Color
@@ -154,12 +185,15 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*product
 	for index, item := range productQuantities {
 		detailIds[index] = item.DetailId
 	}
+	productDetailMap := make(map[string]*product.Product, len(detailIds))
+	if len(detailIds) < 1 {
+		return productDetailMap, nil
+	}
 
 	productDetails, err := service.detailRepo.ListByMultiId(detailIds)
 	if err != nil {
 		return nil, err
 	}
-	productDetailMap := make(map[string]*product.Product, len(productDetails))
 
 	for _, productDetail := range productDetails {
 		productDetailMap[productDetail.Id] = productDetail
@@ -169,12 +203,14 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*product
 
 }
 
-func (service *CartServiceImpl) Update(customerId string, items []cart.CartItem) error {
+func (service *CartServiceImpl) Update(customerId string, items []*cart.CartItem) error {
 
-	err := service.cartRepo.DeleteByCustomerId(customerId)
+	err := service.DeleteAll(customerId)
 	if err != nil {
 		return err
 	}
+	println("get item len")
+	println(len(items))
 	_, err = service.cartRepo.MultiCreate(customerId, items)
 	if err != nil {
 		return err

@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/initializers"
@@ -173,9 +172,7 @@ func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption p
 func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (products []*product.Product, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	if len(ids) < 1 {
-		return nil, fmt.Errorf("list with empty id array")
-	}
+
 	var objectIds []primitive.ObjectID
 	for _, id := range ids {
 		objectID, _ := primitive.ObjectIDFromHex(id)

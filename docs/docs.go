@@ -177,7 +177,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-array_cart_CartItem"
+                            "$ref": "#/definitions/response.BaseResponse-array_response_CartItem"
                         }
                     },
                     "400": {
@@ -195,7 +195,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "add item to cart, return info of added item",
+                "description": "add items to cart, return info of added item",
                 "consumes": [
                     "application/json"
                 ],
@@ -205,15 +205,18 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "add item to cart",
+                "summary": "add items to cart",
                 "parameters": [
                     {
-                        "description": "Add item request",
+                        "description": "AddMany item request",
                         "name": "CartRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.AddItemRequest"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/request.CartItem"
+                            }
                         }
                     }
                 ],
@@ -221,7 +224,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/cart.CartItem"
+                            "$ref": "#/definitions/response.BaseResponse-array_response_CartItem"
                         }
                     },
                     "400": {
@@ -257,7 +260,10 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateCartRequest"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/request.CartItem"
+                            }
                         }
                     }
                 ],
@@ -283,7 +289,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete cart item by product id of customer",
+                "description": "Delete all item in cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -293,23 +299,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "delete card item of customer cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "customer's id",
-                        "name": "customer_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "product's id",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "delete all items in cart",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -334,7 +324,7 @@ const docTemplate = `{
         },
         "/cart/checkout": {
             "get": {
-                "description": "Check out customer cart then delete invalid item(sold out item) return list of sold-out Items' ID",
+                "description": "Check out customer cart then delete invalid item(sold out item) return list of sold-out Items' ID.Use before make order to ensure order will valid",
                 "consumes": [
                     "application/json"
                 ],
@@ -345,12 +335,47 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Use to validate items of cart then modify it if invalid",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/{product_id}": {
+            "delete": {
+                "description": "Delete cart item which specifies by product_id and customer_auth code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "delete one item in cart",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "customer's id",
-                        "name": "customer_id",
-                        "in": "path",
+                        "description": "product's id",
+                        "name": "product_id",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -358,7 +383,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-array_string"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -1886,18 +1911,14 @@ const docTemplate = `{
                 }
             }
         },
-        "request.AddItemRequest": {
+        "request.CartItem": {
             "type": "object",
             "required": [
-                "customer_id",
-                "productId",
+                "product_id",
                 "quantity"
             ],
             "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
-                "productId": {
+                "product_id": {
                     "type": "string"
                 },
                 "quantity": {
@@ -1919,60 +1940,10 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateCartRequest": {
-            "type": "object",
-            "required": [
-                "customer_id",
-                "items"
-            ],
-            "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.UpdateItem"
-                    }
-                }
-            }
-        },
-        "request.UpdateItem": {
-            "type": "object",
-            "required": [
-                "productId",
-                "quantity"
-            ],
-            "properties": {
-                "productId": {
-                    "type": "string"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
         "response.BaseResponse-any": {
             "type": "object",
             "properties": {
                 "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.BaseResponse-array_cart_CartItem": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cart.CartItem"
-                    }
-                },
                 "message": {
                     "type": "string"
                 },
@@ -1988,6 +1959,23 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/product.ProductQuantity"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-array_response_CartItem": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CartItem"
                     }
                 },
                 "message": {
@@ -2053,6 +2041,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.CartItem": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "size": {
                     "type": "string"
                 }
             }

@@ -41,7 +41,7 @@ func TestFlow(t *testing.T) {
 		Size:       "XXL",
 	}
 
-	t.Run("Add Item", func(t *testing.T) {
+	t.Run("AddMany Item", func(t *testing.T) {
 		cartService.Add(customerId, item1)
 		cartService.Add(customerId, item2)
 	})
