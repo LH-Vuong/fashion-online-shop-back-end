@@ -12,6 +12,8 @@ type ProductService interface {
 	List(request request.ListProductsRequest) ([]*product.Product, int64, error)
 	Update(updateInfo *product.Product) error
 	Create(productInfo *product.Product) error
+	ListBrand() ([]string, error)
+	ListType() ([]string, error)
 }
 
 type ProductServiceImpl struct {
@@ -19,6 +21,25 @@ type ProductServiceImpl struct {
 	PhotoService            PhotoService
 	ProductRatingRepository repository.ProductRatingRepository
 	QuantityService         ProductQuantityService
+}
+
+func (service *ProductServiceImpl) ListBrand() ([]string, error) {
+	return service.ProductDetailRepository.ListBrand()
+}
+
+func (service *ProductServiceImpl) ListType() ([]string, error) {
+	return service.ProductDetailRepository.ListType()
+}
+
+func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
+	productRatingRepo repository.ProductRatingRepository,
+	photoService PhotoService, quantityService ProductQuantityService) ProductService {
+	return &ProductServiceImpl{
+		productDetailRepo,
+		photoService,
+		productRatingRepo,
+		quantityService,
+	}
 }
 
 func ConvertPhotosToUrls(photos []*product.ProductPhoto) []string {
@@ -121,14 +142,4 @@ func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequ
 	service.addPhotosToProduct(products)
 
 	return products, totalDocs, nil
-}
-func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
-	productRatingRepo repository.ProductRatingRepository,
-	photoService PhotoService, quantityService ProductQuantityService) ProductService {
-	return &ProductServiceImpl{
-		productDetailRepo,
-		photoService,
-		productRatingRepo,
-		quantityService,
-	}
 }

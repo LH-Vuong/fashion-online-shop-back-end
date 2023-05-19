@@ -226,8 +226,6 @@ definitions:
         type: string
       description:
         type: string
-      discount_amount:
-        type: number
       discount_percent:
         type: number
       gender:
@@ -1113,10 +1111,6 @@ paths:
         in: query
         name: brands
         type: string
-      - description: a list of color name separated by commas (FULL UPPERCASE format)
-        in: query
-        name: colors
-        type: string
       - description: a list of tag name ['HOT','NEW','SALE'] separated by commas
         in: query
         name: tags
@@ -1129,10 +1123,6 @@ paths:
         in: query
         name: types
         type: string
-      - description: Minimum of avg rate of product
-        in: query
-        name: rate
-        type: integer
       - description: 'Range of values in format ''min_value,max_value'' '
         in: query
         name: price
@@ -1165,6 +1155,52 @@ paths:
           schema:
             type: string
       summary: list of product
+      tags:
+      - product
+  /products/brands:
+    get:
+      consumes:
+      - application/json
+      description: List distinct brands of products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List distinct brands of products
+      tags:
+      - product
+  /products/types:
+    get:
+      consumes:
+      - application/json
+      description: List distinct types of products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List distinct types of products
       tags:
       - product
   /users/address:

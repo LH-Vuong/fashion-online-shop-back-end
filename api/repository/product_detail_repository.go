@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"go.mongodb.org/mongo-driver/mongo"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/initializers"
@@ -25,10 +26,66 @@ type ProductDetailRepository interface {
 	ListByMultiId(ids []string) ([]*product.Product, error)
 	Update(product *product.Product) error
 	Create(product *product.Product) error
+	ListBrand() ([]string, error)
+	ListType() ([]string, error)
 }
 
 type ProductDetailRepositoryImpl struct {
 	collection initializers.Collection
+}
+
+func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {
+	return &ProductDetailRepositoryImpl{collection: productCollection}
+}
+
+func (repo *ProductDetailRepositoryImpl) ListBrand() (brands []string, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	pipeline := mongo.Pipeline{
+		{{"$group", bson.D{{"_id", "$brand"}}}},
+		{{"$sort", bson.D{{"_id", 1}}}},
+	}
+
+	rs, err := repo.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	for rs.Next(ctx) {
+		var result bson.M
+		err := rs.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		brands = append(brands, result["_id"].(string))
+	}
+	return
+
+}
+
+func (repo *ProductDetailRepositoryImpl) ListType() (types []string, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	pipeline := mongo.Pipeline{
+		{{"$unwind", "$types"}},
+		{{"$group", bson.D{{"_id", "$types"}}}},
+		{{"$sort", bson.D{{"_id", 1}}}},
+	}
+
+	rs, err := repo.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	for rs.Next(ctx) {
+		var result bson.M
+		err := rs.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		types = append(types, result["_id"].(string))
+	}
+	return
 }
 
 func (repo *ProductDetailRepositoryImpl) Update(product *product.Product) error {
@@ -184,8 +241,4 @@ func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (prod
 	}
 	rs.All(ctx, &products)
 	return
-}
-
-func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {
-	return &ProductDetailRepositoryImpl{collection: productCollection}
 }

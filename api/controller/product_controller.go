@@ -30,20 +30,6 @@ func parseListProductsRequest(c *gin.Context) (*request.ListProductsRequest, err
 		req.Brands = strings.Split(brandsStr, ",")
 	}
 
-	// Parse the colors' parameter (comma-separated list)
-	if colorsStr := queryValues.Get("colors"); colorsStr != "" {
-		req.Colors = strings.Split(colorsStr, ",")
-	}
-
-	// Parse the rate parameter
-	if rateStr := queryValues.Get("rate"); rateStr != "" {
-		rate, err := strconv.Atoi(rateStr)
-		if err != nil {
-			return nil, err
-		}
-		req.Rate = rate
-	}
-
 	// Parse the tags' parameter (comma-separated list)
 	if tagsStr := queryValues.Get("tags"); tagsStr != "" {
 		req.Tags = strings.Split(tagsStr, ",")
@@ -148,11 +134,9 @@ func (cl ProductController) Get(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param          brands    	query       string    false    "a list of brand name separated by commas"
-//	@Param          colors    	query       string    false    "a list of color name separated by commas (FULL UPPERCASE format)"
 //	@Param          tags      	query       string    false    "a list of tag name ['HOT','NEW','SALE'] separated by commas"
 //	@Param          genders   	query       string    false    "a list of gender type ['KID','WOMEN','MEN'] separated by commas"
 //	@Param          types     	query       string    false    "a list of type name separated by commas"
-//	@Param          rate	  	query       int    	  false    "Minimum of avg rate of product"
 //	@Param          price	  	query       string	  false    "Range of values in format 'min_value,max_value' "
 //	@Param          name	  	query       string	  false    "Key work relate to products' name "
 //	@Param          page	  	query       int	   	  false    "current page's number ,start at 1"
@@ -238,6 +222,56 @@ func (cl ProductController) Update(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response.BaseResponse[*product.Product]{
 		Data:    &updateProduct,
+		Message: "updated one",
+		Status:  "success",
+	})
+
+}
+
+// ListBrands distinct products' brands
+//
+//	@Summary		List distinct brands of products
+//	@Description	List distinct brands of products
+//	@Tags			product
+//	@Accept			json
+//	@Produce		json
+//	@Success		200				{object}	response.BaseResponse[[]string]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/products/brands [get]
+func (cl ProductController) ListBrands(c *gin.Context) {
+	brands, err := cl.Service.ListBrand()
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, response.BaseResponse[[]string]{
+		Data:    brands,
+		Message: "updated one",
+		Status:  "success",
+	})
+
+}
+
+// ListType distinct products' types
+//
+//	@Summary		List distinct types of products
+//	@Description	List distinct types of products
+//	@Tags			product
+//	@Accept			json
+//	@Produce		json
+//	@Success		200				{object}	response.BaseResponse[[]string]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/products/types [get]
+func (cl ProductController) ListType(c *gin.Context) {
+	types, err := cl.Service.ListType()
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, response.BaseResponse[[]string]{
+		Data:    types,
 		Message: "updated one",
 		Status:  "success",
 	})
