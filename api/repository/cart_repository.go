@@ -12,7 +12,7 @@ import (
 
 type CartRepository interface {
 	Create(customerId string, item cart.CartItem) (string, error)
-	MultiCreate(customerId string, items []cart.CartItem) ([]string, error)
+	MultiCreate(customerId string, items []*cart.CartItem) ([]string, error)
 	ListByCustomerId(customerId string) ([]*cart.CartItem, error)
 	GetBySearchOption(searchOption CartSearchOption) (*cart.CartItem, error)
 	DeleteByCustomerId(customerId string) error
@@ -74,7 +74,7 @@ func (cri *CartRepositoryImpl) Create(customerID string, item cart.CartItem) (st
 }
 
 // MultiCreate inserts multiple CartItems into the cartCollection
-func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []cart.CartItem) ([]string, error) {
+func (cri *CartRepositoryImpl) MultiCreate(customerID string, items []*cart.CartItem) ([]string, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	var documents []interface{}
