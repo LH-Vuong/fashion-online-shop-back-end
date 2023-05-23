@@ -891,6 +891,13 @@ const docTemplate = `{
                 "summary": "Get user's address list",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "name": "page",
                         "in": "query",
@@ -941,6 +948,13 @@ const docTemplate = `{
                 "summary": "update user's address",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "User's address",
                         "name": "UpdateUserAddressModel",
                         "in": "body",
@@ -984,6 +998,13 @@ const docTemplate = `{
                 ],
                 "summary": "create user's address",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "User's address",
                         "name": "CreateUserAddressModel",
@@ -1029,6 +1050,13 @@ const docTemplate = `{
                 "summary": "Detele user's address",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "User's address id",
                         "name": "DeletedId",
                         "in": "body",
@@ -1073,6 +1101,15 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "get user info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1109,6 +1146,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get user's address list",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "name": "page",
@@ -1160,6 +1204,13 @@ const docTemplate = `{
                 "summary": "add user's wishlist item",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "User's wishlist item",
                         "name": "AddWishListModel",
                         "in": "body",
@@ -1203,6 +1254,13 @@ const docTemplate = `{
                 ],
                 "summary": "Detele user's wishlist item",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "User's wishlist item id",
                         "name": "DeleteIds",

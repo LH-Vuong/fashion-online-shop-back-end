@@ -18,9 +18,11 @@ func NewUserController(service service.UserService) UserController {
 }
 
 // Get Me
+//
 //	@Summary		get user info
 //	@Description	get the current user info
 //	@Tags			users
+//	@Param		Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Success		200				{object}	model.User
@@ -34,9 +36,11 @@ func (uc *UserController) GetMe(ctx *gin.Context) {
 }
 
 // Create User's Address
+//
 //	@Summary		create user's address
 //	@Description	create new user's address
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			CreateUserAddressModel		body		model.CreateUserAddressModel	true	"User's address"
@@ -56,9 +60,11 @@ func (uc *UserController) CreateUserAddress(ctx *gin.Context) {
 }
 
 // Update User's Address
+//
 //	@Summary		update user's address
 //	@Description	update user's address
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			UpdateUserAddressModel		body		model.UpdateUserAddressModel	true	"User's address"
@@ -78,9 +84,11 @@ func (uc *UserController) UpdateUserAddress(ctx *gin.Context) {
 }
 
 // Delete User's Address
+//
 //	@Summary		Detele user's address
 //	@Description	Detele user's address
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			DeletedId		body		string	true	"User's address id"
@@ -95,9 +103,11 @@ func (uc *UserController) DeleteUserAddress(ctx *gin.Context) {
 }
 
 // Get User's Address List
+//
 //	@Summary		Get user's address list
 //	@Description	Get user's address list
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			GetUserAddressListModel		query		model.GetUserAddressListModel	true	"User's address filter"
@@ -117,9 +127,11 @@ func (uc *UserController) GetUserAddressList(ctx *gin.Context) {
 }
 
 // Add User's Wishlist Item
+//
 //	@Summary		add user's wishlist item
 //	@Description	add user's wishlist item
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			AddWishListModel		body		model.AddWishListModel	true	"User's wishlist item"
@@ -139,9 +151,11 @@ func (uc *UserController) AddUserWishlist(ctx *gin.Context) {
 }
 
 // Delete User's wishlist item
+//
 //	@Summary		Detele user's wishlist item
 //	@Description	Detele user's wishlist item
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			DeleteIds		body		model.DeleteWishListModel	true	"User's wishlist item id"
@@ -160,9 +174,11 @@ func (uc *UserController) DeleteUserWishlist(ctx *gin.Context) {
 }
 
 // Get User's Address List
+//
 //	@Summary		Get user's address list
 //	@Description	Get user's address list
 //	@Tags			users
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param			GetUserAddressListModel		query		model.GetUserAddressListModel	true	"User's address filter"

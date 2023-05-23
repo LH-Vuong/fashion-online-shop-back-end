@@ -18,24 +18,21 @@ import (
 func DeserializeUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var access_token string
-		cookie, err := ctx.Cookie("access_token")
-
 		authorizationHeader := ctx.Request.Header.Get("Authorization")
 		fields := strings.Fields(authorizationHeader)
 
 		if len(fields) != 0 && fields[0] == "Bearer" {
 			access_token = fields[1]
-		} else if err == nil {
-			access_token = cookie
 		}
 
 		if access_token == "" {
-			errs.HandleFailStatus(ctx, "You are not logged in", http.StatusUnauthorized)
+			errs.HandleFailStatus(ctx, "You are not logged in!", http.StatusUnauthorized)
 			return
 		}
 
 		config, _ := initializers.LoadConfig(".")
 		sub, err := utils.ValidateToken(access_token, config.AccessTokenPublicKey)
+
 		if err != nil {
 			errs.HandleFailStatus(ctx, err.Error(), http.StatusUnauthorized)
 			return
@@ -44,15 +41,12 @@ func DeserializeUser() gin.HandlerFunc {
 		user, err := getUserById(ctx, fmt.Sprint(sub), config)
 
 		if err != nil {
-			errs.HandleFailStatus(ctx, err.Error(), http.StatusUnauthorized)
-			return
+			errs.HandleErrorStatus(ctx, err, "VerifyToken")
 		}
 
 		ctx.Set("currentUser", *user)
-		ctx.Next()
 	}
 }
-
 func getUserById(ctx context.Context, userId string, config initializers.Config) (user *model.User, err error) {
 	var cl initializers.Client
 
