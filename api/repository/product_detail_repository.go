@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/initializers"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,10 +24,110 @@ type ProductDetailRepository interface {
 
 	ListBySearchOption(searchOption product.ProductSearchOption) ([]*product.Product, int64, error)
 	ListByMultiId(ids []string) ([]*product.Product, error)
+	Update(product *product.Product) error
+	Create(product *product.Product) error
+	ListBrand() ([]string, error)
+	ListType() ([]string, error)
 }
 
 type ProductDetailRepositoryImpl struct {
 	collection initializers.Collection
+}
+
+func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {
+	return &ProductDetailRepositoryImpl{collection: productCollection}
+}
+
+func (repo *ProductDetailRepositoryImpl) ListBrand() (brands []string, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	pipeline := mongo.Pipeline{
+		{{"$group", bson.D{{"_id", "$brand"}}}},
+		{{"$sort", bson.D{{"_id", 1}}}},
+	}
+
+	rs, err := repo.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	for rs.Next(ctx) {
+		var result bson.M
+		err := rs.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		brands = append(brands, result["_id"].(string))
+	}
+	return
+
+}
+
+func (repo *ProductDetailRepositoryImpl) ListType() (types []string, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	pipeline := mongo.Pipeline{
+		{{"$unwind", "$types"}},
+		{{"$group", bson.D{{"_id", "$types"}}}},
+		{{"$sort", bson.D{{"_id", 1}}}},
+	}
+
+	rs, err := repo.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	for rs.Next(ctx) {
+		var result bson.M
+		err := rs.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		types = append(types, result["_id"].(string))
+	}
+	return
+}
+
+func (repo *ProductDetailRepositoryImpl) Update(product *product.Product) error {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	id, err := primitive.ObjectIDFromHex(product.Id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+
+	product.Id = ""
+	product.UpdatedAt = time.Now().UnixMilli()
+	update := bson.M{
+		"$set": *product,
+	}
+
+	_, err = repo.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (repo *ProductDetailRepositoryImpl) Create(product *product.Product) error {
+
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	now := time.Now().UnixMilli()
+	product.CreatedAt = now
+	product.UpdatedAt = now
+	product.Id = ""
+	// Insert the product document into the collection
+	res, err := repo.collection.InsertOne(ctx, *product)
+	if err != nil {
+		return err
+	}
+
+	product.Id = res.(primitive.ObjectID).Hex()
+
+	return nil
 }
 
 func (repository *ProductDetailRepositoryImpl) Get(id string) (product *product.Product, err error) {
@@ -128,9 +229,7 @@ func (repository *ProductDetailRepositoryImpl) ListBySearchOption(searchOption p
 func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (products []*product.Product, err error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	if len(ids) < 1 {
-		return nil, fmt.Errorf("list with empty id array")
-	}
+
 	var objectIds []primitive.ObjectID
 	for _, id := range ids {
 		objectID, _ := primitive.ObjectIDFromHex(id)
@@ -142,8 +241,4 @@ func (repository *ProductDetailRepositoryImpl) ListByMultiId(ids []string) (prod
 	}
 	rs.All(ctx, &products)
 	return
-}
-
-func NewProductRepositoryImpl(productCollection initializers.Collection) ProductDetailRepository {
-	return &ProductDetailRepositoryImpl{collection: productCollection}
 }

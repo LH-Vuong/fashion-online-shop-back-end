@@ -9,20 +9,14 @@ type CartRequest struct {
 	Items      []cart.CartItem `json:"items" binding:"required"`
 }
 
-type UpdateCartRequest struct {
-	CustomerId string       `json:"customer_id" binding:"required"`
-	Items      []UpdateItem `json:"items" binding:"required"`
+type ModifyCartRequest struct {
+	CustomerId string     `json:"customer_id" binding:"required"`
+	Items      []CartItem `json:"items" binding:"required"`
 }
 
-type AddItemRequest struct {
-	CustomerId string `json:"customer_id" binding:"required"`
-	ProductId  string `bson:"product_id" binding:"required"`
-	Quantity   int    `bson:"quantity" binding:"required"`
-}
-
-type UpdateItem struct {
-	ProductId string `bson:"product_id" binding:"required"`
-	Quantity  int    `bson:"quantity" binding:"required"`
+type CartItem struct {
+	ProductId string `json:"product_id" binding:"required"`
+	Quantity  int    `json:"quantity" binding:"required"`
 }
 
 type CartCheckOutRequest struct {

@@ -11,12 +11,14 @@ func InitInventoryRouter(s *gin.Engine, c *dig.Container) {
 
 	c.Invoke(func(sv service.ProductQuantityService) {
 		c := controller.InventoryController{Service: sv}
-		s.PUT("/api/inventory", c.Create)
-		s.POST("/api/inventory/", c.Update)
-		s.GET("/api/inventory/:quantity_id", c.Get)
-		s.GET("/api/inventory/with_detail/:detail_id", c.ListByDetailId)
-		s.DELETE("/api/inventory/:quantity_id", c.DeleteById)
-		s.DELETE("/api/inventory/with_detail/:detail_id", c.DeleteByDetailId)
+		inventoryRouter := s.Group("api/inventory")
+
+		inventoryRouter.PUT("", c.Create)
+		inventoryRouter.POST("", c.Update)
+		inventoryRouter.GET("/:quantity_id", c.Get)
+		inventoryRouter.GET("/with_detail/:detail_id", c.ListByDetailId)
+		inventoryRouter.DELETE("/:quantity_id", c.DeleteById)
+		inventoryRouter.DELETE("/with_detail/:detail_id", c.DeleteByDetailId)
 	})
 
 }

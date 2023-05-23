@@ -226,8 +226,6 @@ definitions:
         type: string
       description:
         type: string
-      discount_amount:
-        type: number
       discount_percent:
         type: number
       gender:
@@ -268,17 +266,14 @@ definitions:
       size:
         type: string
     type: object
-  request.AddItemRequest:
+  request.CartItem:
     properties:
-      customer_id:
-        type: string
-      productId:
+      product_id:
         type: string
       quantity:
         type: integer
     required:
-    - customer_id
-    - productId
+    - product_id
     - quantity
     type: object
   request.CreateOrderRequest:
@@ -290,42 +285,9 @@ definitions:
       payment_method:
         $ref: '#/definitions/payment.Method'
     type: object
-  request.UpdateCartRequest:
-    properties:
-      customer_id:
-        type: string
-      items:
-        items:
-          $ref: '#/definitions/request.UpdateItem'
-        type: array
-    required:
-    - customer_id
-    - items
-    type: object
-  request.UpdateItem:
-    properties:
-      productId:
-        type: string
-      quantity:
-        type: integer
-    required:
-    - productId
-    - quantity
-    type: object
   response.BaseResponse-any:
     properties:
       data: {}
-      message:
-        type: string
-      status:
-        type: string
-    type: object
-  response.BaseResponse-array_cart_CartItem:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/cart.CartItem'
-        type: array
       message:
         type: string
       status:
@@ -336,6 +298,17 @@ definitions:
       data:
         items:
           $ref: '#/definitions/product.ProductQuantity'
+        type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-array_response_CartItem:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.CartItem'
         type: array
       message:
         type: string
@@ -378,6 +351,23 @@ definitions:
       message:
         type: string
       status:
+        type: string
+    type: object
+  response.CartItem:
+    properties:
+      color:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: integer
+      size:
         type: string
     type: object
   response.PagingResponse-order_OrderInfo:
@@ -514,15 +504,124 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete cart item by product id of customer
+      description: Deletes all items from the customer's cart by using their access
+        token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete all items from the cart
+      tags:
+      - Cart
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of cart items for the current Customer by using
+        their access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_response_CartItem'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get the cart items of the current user
+      tags:
+      - Cart
+    post:
+      consumes:
+      - application/json
+      description: Delete all the previous cart items of the customer by using their
+        access token then add the items received in the request body to their cart.
       parameters:
-      - description: customer's id
-        in: path
-        name: customer_id
+      - description: Array of cart items to be added to the customer's cart
+        in: body
+        name: CartRequest
         required: true
-        type: string
+        schema:
+          items:
+            $ref: '#/definitions/request.CartItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Update the cart of the current customer with the items received in
+        the request body
+      tags:
+      - Cart
+    put:
+      consumes:
+      - application/json
+      description: Adds multiple items to the cart and returns the information of
+        the added items ,by using their access token.If an item already exists in
+        the cart,its quantity will be updated.
+      parameters:
+      - description: Array of cart items to be added to the cart
+        in: body
+        name: CartRequest
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/request.CartItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_response_CartItem'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Add multiple items to the cart
+      tags:
+      - Cart
+  /cart/{product_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a cart item specified by the product ID and the customer
+        authentication code.
+      parameters:
       - description: product's id
-        in: path
+        in: query
         name: product_id
         required: true
         type: string
@@ -541,102 +640,15 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: delete card item of customer cart
-      tags:
-      - Cart
-    get:
-      consumes:
-      - application/json
-      description: get List cart item by access_token of user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.BaseResponse-array_cart_CartItem'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: List customer's cart item
-      tags:
-      - Cart
-    post:
-      consumes:
-      - application/json
-      description: Update cart item by delete all old cart items, then add received
-        item to customer card
-      parameters:
-      - description: access token received after login
-        in: body
-        name: CartRequest
-        required: true
-        schema:
-          $ref: '#/definitions/request.UpdateCartRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: update cart of customer by received cart item
-      tags:
-      - Cart
-    put:
-      consumes:
-      - application/json
-      description: add item to cart, return info of added item
-      parameters:
-      - description: Add item request
-        in: body
-        name: CartRequest
-        required: true
-        schema:
-          $ref: '#/definitions/request.AddItemRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/cart.CartItem'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: add item to cart
+      summary: Delete a single item from the cart
       tags:
       - Cart
   /cart/checkout:
     get:
       consumes:
       - application/json
-      description: Check out customer cart then delete invalid item(sold out item)
-        return list of sold-out Items' ID
-      parameters:
-      - description: customer's id
-        in: path
-        name: customer_id
-        required: true
-        type: string
+      description: Validates the items in the customer's cart and modifies them if
+        any items are invalid, such as sold-out items.
       produces:
       - application/json
       responses:
@@ -652,7 +664,7 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: Use to validate items of cart then modify it if invalid
+      summary: Validate and modify the items in the cart
       tags:
       - Cart
   /inventory:
@@ -773,7 +785,7 @@ paths:
       summary: Get one by quantity_id
       tags:
       - inventory
-  /inventory/with_detail/:detail_id:
+  /inventory/with_detail/{detail_id}:
     delete:
       consumes:
       - application/json
@@ -802,7 +814,6 @@ paths:
       summary: Delete many by detail_id
       tags:
       - inventory
-  /inventory/with_detail/{detail_id}:
     get:
       consumes:
       - application/json
@@ -894,6 +905,72 @@ paths:
       summary: list of customer's order
       tags:
       - order
+  /product:
+    post:
+      consumes:
+      - application/json
+      description: provide fields will be updated, fields don't provide will be omitted
+        , and updated result
+      parameters:
+      - description: fields want to update with provided value
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.Product'
+      - description: fields want to update with provided value
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-product_Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: update info of product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: create a new product and return created result
+      parameters:
+      - description: info of created product
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/product.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-product_Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: create a new product
+      tags:
+      - product
   /product/{id}:
     get:
       consumes:
@@ -923,6 +1000,107 @@ paths:
       summary: get product info
       tags:
       - product
+  /product_photo:
+    delete:
+      consumes:
+      - application/json
+      description: remove photo from photo store by url
+      parameters:
+      - description: photo_url
+        in: query
+        name: photo_url
+        required: true
+        type: string
+      - description: photo_url
+        in: query
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete one by proto_url
+      tags:
+      - Photo
+  /product_photos/{product_id}:
+    delete:
+      consumes:
+      - application/json
+      description: remove all photos which belong product
+      parameters:
+      - description: product_id
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete all photos by product_id
+      tags:
+      - Photo
+  /product_photos/upload/{product_id}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create one if product has no photos yet, or add image(s) to photo
+        list
+      parameters:
+      - description: ID of the product to add photos to
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: The image(s) to upload
+        in: formData
+        items:
+          type: file
+        name: photo_files[]
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Upload image(s) to product photo to add photos
+      tags:
+      - Photo
   /products/:
     get:
       consumes:
@@ -932,10 +1110,6 @@ paths:
       - description: a list of brand name separated by commas
         in: query
         name: brands
-        type: string
-      - description: a list of color name separated by commas (FULL UPPERCASE format)
-        in: query
-        name: colors
         type: string
       - description: a list of tag name ['HOT','NEW','SALE'] separated by commas
         in: query
@@ -949,10 +1123,6 @@ paths:
         in: query
         name: types
         type: string
-      - description: Minimum of avg rate of product
-        in: query
-        name: rate
-        type: integer
       - description: 'Range of values in format ''min_value,max_value'' '
         in: query
         name: price
@@ -985,6 +1155,52 @@ paths:
           schema:
             type: string
       summary: list of product
+      tags:
+      - product
+  /products/brands:
+    get:
+      consumes:
+      - application/json
+      description: List distinct brands of products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List distinct brands of products
+      tags:
+      - product
+  /products/types:
+    get:
+      consumes:
+      - application/json
+      description: List distinct types of products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: List distinct types of products
       tags:
       - product
   /users/address:
