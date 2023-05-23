@@ -98,3 +98,9 @@ type ChangePasswordModel struct {
 	Password        string `json:"password" binding:"required,min=8"`
 	PasswordConfirm string `json:"password_confirm" binding:"required,min=8"`
 }
+
+type LoginResponseModel struct {
+	User         User   `json:"user"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
