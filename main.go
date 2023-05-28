@@ -32,7 +32,7 @@ func main() {
 
 	corConfig.AllowOrigins = []string{"http://localhost:3001"}
 	corConfig.AllowMethods = []string{"*"}
-	corConfig.AllowHeaders = []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max"}
+	corConfig.AllowHeaders = []string{"*"}
 	corConfig.ExposeHeaders = []string{"*"}
 
 	server.Use(cors.New(corConfig))
