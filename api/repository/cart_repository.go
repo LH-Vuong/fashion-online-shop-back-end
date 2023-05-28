@@ -22,9 +22,9 @@ type CartRepository interface {
 }
 
 type CartSearchOption struct {
-	CustomerId string `bson:"customer_id"`
-	ProductId  string `bson:"product_id"`
-	Id         string `bson:"id"`
+	CustomerId  string `bson:"customer_id"`
+	InventoryId string `bson:"product_id"`
+	Id          string `bson:"id"`
 }
 
 func (searchOption CartSearchOption) ToQuery() primitive.M {
@@ -36,8 +36,8 @@ func (searchOption CartSearchOption) ToQuery() primitive.M {
 	if searchOption.CustomerId != "" {
 		filters = append(filters, bson.M{"customer_id": searchOption.CustomerId})
 	}
-	if searchOption.ProductId != "" {
-		filters = append(filters, bson.M{"product_id": searchOption.ProductId})
+	if searchOption.InventoryId != "" {
+		filters = append(filters, bson.M{"product_id": searchOption.InventoryId})
 	}
 
 	if len(filters) > 0 {
@@ -147,7 +147,7 @@ func (cri *CartRepositoryImpl) Update(customerID string, cartItem cart.CartItem)
 	cartItem.UpdatedAt = time.Now().UnixMilli()
 	cartItem.UpdatedBy = customerID
 	cartItem.CustomerId = customerID
-	query := bson.M{"customer_id": customerID, "product_id": cartItem.ProductId}
+	query := bson.M{"customer_id": customerID, "product_id": cartItem.InventoryId}
 	update := bson.M{"$set": cartItem}
 	result, err := cri.cartCollection.UpdateOne(ctx, query, update)
 	if err != nil {

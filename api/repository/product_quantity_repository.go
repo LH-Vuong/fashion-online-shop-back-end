@@ -10,6 +10,7 @@ import (
 )
 
 type ProductQuantityRepository interface {
+	GetId(size string, color string, productId string) (string, error)
 	Get(productId string) (*product.ProductQuantity, error)
 	GetBySearchOption(searchOption product.QuantitySearchOption) (*product.ProductQuantity, error)
 	GetByDetailId(productDetailId string) ([]*product.ProductQuantity, error)
@@ -28,6 +29,18 @@ func NewProductQuantityRepositoryImpl(quantityCollection initializers.Collection
 
 type ProductQuantityRepositoryImpl struct {
 	quantityCollection initializers.Collection
+}
+
+func (p *ProductQuantityRepositoryImpl) GetId(size string, color string, detailId string) (string, error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	query := bson.M{"detail_id": detailId, "size": size, "color": color}
+	quantity := product.ProductQuantity{}
+	err := p.quantityCollection.FindOne(ctx, query).Decode(&quantity)
+	if err != nil {
+		return "", err
+	}
+	return quantity.Id, nil
 }
 
 func (p *ProductQuantityRepositoryImpl) DeleteManyByDetailId(detailId string) error {

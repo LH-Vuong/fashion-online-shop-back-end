@@ -215,7 +215,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/request.CartItem"
+                                "$ref": "#/definitions/request.CartItemUpdater"
                             }
                         }
                     }
@@ -252,7 +252,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Update the cart of the current customer with the items received in the request body",
+                "summary": "Update the cart of the current customer with the items received in the request body(replay)",
                 "parameters": [
                     {
                         "description": "Array of cart items to be added to the customer's cart",
@@ -262,7 +262,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/request.CartItem"
+                                "$ref": "#/definitions/request.CartItemUpdater"
                             }
                         }
                     }
@@ -340,50 +340,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.BaseResponse-array_string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/cart/{product_id}": {
-            "delete": {
-                "description": "Deletes a cart item specified by the product ID and the customer authentication code.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Delete a single item from the cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "product's id",
-                        "name": "product_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
                         }
                     },
                     "400": {
@@ -1637,11 +1593,11 @@ const docTemplate = `{
                 "customer_id": {
                     "type": "string"
                 },
+                "inventory_id": {
+                    "type": "string"
+                },
                 "product_detail": {
                     "$ref": "#/definitions/product.Product"
-                },
-                "product_quantity_id": {
-                    "type": "string"
                 },
                 "quantity": {
                     "type": "integer"
@@ -2022,18 +1978,25 @@ const docTemplate = `{
                 }
             }
         },
-        "request.CartItem": {
+        "request.CartItemUpdater": {
             "type": "object",
             "required": [
-                "product_id",
-                "quantity"
+                "color",
+                "quantity",
+                "size"
             ],
             "properties": {
+                "color": {
+                    "type": "string"
+                },
                 "product_id": {
                     "type": "string"
                 },
                 "quantity": {
                     "type": "integer"
+                },
+                "size": {
+                    "type": "string"
                 }
             }
         },

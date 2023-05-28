@@ -10,13 +10,15 @@ type CartRequest struct {
 }
 
 type ModifyCartRequest struct {
-	CustomerId string     `json:"customer_id" binding:"required"`
-	Items      []CartItem `json:"items" binding:"required"`
+	CustomerId string            `json:"customer_id" binding:"required"`
+	Items      []CartItemUpdater `json:"items" binding:"required"`
 }
 
-type CartItem struct {
-	ProductId string `json:"product_id" binding:"required"`
+type CartItemUpdater struct {
+	ProductId string `json:"product_id"`
 	Quantity  int    `json:"quantity" binding:"required"`
+	Color     string `json:"color" binding:"required"`
+	Size      string `json:"size" binding:"required"`
 }
 
 type CartCheckOutRequest struct {

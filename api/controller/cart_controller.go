@@ -26,7 +26,7 @@ func ToCartResponse(cartItems []*cart.CartItem) []*response.CartItem {
 		}
 
 		responseItem[index] = &response.CartItem{
-			Id:       item.ProductId,
+			Id:       item.InventoryId,
 			Name:     item.ProductDetail.Name,
 			Image:    image,
 			Price:    float64(item.ProductDetail.Price),
@@ -40,31 +40,22 @@ func ToCartResponse(cartItems []*cart.CartItem) []*response.CartItem {
 
 // Update Cart Items of User
 //
-//	@Summary		Update the cart of the current customer with the items received in the request body
+//	@Summary		Update the cart of the current customer with the items received in the request body(replay)
 //	@Description	Delete all the previous cart items of the customer by using their access token then add the items received in the request body to their cart.
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          CartRequest   body       []request.CartItem    true    "Array of cart items to be added to the customer's cart"
+//	@Param          CartRequest   body       []request.CartItemUpdater    true    "Array of cart items to be added to the customer's cart"
 //	@Success		200				{object}	string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart [post]
 func (controller CartController) Update(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(model.User)
-	var newCartItems []request.CartItem
-	c.BindJSON(&newCartItems)
-	cartItem := make([]*cart.CartItem, len(newCartItems))
+	var updaters []request.CartItemUpdater
+	c.BindJSON(&updaters)
 
-	for index := range newCartItems {
-		cartItem[index] = &cart.CartItem{
-			CustomerId: currentUser.Id,
-			ProductId:  newCartItems[index].ProductId,
-			Quantity:   newCartItems[index].Quantity,
-		}
-	}
-
-	err := controller.Service.Update(currentUser.Id, cartItem)
+	err := controller.Service.Update(currentUser.Id, updaters)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
@@ -109,13 +100,13 @@ func (controller CartController) Get(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          CartRequest   body      []request.CartItem    true    "Array of cart items to be added to the cart"
+//	@Param          CartRequest   body      []request.CartItemUpdater   true    "Array of cart items to be added to the cart"
 //	@Success		200				{object}	response.BaseResponse[[]response.CartItem]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart [put]
 func (controller CartController) AddMany(c *gin.Context) {
-	var items []request.CartItem
+	var items []request.CartItemUpdater
 	currentUser := c.MustGet("currentUser").(model.User)
 	err := c.BindJSON(&items)
 
@@ -124,16 +115,7 @@ func (controller CartController) AddMany(c *gin.Context) {
 		return
 	}
 
-	cartItem := make([]*cart.CartItem, len(items))
-	for index, item := range items {
-		cartItem[index] = &cart.CartItem{
-			CustomerId: currentUser.Id,
-			ProductId:  item.ProductId,
-			Quantity:   item.Quantity,
-		}
-	}
-
-	addedItems, err := controller.Service.AddMany(currentUser.Id, cartItem)
+	addedItems, err := controller.Service.AddMany(currentUser.Id, items)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
@@ -153,15 +135,20 @@ func (controller CartController) AddMany(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          product_id    query       string    true    "product's id"
+//	@Param          product_id  query       string    true    "product's id"
+//	@Param          size    	query       string    true    "product's size"
+//	@Param          color    	query       string    true    "product's color"
 //	@Success		200				{object}	string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/cart/{product_id} [delete]
+//	@Router			/cart [delete]
 func (controller CartController) Delete(c *gin.Context) {
-	productId := c.Param("product_id")
+	queryValues := c.Request.URL.Query()
+	size := queryValues.Get("size")
+	color := queryValues.Get("color")
+	productId := queryValues.Get("product_id")
 	currentUser := c.MustGet("currentUser").(model.User)
-	err := controller.Service.DeleteOne(currentUser.Id, productId)
+	err := controller.Service.DeleteOne(currentUser.Id, productId, size, color)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return

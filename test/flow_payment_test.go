@@ -27,18 +27,18 @@ func TestFlow(t *testing.T) {
 	container.Inject(&orderRepo)
 	var paymentID string
 	item1 := cart.CartItem{
-		CustomerId: customerId,
-		ProductId:  "642965d8d2aea624550b98ce",
-		Quantity:   10,
-		Color:      "RED",
-		Size:       "XXL",
+		CustomerId:  customerId,
+		InventoryId: "642965d8d2aea624550b98ce",
+		Quantity:    10,
+		Color:       "RED",
+		Size:        "XXL",
 	}
 	item2 := cart.CartItem{
-		CustomerId: customerId,
-		ProductId:  "643909b67f100dc4309bcd71",
-		Quantity:   10,
-		Color:      "RED",
-		Size:       "XXL",
+		CustomerId:  customerId,
+		InventoryId: "643909b67f100dc4309bcd71",
+		Quantity:    10,
+		Color:       "RED",
+		Size:        "XXL",
 	}
 
 	t.Run("AddMany Item", func(t *testing.T) {

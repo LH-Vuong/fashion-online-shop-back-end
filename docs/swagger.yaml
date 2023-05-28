@@ -6,10 +6,10 @@ definitions:
         type: string
       customer_id:
         type: string
+      inventory_id:
+        type: string
       product_detail:
         $ref: '#/definitions/product.Product'
-      product_quantity_id:
-        type: string
       quantity:
         type: integer
       size:
@@ -266,15 +266,20 @@ definitions:
       size:
         type: string
     type: object
-  request.CartItem:
+  request.CartItemUpdater:
     properties:
+      color:
+        type: string
       product_id:
         type: string
       quantity:
         type: integer
+      size:
+        type: string
     required:
-    - product_id
+    - color
     - quantity
+    - size
     type: object
   request.CreateOrderRequest:
     properties:
@@ -559,7 +564,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/request.CartItem'
+            $ref: '#/definitions/request.CartItemUpdater'
           type: array
       produces:
       - application/json
@@ -577,7 +582,7 @@ paths:
           schema:
             type: string
       summary: Update the cart of the current customer with the items received in
-        the request body
+        the request body(replay)
       tags:
       - Cart
     put:
@@ -593,7 +598,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/request.CartItem'
+            $ref: '#/definitions/request.CartItemUpdater'
           type: array
       produces:
       - application/json
@@ -611,36 +616,6 @@ paths:
           schema:
             type: string
       summary: Add multiple items to the cart
-      tags:
-      - Cart
-  /cart/{product_id}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a cart item specified by the product ID and the customer
-        authentication code.
-      parameters:
-      - description: product's id
-        in: query
-        name: product_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: Delete a single item from the cart
       tags:
       - Cart
   /cart/checkout:
