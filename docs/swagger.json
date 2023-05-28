@@ -207,7 +207,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/request.CartItem"
+                                "$ref": "#/definitions/request.CartItemUpdater"
                             }
                         }
                     }
@@ -254,7 +254,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/request.CartItem"
+                                "$ref": "#/definitions/request.CartItemUpdater"
                             }
                         }
                     }
@@ -332,50 +332,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.BaseResponse-array_string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/cart/{product_id}": {
-            "delete": {
-                "description": "Deletes a cart item specified by the product ID and the customer authentication code.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Delete a single item from the cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "product's id",
-                        "name": "product_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
                         }
                     },
                     "400": {
@@ -1629,11 +1585,11 @@
                 "customer_id": {
                     "type": "string"
                 },
+                "inventory_id": {
+                    "type": "string"
+                },
                 "product_detail": {
                     "$ref": "#/definitions/product.Product"
-                },
-                "product_quantity_id": {
-                    "type": "string"
                 },
                 "quantity": {
                     "type": "integer"
@@ -2014,18 +1970,25 @@
                 }
             }
         },
-        "request.CartItem": {
+        "request.CartItemUpdater": {
             "type": "object",
             "required": [
-                "product_id",
-                "quantity"
+                "color",
+                "quantity",
+                "size"
             ],
             "properties": {
+                "color": {
+                    "type": "string"
+                },
                 "product_id": {
                     "type": "string"
                 },
                 "quantity": {
                     "type": "integer"
+                },
+                "size": {
+                    "type": "string"
                 }
             }
         },

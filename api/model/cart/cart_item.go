@@ -4,7 +4,7 @@ import "online_fashion_shop/api/model/product"
 
 type CartItem struct {
 	CustomerId    string          `bson:"customer_id,omitempty" json:"customer_id"`
-	ProductId     string          `bson:"product_id" json:"product_quantity_id"`
+	InventoryId   string          `bson:"product_id" json:"inventory_id"`
 	Quantity      int             `bson:"quantity" json:"quantity"`
 	Color         string          `bson:"-" json:"color"`
 	Size          string          `bson:"-" json:"size"`

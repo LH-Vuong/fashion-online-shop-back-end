@@ -1,21 +1,23 @@
 package service
 
 import (
+	"fmt"
 	"online_fashion_shop/api/model/cart"
 	"online_fashion_shop/api/model/product"
+	"online_fashion_shop/api/model/request"
 	"online_fashion_shop/api/repository"
 )
 
 type CartService interface {
 	Get(customerId string) ([]*cart.CartItem, error)
 
-	Update(customerId string, items []*cart.CartItem) error
+	Update(customerId string, items []request.CartItemUpdater) error
 
-	AddMany(customerId string, items []*cart.CartItem) ([]*cart.CartItem, error)
+	AddMany(customerId string, items []request.CartItemUpdater) ([]*cart.CartItem, error)
 
-	Add(customerId string, cartItem cart.CartItem) (*cart.CartItem, error)
+	Add(customerId string, cartItem request.CartItemUpdater) (*cart.CartItem, error)
 
-	DeleteOne(customerId string, productId string) error
+	DeleteOne(customerId string, productId string, size string, color string) error
 
 	DeleteAll(customerId string) error
 
@@ -40,16 +42,24 @@ type CartServiceImpl struct {
 	detailRepo   repository.ProductDetailRepository
 }
 
-func (service *CartServiceImpl) AddMany(customerId string, items []*cart.CartItem) ([]*cart.CartItem, error) {
+func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request.CartItemUpdater) ([]*cart.CartItem, error) {
 	curItems, err := service.cartRepo.ListByCustomerId(customerId)
-	itemMap := toCartItemMap(curItems)
+	cartItems := make([]*cart.CartItem, len(updateInfos))
+	for index := range cartItems {
+		cartItems[index], err = service.toCartItem(updateInfos[index], customerId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	curItemAsMap := toCartItemMap(curItems)
 	if err != nil {
 		return nil, err
 	}
 
 	//check item has exited one before add,
-	for _, addItem := range items {
-		if exitedItem, ok := itemMap[addItem.ProductId]; ok {
+	for _, addItem := range cartItems {
+		if exitedItem, ok := curItemAsMap[addItem.InventoryId]; ok {
 			exitedItem.Quantity = exitedItem.Quantity + addItem.Quantity
 		} else {
 			curItems = append(curItems, addItem)
@@ -75,7 +85,7 @@ func toCartItemMap(items []*cart.CartItem) map[string]*cart.CartItem {
 	cartItemMap := make(map[string]*cart.CartItem, len(items))
 
 	for _, item := range items {
-		cartItemMap[item.ProductId] = item
+		cartItemMap[item.InventoryId] = item
 	}
 	return cartItemMap
 }
@@ -104,27 +114,27 @@ func (service *CartServiceImpl) CheckOutAndDelete(customerId string) ([]string, 
 
 func (service *CartServiceImpl) ListInvalidCartItem(customerId string) ([]string, error) {
 
-	items, err := service.cartRepo.ListByCustomerId(customerId)
+	cartItems, err := service.cartRepo.ListByCustomerId(customerId)
 	if err != nil {
 		return nil, err
 	}
-	cartItemMap := toCartItemMap(items)
-	productIds := make([]string, len(items))
-	quantities, err := service.quantityRepo.MultiGet(productIds)
+	cartItemAsMap := toCartItemMap(cartItems)
+	inventoryIds := make([]string, len(cartItems))
+	inventoryInfos, err := service.quantityRepo.MultiGet(inventoryIds)
 	if err != nil {
 		return nil, err
 	}
-	quantityMap := toProductQuantityMap(quantities)
+	inventoryAsMap := toProductQuantityMap(inventoryInfos)
 
 	var invalidProduct []string
-	for productId, cartItem := range cartItemMap {
-		if quantityMap[productId] != nil {
-			if cartItem.Quantity > quantityMap[productId].Quantity {
-				invalidProduct = append(invalidProduct, cartItem.ProductId)
+	for cartItemId, cartItem := range cartItemAsMap {
+		if inventoryAsMap[cartItemId] != nil {
+			if cartItem.Quantity > inventoryAsMap[cartItemId].Quantity {
+				invalidProduct = append(invalidProduct, cartItem.InventoryId)
 			}
 
 			if cartItem.Quantity < 1 {
-				invalidProduct = append(invalidProduct, cartItem.ProductId)
+				invalidProduct = append(invalidProduct, cartItem.InventoryId)
 			}
 		}
 	}
@@ -142,7 +152,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 	productIds := make([]string, len(cartItems))
 
 	for index := range cartItems {
-		productIds[index] = cartItems[index].ProductId
+		productIds[index] = cartItems[index].InventoryId
 	}
 
 	productQuantities, err := service.quantityRepo.MultiGet(productIds)
@@ -162,7 +172,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 
 	for index := range cartItems {
 		item := cartItems[index]
-		productQuantity := quantityMap[item.ProductId]
+		productQuantity := quantityMap[item.InventoryId]
 		if productQuantity == nil {
 			//with item not found product quantity will be fill by empty values
 			continue
@@ -203,13 +213,33 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*product
 
 }
 
-func (service *CartServiceImpl) Update(customerId string, items []*cart.CartItem) error {
+// to get inventory info of product
+func (service *CartServiceImpl) getQuantityId(size string, color string, productId string) (string, error) {
+	return service.quantityRepo.GetId(size, color, productId)
+}
 
+func (service *CartServiceImpl) Update(customerId string, updaters []request.CartItemUpdater) error {
+	newItem := make([]*cart.CartItem, len(updaters))
+	for index, updater := range updaters {
+		inventoryId, err := service.getQuantityId(updater.Size, updater.Color, updater.ProductId)
+
+		if err != nil {
+			fmt.Errorf("encountered an error while trying to retrieve the inventory information for this item. It's possible that the item does not exist")
+		}
+
+		newItem[index] = &cart.CartItem{
+			CustomerId:  customerId,
+			InventoryId: inventoryId,
+			Quantity:    updater.Quantity,
+			Color:       updater.Color,
+			Size:        updater.Color,
+		}
+	}
 	err := service.DeleteAll(customerId)
 	if err != nil {
 		return err
 	}
-	_, err = service.cartRepo.MultiCreate(customerId, items)
+	_, err = service.cartRepo.MultiCreate(customerId, newItem)
 	if err != nil {
 		return err
 	}
@@ -217,29 +247,44 @@ func (service *CartServiceImpl) Update(customerId string, items []*cart.CartItem
 	return nil
 }
 
-func (service *CartServiceImpl) Add(customerId string, addItem cart.CartItem) (*cart.CartItem, error) {
+func (service *CartServiceImpl) toCartItem(updateInfo request.CartItemUpdater, customerId string) (*cart.CartItem, error) {
+	inventoryId, err := service.getQuantityId(updateInfo.Size, updateInfo.Color, updateInfo.ProductId)
+	if err != nil {
+		return nil, fmt.Errorf("encountered an error(%s) while defining your cart item. It's possible that the information for your cart item is incorrect", err.Error())
+	}
+	cartItem := cart.CartItem{
+		CustomerId:  customerId,
+		InventoryId: inventoryId,
+		Quantity:    updateInfo.Quantity,
+		Color:       updateInfo.Color,
+		Size:        updateInfo.Size,
+	}
+	return &cartItem, nil
+}
 
-	item, err := service.cartRepo.GetBySearchOption(repository.CartSearchOption{CustomerId: customerId, ProductId: addItem.ProductId})
+func (service *CartServiceImpl) Add(customerId string, addItem request.CartItemUpdater) (*cart.CartItem, error) {
+	cartItem, err := service.toCartItem(addItem, customerId)
+	item, err := service.cartRepo.GetBySearchOption(repository.CartSearchOption{CustomerId: customerId, InventoryId: cartItem.InventoryId})
 	if item == nil {
-		_, err = service.cartRepo.Create(customerId, addItem)
+		_, err = service.cartRepo.Create(customerId, *cartItem)
 	} else {
 		addItem.Quantity = item.Quantity + addItem.Quantity
-		err = service.cartRepo.Update(customerId, addItem)
+		err = service.cartRepo.Update(customerId, *cartItem)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &addItem, nil
+	return cartItem, nil
 }
 
-func (service *CartServiceImpl) DeleteOne(customerId string, productId string) error {
-
-	err := service.cartRepo.DeleteOne(customerId, productId)
+func (service *CartServiceImpl) DeleteOne(customerId string, productId string, size string, color string) error {
+	inventoryId, err := service.getQuantityId(size, color, productId)
 	if err != nil {
-		return err
+		fmt.Errorf("encountered an error while trying to define your delete item")
 	}
+	err = service.cartRepo.DeleteOne(customerId, inventoryId)
 	if err != nil {
 		return err
 	}
