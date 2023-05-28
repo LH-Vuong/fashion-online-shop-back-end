@@ -252,7 +252,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Update the cart of the current customer with the items received in the request body",
+                "summary": "Update the cart of the current customer with the items received in the request body(replay)",
                 "parameters": [
                     {
                         "description": "Array of cart items to be added to the customer's cart",

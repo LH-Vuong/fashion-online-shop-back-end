@@ -582,7 +582,7 @@ paths:
           schema:
             type: string
       summary: Update the cart of the current customer with the items received in
-        the request body
+        the request body(replay)
       tags:
       - Cart
     put:
