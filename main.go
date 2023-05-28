@@ -31,7 +31,7 @@ func main() {
 	corConfig.AllowCredentials = true
 
 	corConfig.AllowOrigins = []string{"http://localhost:3001"}
-	corConfig.AllowMethods = []string{"*"}
+	corConfig.AllowMethods = []string{"GET,POST,DELETE,PUT,PATCH"}
 	corConfig.AllowHeaders = []string{"*"}
 	corConfig.ExposeHeaders = []string{"*"}
 
