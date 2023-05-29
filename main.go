@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"log"
 	container "online_fashion_shop/api"
 	"online_fashion_shop/api/router"
@@ -8,7 +9,6 @@ import (
 	_ "online_fashion_shop/docs"
 	"online_fashion_shop/initializers"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -27,15 +27,13 @@ func main() {
 		log.Fatal("🚀 Could not load environment variables", err)
 	}
 
-	corConfig := cors.DefaultConfig()
-	corConfig.AllowCredentials = true
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:3001"}
+	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "refresh_token"}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "HEAD", "OPTIONS", "PATCH", "DELETE"}
+	corsConfig.AllowCredentials = true
 
-	corConfig.AllowOrigins = []string{"http://localhost:3001"}
-	corConfig.AllowMethods = []string{"GET,POST,DELETE,PUT,PATCH"}
-	corConfig.AllowHeaders = []string{"*"}
-	corConfig.ExposeHeaders = []string{"*"}
-
-	server.Use(cors.New(corConfig))
+	server.Use(cors.New(corsConfig))
 
 	container := container.BuildContainer()
 
