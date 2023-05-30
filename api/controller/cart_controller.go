@@ -135,20 +135,15 @@ func (controller CartController) AddMany(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Param          product_id  query       string    true    "product's id"
-//	@Param          size    	query       string    true    "product's size"
-//	@Param          color    	query       string    true    "product's color"
+//	@Param          cart_id  path       string    true    "cart id"
 //	@Success		200				{object}	string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/cart [delete]
+//	@Router			/cart/{cart_id} [delete]
 func (controller CartController) Delete(c *gin.Context) {
-	queryValues := c.Request.URL.Query()
-	size := queryValues.Get("size")
-	color := queryValues.Get("color")
-	productId := queryValues.Get("product_id")
+	id := c.Param("cart_id")
 	currentUser := c.MustGet("currentUser").(model.User)
-	err := controller.Service.DeleteOne(currentUser.Id, productId, size, color)
+	err := controller.Service.DeleteOneById(id, currentUser.Id)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return

@@ -16,11 +16,11 @@ func InitCartRouter(s *gin.Engine, c *dig.Container) {
 
 		{
 			cartRouter.Use(middleware.DeserializeUser())
-			cartRouter.GET("", controller.Get)
 			cartRouter.PUT("", controller.AddMany)
 			cartRouter.POST("", controller.Update)
 			cartRouter.DELETE("", controller.DeleteMany)
-			cartRouter.DELETE("/product_id", controller.Delete)
+			cartRouter.DELETE("/:cart_id", controller.Delete)
+			cartRouter.GET("", controller.Get)
 			cartRouter.GET("/checkout", controller.CheckOut)
 		}
 	})

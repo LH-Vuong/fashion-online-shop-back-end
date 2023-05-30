@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"online_fashion_shop/api/model"
 	"online_fashion_shop/api/model/product"
 	"online_fashion_shop/api/model/request"
@@ -9,6 +10,7 @@ import (
 
 type ProductService interface {
 	Get(id string) (*product.Product, error)
+	ListMultiId(id []string) ([]*product.Product, error)
 	List(request request.ListProductsRequest) ([]*product.Product, int64, error)
 	Update(updateInfo *product.Product) error
 	Create(productInfo *product.Product) error
@@ -21,6 +23,22 @@ type ProductServiceImpl struct {
 	PhotoService            PhotoService
 	ProductRatingRepository repository.ProductRatingRepository
 	QuantityService         ProductQuantityService
+}
+
+func (service *ProductServiceImpl) ListMultiId(ids []string) ([]*product.Product, error) {
+
+	products, err := service.ProductDetailRepository.ListByMultiId(ids)
+	if err != nil {
+		return nil, fmt.Errorf("encounted error(%s) while trying to retrieve products")
+	}
+	photos, err := service.PhotoService.ListByMultiProductId(ids)
+	if err != nil {
+		return nil, fmt.Errorf("encounted error(%s) while trying to retrieve photos")
+	}
+	for _, index := range products {
+		index.Photos = ConvertPhotosToUrls(photos[index.Id])
+	}
+	return products, nil
 }
 
 func (service *ProductServiceImpl) ListBrand() ([]string, error) {

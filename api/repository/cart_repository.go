@@ -16,6 +16,7 @@ type CartRepository interface {
 	ListByCustomerId(customerId string) ([]*cart.CartItem, error)
 	GetBySearchOption(searchOption CartSearchOption) (*cart.CartItem, error)
 	DeleteByCustomerId(customerId string) error
+	DeleteCartItemOfCustomer(id string, customerId string) error
 	DeleteOne(customerId string, productId string) error
 	Update(customerId string, cartItem cart.CartItem) error
 	DeleteAll(customerId string, productIds []string) error
@@ -49,6 +50,22 @@ func (searchOption CartSearchOption) ToQuery() primitive.M {
 // CartRepositoryImpl represents an implementation of the CartRepository interface
 type CartRepositoryImpl struct {
 	cartCollection initializers.Collection
+}
+
+func (cri *CartRepositoryImpl) DeleteCartItemOfCustomer(id string, customerId string) error {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+
+	objectId, _ := primitive.ObjectIDFromHex(id)
+	filter := bson.M{
+		"_id":         objectId,
+		"customer_id": customerId,
+	}
+	_, err := cri.cartCollection.DeleteMany(ctx, filter)
+	if err != nil {
+		return errors.New("failed to remove CartItems: " + err.Error())
+	}
+	return nil
 }
 
 // NewCartRepositoryImpl creates a new instance of the CartRepositoryImpl
