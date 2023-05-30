@@ -349,6 +349,50 @@
                 }
             }
         },
+        "/cart/{cart_id}": {
+            "delete": {
+                "description": "Deletes a cart item specified by the product ID and the customer authentication code.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Delete a single item from the cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cart id",
+                        "name": "cart_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/inventory": {
             "put": {
                 "description": "New product quantity by size and color of product If the quantity of an existing one with the same size and color or not found product detail will throw error.",

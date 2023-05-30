@@ -19,6 +19,8 @@ type CartService interface {
 
 	DeleteOne(customerId string, productId string, size string, color string) error
 
+	DeleteOneById(id string, customerId string) error
+
 	DeleteAll(customerId string) error
 
 	CheckOutAndDelete(customerId string) ([]string, error)
@@ -28,18 +30,23 @@ type CartService interface {
 
 func NewCartServiceImpl(cartRepo repository.CartRepository,
 	quantityRepo repository.ProductQuantityRepository,
-	detailRepo repository.ProductDetailRepository) CartService {
+	productService ProductService) CartService {
 	return &CartServiceImpl{
-		cartRepo:     cartRepo,
-		quantityRepo: quantityRepo,
-		detailRepo:   detailRepo,
+		cartRepo:      cartRepo,
+		quantityRepo:  quantityRepo,
+		detailService: productService,
 	}
 }
 
 type CartServiceImpl struct {
-	cartRepo     repository.CartRepository
-	quantityRepo repository.ProductQuantityRepository
-	detailRepo   repository.ProductDetailRepository
+	cartRepo      repository.CartRepository
+	quantityRepo  repository.ProductQuantityRepository
+	detailService ProductService
+	//	detailRepo   repository.ProductDetailRepository
+}
+
+func (service *CartServiceImpl) DeleteOneById(id string, customerId string) error {
+	return service.cartRepo.DeleteOne(customerId, id)
 }
 
 func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request.CartItemUpdater) ([]*cart.CartItem, error) {
@@ -200,7 +207,7 @@ func (service *CartServiceImpl) getProductDetailMap(productQuantities []*product
 		return productDetailMap, nil
 	}
 
-	productDetails, err := service.detailRepo.ListByMultiId(detailIds)
+	productDetails, err := service.detailService.ListMultiId(detailIds)
 	if err != nil {
 		return nil, err
 	}
@@ -232,14 +239,14 @@ func (service *CartServiceImpl) Update(customerId string, updaters []request.Car
 			InventoryId: inventoryId,
 			Quantity:    updater.Quantity,
 			Color:       updater.Color,
-			Size:        updater.Color,
+			Size:        updater.Size,
 		}
 	}
 	err := service.DeleteAll(customerId)
 	if err != nil {
 		return err
 	}
-	_, err = service.cartRepo.MultiCreate(customerId, newItem)
+	_, err = service.AddMany(customerId, updaters)
 	if err != nil {
 		return err
 	}

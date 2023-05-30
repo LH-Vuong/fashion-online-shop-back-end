@@ -103,8 +103,8 @@ func provideProductQuantityRepositoryImpl(cl initializers.Client) repository.Pro
 
 func provideCardServiceImpl(cartRepo repository.CartRepository,
 	quantityRepo repository.ProductQuantityRepository,
-	detailRepo repository.ProductDetailRepository) service.CartService {
-	return service.NewCartServiceImpl(cartRepo, quantityRepo, detailRepo)
+	productService service.ProductService) service.CartService {
+	return service.NewCartServiceImpl(cartRepo, quantityRepo, productService)
 }
 
 func provideUserServiceImpl(userRepo userrepo.UserRepository) service.UserService {
