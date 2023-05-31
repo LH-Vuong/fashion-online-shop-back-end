@@ -14,4 +14,5 @@ func SetUp(s *gin.Engine, container *dig.Container) {
 	InitUserRouter(s, container)
 	InitInventoryRouter(s, container)
 	InitPhotoRouter(s, container)
+	InitChatRouter(s, container)
 }

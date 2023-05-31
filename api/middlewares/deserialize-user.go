@@ -20,9 +20,14 @@ func DeserializeUser() gin.HandlerFunc {
 		var access_token string
 		authorizationHeader := ctx.Request.Header.Get("Authorization")
 		fields := strings.Fields(authorizationHeader)
+		queryToken := ctx.Param("token")
 
 		if len(fields) != 0 && fields[0] == "Bearer" {
 			access_token = fields[1]
+		}
+
+		if queryToken != "" {
+			access_token = queryToken
 		}
 
 		if access_token == "" {

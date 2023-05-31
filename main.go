@@ -19,7 +19,7 @@ func init() {
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	server := gin.Default()
 	config, err := initializers.LoadConfig(".")
 
@@ -30,12 +30,13 @@ func main() {
 	corConfig := cors.DefaultConfig()
 	corConfig.AllowCredentials = true
 
-	corConfig.AllowOrigins = []string{"http://localhost:3001"}
-	corConfig.AllowMethods = []string{"*"}
-	corConfig.AllowHeaders = []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max"}
-	corConfig.ExposeHeaders = []string{"*"}
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:3001,http://localhost:8081"}
+	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization", "refresh_token"}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "HEAD", "OPTIONS", "PATCH", "DELETE"}
+	corsConfig.AllowCredentials = true
 
-	server.Use(cors.New(corConfig))
+	server.Use(cors.New(corsConfig))
 
 	container := container.BuildContainer()
 
@@ -49,21 +50,21 @@ func main() {
 	log.Fatal(server.Run(":" + config.ServerPort))
 }
 
-//	@title			Online Shop API
-//	@version		1.0
-//	@description	Online Shop API
-//	@termsOfService	http://swagger.io/terms/
+// @title			Online Shop API
+// @version		1.0
+// @description	Online Shop API
+// @termsOfService	http://swagger.io/terms/
 
-//	@contact.name	vangxitrum
-//	@contact.url	http://www.swagger.io/support
-//	@contact.email	19522482@gm.uit.edu.vn
+// @contact.name	vangxitrum
+// @contact.url	http://www.swagger.io/support
+// @contact.email	19522482@gm.uit.edu.vn
 
-//	@license.name	Apache 2.0
-//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.name	Apache 2.0
+// @license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@BasePath	/api/
+// @BasePath	/api/
 
-//	@securityDefinitions.basic	BasicAuth
+// @securityDefinitions.basic	BasicAuth
 
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
+// @externalDocs.description	OpenAPI
+// @externalDocs.url			https://swagger.io/resources/open-api/

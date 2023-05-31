@@ -33,6 +33,8 @@ func init() {
 	container.Provide(provideZaloPayProcessor)
 	container.Provide(provideQuantityService)
 	container.Provide(provideAzurePhotoStorage)
+	container.Provide(provideChatRepositoryImpl)
+	container.Provide(provideChatService)
 }
 
 func BuildContainer() *dig.Container {
@@ -126,6 +128,11 @@ func provideOrderRepositoryImpl(cl initializers.Client) repository.OrderReposito
 	return repository.NewOrderRepositoryImpl(orderInfo)
 }
 
+func provideChatRepositoryImpl(cl initializers.Client) repository.ChatRepotitory {
+	chatInfo := cl.Database("fashion_shop").Collection("chat")
+	return repository.NewChatRepotitory(chatInfo)
+}
+
 func provideOrderService(orderRepo repository.OrderRepository,
 	cartService service.CartService,
 	couponService service.CouponService,
@@ -137,6 +144,11 @@ func provideOrderService(orderRepo repository.OrderRepository,
 func provideCouponService(couponRepo repository.CouponRepository,
 ) service.CouponService {
 	return service.NewCouponService(couponRepo)
+}
+
+func provideChatService(chatRepotitory repository.ChatRepotitory,
+) service.ChatService {
+	return service.NewChatServiceImpl(chatRepotitory)
 }
 
 func provideZaloPayProcessor() zalopay.Processor {
