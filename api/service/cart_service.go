@@ -19,9 +19,9 @@ type CartService interface {
 
 	DeleteOne(customerId string, productId string, size string, color string) error
 
-	DeleteOneById(id string, customerId string) error
+	DeleteOneById(id string, customerId string) (string, error)
 
-	DeleteAll(customerId string) error
+	DeleteAll(customerId string) ([]string, error)
 
 	CheckOutAndDelete(customerId string) ([]string, error)
 
@@ -45,15 +45,19 @@ type CartServiceImpl struct {
 	//	detailRepo   repository.ProductDetailRepository
 }
 
-func (service *CartServiceImpl) DeleteOneById(id string, customerId string) error {
-	return service.cartRepo.DeleteOne(customerId, id)
+func (service *CartServiceImpl) DeleteOneById(id string, customerId string) (string, error) {
+	err := service.cartRepo.DeleteOne(customerId, id)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request.CartItemUpdater) ([]*cart.CartItem, error) {
 	curItems, err := service.cartRepo.ListByCustomerId(customerId)
-	cartItems := make([]*cart.CartItem, len(updateInfos))
-	for index := range cartItems {
-		cartItems[index], err = service.toCartItem(updateInfos[index], customerId)
+	updatedItems := make([]*cart.CartItem, len(updateInfos))
+	for index := range updatedItems {
+		updatedItems[index], err = service.toCartItem(updateInfos[index], customerId)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +69,7 @@ func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request
 	}
 
 	//check item has exited one before add,
-	for _, addItem := range cartItems {
+	for _, addItem := range updatedItems {
 		if exitedItem, ok := curItemAsMap[addItem.InventoryId]; ok {
 			exitedItem.Quantity = exitedItem.Quantity + addItem.Quantity
 		} else {
@@ -73,7 +77,7 @@ func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request
 		}
 	}
 
-	err = service.DeleteAll(customerId)
+	_, err = service.DeleteAll(customerId)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +85,7 @@ func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request
 	if err != nil {
 		return nil, err
 	}
-	curItems, err = service.Get(customerId)
+	err = service.addDetail(updatedItems)
 	if err != nil {
 		return nil, err
 	}
@@ -147,25 +151,19 @@ func (service *CartServiceImpl) ListInvalidCartItem(customerId string) ([]string
 	}
 	return invalidProduct, err
 }
-func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartItem, err error) {
-	cartItems, err = service.cartRepo.ListByCustomerId(customerId)
 
+func (service *CartServiceImpl) addDetail(cartItems []*cart.CartItem) error {
 	if len(cartItems) == 0 {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
+		return nil
 	}
 	productIds := make([]string, len(cartItems))
-
 	for index := range cartItems {
 		productIds[index] = cartItems[index].InventoryId
 	}
-
 	productQuantities, err := service.quantityRepo.MultiGet(productIds)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	quantityMap := make(map[string]*product.ProductQuantity, len(productQuantities))
 	for _, item := range productQuantities {
@@ -174,7 +172,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 
 	productDetailMap, err := service.getProductDetailMap(productQuantities)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for index := range cartItems {
@@ -192,7 +190,12 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 		item.Color = productQuantity.Color
 		item.Size = productQuantity.Size
 	}
+	return nil
+}
 
+func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartItem, err error) {
+	cartItems, err = service.cartRepo.ListByCustomerId(customerId)
+	service.addDetail(cartItems)
 	return cartItems, err
 }
 
@@ -242,7 +245,7 @@ func (service *CartServiceImpl) Update(customerId string, updaters []request.Car
 			Size:        updater.Size,
 		}
 	}
-	err := service.DeleteAll(customerId)
+	_, err := service.DeleteAll(customerId)
 	if err != nil {
 		return err
 	}
@@ -298,6 +301,14 @@ func (service *CartServiceImpl) DeleteOne(customerId string, productId string, s
 	return err
 }
 
-func (service *CartServiceImpl) DeleteAll(customerId string) error {
-	return service.cartRepo.DeleteByCustomerId(customerId)
+func (service *CartServiceImpl) DeleteAll(customerId string) ([]string, error) {
+	deleteItems, err := service.cartRepo.ListByCustomerId(customerId)
+	if err != nil {
+		return nil, err
+	}
+	Ids := make([]string, len(deleteItems))
+	for index := range deleteItems {
+		Ids[index] = deleteItems[index].InventoryId
+	}
+	return Ids, service.cartRepo.DeleteByCustomerId(customerId)
 }

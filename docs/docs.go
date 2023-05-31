@@ -302,9 +302,9 @@ const docTemplate = `{
                 "summary": "Delete all items from the cart",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Array of items' id was deleted",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
                         }
                     },
                     "400": {
@@ -383,7 +383,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.BaseResponse-string"
                         }
                     },
                     "400": {
@@ -2168,6 +2168,9 @@ const docTemplate = `{
             "properties": {
                 "color": {
                     "type": "string"
+                },
+                "discountPercent": {
+                    "type": "number"
                 },
                 "id": {
                     "type": "string"

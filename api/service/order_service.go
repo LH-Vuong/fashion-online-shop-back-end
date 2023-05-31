@@ -125,7 +125,7 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 		orderInfo.PaymentInfo.PaymentAt = time.Now().UnixMilli()
 		orderInfo.PaymentInfo.Status = payment.StatusError
 	} else {
-		err := svc.CartService.DeleteAll(customerID)
+		_, err := svc.CartService.DeleteAll(customerID)
 		if err != nil {
 			return nil, err
 		}
