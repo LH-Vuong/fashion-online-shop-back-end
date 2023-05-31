@@ -195,8 +195,14 @@ func (service *CartServiceImpl) addDetail(cartItems []*cart.CartItem) error {
 
 func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartItem, err error) {
 	cartItems, err = service.cartRepo.ListByCustomerId(customerId)
-	service.addDetail(cartItems)
-	return cartItems, err
+	if err != nil {
+		return nil, err
+	}
+	err = service.addDetail(cartItems)
+	if err != nil {
+		return nil, err
+	}
+	return cartItems, nil
 }
 
 func (service *CartServiceImpl) getProductDetailMap(productQuantities []*product.ProductQuantity) (map[string]*product.Product, error) {
