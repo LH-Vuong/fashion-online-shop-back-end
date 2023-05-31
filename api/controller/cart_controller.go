@@ -26,13 +26,14 @@ func ToCartResponse(cartItems []*cart.CartItem) []*response.CartItem {
 		}
 
 		responseItem[index] = &response.CartItem{
-			Id:       item.InventoryId,
-			Name:     item.ProductDetail.Name,
-			Image:    image,
-			Price:    float64(item.ProductDetail.Price),
-			Size:     item.Size,
-			Color:    item.Color,
-			Quantity: item.Quantity,
+			Id:              item.InventoryId,
+			Name:            item.ProductDetail.Name,
+			Image:           image,
+			Price:           float64(item.ProductDetail.Price),
+			DiscountPercent: item.ProductDetail.DiscountPercent,
+			Size:            item.Size,
+			Color:           item.Color,
+			Quantity:        item.Quantity,
 		}
 	}
 	return responseItem
@@ -61,7 +62,7 @@ func (controller CartController) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"status": "success", "message": "Update Cart successfully"})
+	c.JSON(200, gin.H{"status": "success"})
 
 }
 
@@ -136,19 +137,23 @@ func (controller CartController) AddMany(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param          cart_id  path       string    true    "cart id"
-//	@Success		200				{object}	string
+//	@Success		200				{object}	response.BaseResponse[string]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart/{cart_id} [delete]
 func (controller CartController) Delete(c *gin.Context) {
 	id := c.Param("cart_id")
 	currentUser := c.MustGet("currentUser").(model.User)
-	err := controller.Service.DeleteOneById(id, currentUser.Id)
+	deletedCartId, err := controller.Service.DeleteOneById(id, currentUser.Id)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Delete successfully"})
+	c.JSON(http.StatusOK, response.BaseResponse[string]{
+		Data:    deletedCartId,
+		Message: "",
+		Status:  "success",
+	})
 }
 
 // DeleteMany  items in customer cart
@@ -158,7 +163,7 @@ func (controller CartController) Delete(c *gin.Context) {
 //	@Tags			Cart
 //	@Accept			json
 //	@Produce		json
-//	@Success		200				{object}	string
+//	@Success		200				{object}	response.BaseResponse[[]string] "Array of items' id was deleted"
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/cart [delete]
@@ -166,13 +171,17 @@ func (controller CartController) DeleteMany(c *gin.Context) {
 
 	currentUser := c.MustGet("currentUser").(model.User)
 
-	err := controller.Service.DeleteAll(currentUser.Id)
+	ids, err := controller.Service.DeleteAll(currentUser.Id)
 
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Delete successfully"})
+	c.JSON(http.StatusOK, response.BaseResponse[[]string]{
+		Data:    ids,
+		Message: "",
+		Status:  "success",
+	})
 }
 
 // CheckOut items in cart
