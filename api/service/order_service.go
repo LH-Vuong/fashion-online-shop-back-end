@@ -104,13 +104,12 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 	}
 
 	orderInfo := order.OrderInfo{
-		CustomerId:     customerID,
-		Address:        addressInfo,
-		CouponCode:     couponCode,
-		CouponDiscount: coupon.DiscountAmount,
-		TotalPrice:     total,
-		Items:          cartItems,
-		PaymentInfo:    &paymentInfo,
+		CustomerId:  customerID,
+		Address:     addressInfo,
+		CouponCode:  couponCode,
+		TotalPrice:  total,
+		Items:       cartItems,
+		PaymentInfo: &paymentInfo,
 	}
 
 	if paymentMethod == payment.ZaloPayMethod {
@@ -160,10 +159,15 @@ func calculateTotal(items []*cart.CartItem, coupon *coupon.CouponInfo) (int64, e
 		total += int64(item.Quantity) * item.ProductDetail.Price
 	}
 
+	//if coupon != nil {
+	//	if coupon.DiscountAmount > 0 {
+	//		total -= coupon.DiscountAmount
+	//	} else if coupon.DiscountPercent > 0 {
+	//		total *= int64(1.0 - coupon.DiscountPercent)
+	//	}
+	//}
 	if coupon != nil {
-		if coupon.DiscountAmount > 0 {
-			total -= coupon.DiscountAmount
-		} else if coupon.DiscountPercent > 0 {
+		if coupon.DiscountPercent > 0 {
 			total *= int64(1.0 - coupon.DiscountPercent)
 		}
 	}

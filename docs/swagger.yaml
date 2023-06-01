@@ -15,6 +15,17 @@ definitions:
       size:
         type: string
     type: object
+  coupon.CouponInfo:
+    properties:
+      code:
+        type: string
+      discount_percent:
+        type: number
+      end_at:
+        type: integer
+      start_at:
+        type: integer
+    type: object
   model.AddWishListModel:
     properties:
       product_id:
@@ -326,6 +337,15 @@ definitions:
         items:
           type: string
         type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-coupon_CouponInfo:
+    properties:
+      data:
+        $ref: '#/definitions/coupon.CouponInfo'
       message:
         type: string
       status:
@@ -671,9 +691,125 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: Validate and modify the items in the cart
+      summary: Get and modify the items in the cart
       tags:
       - Cart
+  /coupon:
+    post:
+      consumes:
+      - application/json
+      description: update coupon
+      parameters:
+      - description: coupon's info
+        in: body
+        name: coupon
+        required: true
+        schema:
+          $ref: '#/definitions/coupon.CouponInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid Code
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: update coupon
+      tags:
+      - Coupon
+    put:
+      consumes:
+      - application/json
+      description: Create coupon
+      parameters:
+      - description: coupon's info
+        in: body
+        name: coupon
+        required: true
+        schema:
+          $ref: '#/definitions/coupon.CouponInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid code
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Create coupon
+      tags:
+      - Coupon
+  /coupon/{code}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete coupon
+      parameters:
+      - description: coupon's code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: code is invalid or expired
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete coupon
+      tags:
+      - Coupon
+    get:
+      consumes:
+      - application/json
+      description: Try to retry coupon
+      parameters:
+      - description: coupon's code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-coupon_CouponInfo'
+        "400":
+          description: code is invalid or expired
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get info of coupon
+      tags:
+      - Coupon
   /inventory:
     post:
       consumes:

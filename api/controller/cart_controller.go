@@ -186,7 +186,7 @@ func (controller CartController) DeleteMany(c *gin.Context) {
 
 // CheckOut items in cart
 //
-//	@Summary		Validate and modify the items in the cart
+//	@Summary		Get and modify the items in the cart
 //	@Description	Validates the items in the customer's cart and modifies them if any items are invalid, such as sold-out items.
 //	Returns the list of sold-out items' IDs that have been removed from the cart.
 //	Use this method before placing an order to ensure that the order is valid.
