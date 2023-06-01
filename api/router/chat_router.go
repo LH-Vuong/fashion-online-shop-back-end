@@ -17,9 +17,10 @@ func InitChatRouter(s *gin.Engine, c *dig.Container) {
 			Conns: make(map[string]*websocket.Conn),
 		})
 
-		s.GET("api/open/:token", middleware.DeserializeUser(), controller.CreateDialog)
-
-		s.GET("api/send/:message", middleware.DeserializeUser(), controller.SendMessage)
+		s.GET("api/open/:token", middleware.DeserializeUser(), controller.HandleWS)
+		s.GET("api/message", middleware.DeserializeUser(), controller.GetUserMessage)
+		s.POST("api/send-message", middleware.DeserializeUser(), controller.SendMessage)
+		s.POST("api/send-user-message/:userId/:dialodId/:message", controller.SendUserMessage)
 	})
 	if err != nil {
 		panic(err)

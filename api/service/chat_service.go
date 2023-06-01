@@ -11,7 +11,10 @@ import (
 )
 
 type ChatService interface {
-	CreateDialog(*gin.Context, string) (*chat.Dialog, error)
+	CreateDialog(*gin.Context) (*chat.Dialog, error)
+	GetDialogByUserId(*gin.Context, string) (*chat.Dialog, error)
+	CreateMessage(*gin.Context, chat.CreateMessageInput) (*chat.Message, error)
+	GetUserMessage(*gin.Context) (*chat.GetUserMessageResponse, error)
 }
 
 type ChatServiceImpl struct {
@@ -24,7 +27,7 @@ func NewChatServiceImpl(r repository.ChatRepotitory) ChatService {
 	}
 }
 
-func (s ChatServiceImpl) CreateDialog(ctx *gin.Context, userId string) (*chat.Dialog, error) {
+func (s ChatServiceImpl) CreateDialog(ctx *gin.Context) (*chat.Dialog, error) {
 	currentUser := ctx.MustGet("currentUser").(model.User)
 
 	result, err := s.r.CreateDialog(ctx, &chat.Dialog{
@@ -53,4 +56,28 @@ func (s ChatServiceImpl) CreateMessage(ctx *gin.Context, input chat.CreateMessag
 	}
 
 	return result, nil
+}
+
+func (s ChatServiceImpl) GetDialogByUserId(ctx *gin.Context, userId string) (*chat.Dialog, error) {
+	return s.r.GetDialogByUserId(ctx, userId)
+}
+
+func (s ChatServiceImpl) GetUserMessage(ctx *gin.Context) (*chat.GetUserMessageResponse, error) {
+	currentUser := ctx.MustGet("currentUser").(model.User)
+
+	userDialog, err := s.r.GetDialogByUserId(ctx, currentUser.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	userMessages, err := s.r.GetMessagesByDialogId(ctx, userDialog.Id)
+
+	if err != nil {
+		return nil, err
+	}
+	return &chat.GetUserMessageResponse{
+		DialogId: userDialog.Id,
+		Messages: userMessages,
+	}, nil
 }

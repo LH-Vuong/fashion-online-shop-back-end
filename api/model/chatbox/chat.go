@@ -28,18 +28,18 @@ func NewServer() *Server {
 }
 
 type Dialog struct {
-	Id        string    `json:"id"`
-	UserId    string    `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
+	Id        string    `bson:"_id,omitempty" json:"id"`
+	UserId    string    `bson:"user_id" json:"user_id"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 }
 
 type Message struct {
-	Id        string    `json:"id"`
-	DialogId  string    `json:"dialog_id"`
-	Value     string    `json:"value"`
-	Type      string    `json:"type"`
-	CreatedAt time.Time `json:"created_at"`
-	IsUser    bool      `json:"is_user"`
+	Id        string    `bson:"_id,omitempty" json:"id"`
+	DialogId  string    `bson:"dialog_id" json:"dialog_id"`
+	Value     string    `bson:"value" json:"value"`
+	Type      string    `bson:"type" json:"type"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	IsUser    bool      `bson:"is_user" json:"is_user"`
 }
 
 type CreateMessageInput struct {
@@ -47,4 +47,9 @@ type CreateMessageInput struct {
 	Value    string `json:"value"`
 	IsUser   bool   `json:"is_user"`
 	Type     string `json:"type"`
+}
+
+type GetUserMessageResponse struct {
+	DialogId string     `json:"dialog_id"`
+	Messages []*Message `json:"messages"`
 }

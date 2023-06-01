@@ -13,16 +13,19 @@ type ChatRepotitory interface {
 	CreateDialog(context.Context, *model.Dialog) (*model.Dialog, error)
 	CreateMessage(context.Context, *model.Message) (*model.Message, error)
 
-	GetMessagesByUserId(context.Context, string) ([]*model.Message, error)
+	GetDialogByUserId(context.Context, string) (*model.Dialog, error)
+	GetMessagesByDialogId(context.Context, string) ([]*model.Message, error)
 }
 
 type chatRepotitory struct {
-	chatCollection initializers.Collection
+	chatCollection   initializers.Collection
+	dialogCollection initializers.Collection
 }
 
-func NewChatRepotitory(chatCollection initializers.Collection) ChatRepotitory {
+func NewChatRepotitory(chatCollection initializers.Collection, dialogCollection initializers.Collection) ChatRepotitory {
 	return &chatRepotitory{
-		chatCollection: chatCollection,
+		chatCollection:   chatCollection,
+		dialogCollection: dialogCollection,
 	}
 }
 
@@ -31,7 +34,7 @@ func (r *chatRepotitory) CreateDialog(ctx context.Context, newDialog *model.Dial
 
 	defer cancel()
 
-	res, err := r.chatCollection.InsertOne(ctx, newDialog)
+	res, err := r.dialogCollection.InsertOne(ctx, newDialog)
 
 	if err != nil {
 		return nil, err
@@ -56,12 +59,30 @@ func (r *chatRepotitory) CreateMessage(ctx context.Context, newMessage *model.Me
 	return newMessage, err
 }
 
-func (r *chatRepotitory) GetMessagesByUserId(ctx context.Context, userId string) (result []*model.Message, err error) {
+func (r *chatRepotitory) GetMessagesByDialogId(ctx context.Context, dialogId string) (result []*model.Message, err error) {
 	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
 
-	rs := r.chatCollection.FindOne(ctx, bson.M{"user_id": userId})
+	cursor, err := r.chatCollection.Find(ctx, bson.M{"dialog_id": dialogId})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (r *chatRepotitory) GetDialogByUserId(ctx context.Context, userId string) (result *model.Dialog, err error) {
+	ctx, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	rs := r.dialogCollection.FindOne(ctx, bson.M{"user_id": userId})
 
 	err = rs.Decode(&result)
 

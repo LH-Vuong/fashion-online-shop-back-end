@@ -130,7 +130,8 @@ func provideOrderRepositoryImpl(cl initializers.Client) repository.OrderReposito
 
 func provideChatRepositoryImpl(cl initializers.Client) repository.ChatRepotitory {
 	chatInfo := cl.Database("fashion_shop").Collection("chat")
-	return repository.NewChatRepotitory(chatInfo)
+	dialogInfo := cl.Database("fashion_shop").Collection("dialog")
+	return repository.NewChatRepotitory(chatInfo, dialogInfo)
 }
 
 func provideOrderService(orderRepo repository.OrderRepository,
