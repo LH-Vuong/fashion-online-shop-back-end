@@ -334,7 +334,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Validate and modify the items in the cart",
+                "summary": "Get and modify the items in the cart",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -388,6 +388,182 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/coupon": {
+            "put": {
+                "description": "Create coupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "Create coupon",
+                "parameters": [
+                    {
+                        "description": "coupon's info",
+                        "name": "coupon",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/coupon.CouponInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid code",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "update coupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "update coupon",
+                "parameters": [
+                    {
+                        "description": "coupon's info",
+                        "name": "coupon",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/coupon.CouponInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Code",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/coupon/{code}": {
+            "get": {
+                "description": "Try to retry coupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "Get info of coupon",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "coupon's code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-coupon_CouponInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "code is invalid or expired",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete coupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "Delete coupon",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "coupon's code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "code is invalid or expired",
                         "schema": {
                             "type": "string"
                         }
@@ -1651,6 +1827,23 @@ const docTemplate = `{
                 }
             }
         },
+        "coupon.CouponInfo": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "discount_percent": {
+                    "type": "number"
+                },
+                "end_at": {
+                    "type": "integer"
+                },
+                "start_at": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.AddWishListModel": {
             "type": "object",
             "required": [
@@ -2112,6 +2305,20 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-coupon_CouponInfo": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/coupon.CouponInfo"
                 },
                 "message": {
                     "type": "string"

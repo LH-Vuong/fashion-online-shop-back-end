@@ -25,7 +25,7 @@ func init() {
 	container.Provide(provideProductServiceImpl)
 	container.Provide(provideCardServiceImpl)
 	container.Provide(providePhotoServiceImpl)
-	container.Provide(provideCouponService)
+	container.Provide(provideCouponServiceImpl)
 	container.Provide(provideCouponRepositoryImpl)
 	container.Provide(provideUserServiceImpl)
 	container.Provide(provideOrderService)
@@ -134,9 +134,8 @@ func provideOrderService(orderRepo repository.OrderRepository,
 	return service.NewOrderServiceImpl(couponService, cartService, orderRepo, processor)
 }
 
-func provideCouponService(couponRepo repository.CouponRepository,
-) service.CouponService {
-	return service.NewCouponService(couponRepo)
+func provideCouponServiceImpl(couponRepo repository.CouponRepository) service.CouponService {
+	return service.NewCouponServiceImpl(couponRepo)
 }
 
 func provideZaloPayProcessor() zalopay.Processor {
