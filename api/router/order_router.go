@@ -19,9 +19,10 @@ func InitOrderRouter(s *gin.Engine, c *dig.Container) {
 		s.PUT("/api/order", middleware.DeserializeUser(), c.Create)
 		//list customer's order
 		s.GET("/api/orders/", middleware.DeserializeUser(), c.List)
+		//checkout order info
+		s.POST("/api/order/checkout", middleware.DeserializeUser(), c.Checkout)
 		// listen zalo callback
 		s.POST("/api/order/callback/zalo_pay", middleware.ValidateZaloPayCallback, c.Callback)
-
 	})
 
 }

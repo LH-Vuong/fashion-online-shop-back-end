@@ -314,41 +314,6 @@
                 }
             }
         },
-        "/cart/checkout": {
-            "get": {
-                "description": "Validates the items in the customer's cart and modifies them if any items are invalid, such as sold-out items.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Get and modify the items in the cart",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-array_string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/cart/{cart_id}": {
             "delete": {
                 "description": "Deletes a cart item specified by the product ID and the customer authentication code.",
@@ -860,6 +825,52 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/order.OrderInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/checkout": {
+            "post": {
+                "description": "Validates order info if any invalid info, such as sold-out cart items, invalid coupon, address or payment method.Use this method before placing an order to ensure that the order is valid.If the order status is \"failed,\" the reason for the failure will be displayed in the \"message\" field, and any issues will be indicated in the \"data\" field.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "checkout order request is valid",
+                "parameters": [
+                    {
+                        "description": "order's info",
+                        "name": "order_info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
                         }
                     },
                     "400": {
