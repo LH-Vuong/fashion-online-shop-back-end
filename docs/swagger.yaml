@@ -670,30 +670,6 @@ paths:
       summary: Delete a single item from the cart
       tags:
       - Cart
-  /cart/checkout:
-    get:
-      consumes:
-      - application/json
-      description: Validates the items in the customer's cart and modifies them if
-        any items are invalid, such as sold-out items.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.BaseResponse-array_string'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: Get and modify the items in the cart
-      tags:
-      - Cart
   /coupon:
     post:
       consumes:
@@ -1014,6 +990,40 @@ paths:
           schema:
             type: string
       summary: Creat order
+      tags:
+      - order
+  /order/checkout:
+    post:
+      consumes:
+      - application/json
+      description: Validates order info if any invalid info, such as sold-out cart
+        items, invalid coupon, address or payment method.Use this method before placing
+        an order to ensure that the order is valid.If the order status is "failed,"
+        the reason for the failure will be displayed in the "message" field, and any
+        issues will be indicated in the "data" field.
+      parameters:
+      - description: order's info
+        in: body
+        name: order_info
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: checkout order request is valid
       tags:
       - order
   /orders/:

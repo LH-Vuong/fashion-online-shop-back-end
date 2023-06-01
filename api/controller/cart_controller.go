@@ -184,19 +184,6 @@ func (controller CartController) DeleteMany(c *gin.Context) {
 	})
 }
 
-// CheckOut items in cart
-//
-//	@Summary		Get and modify the items in the cart
-//	@Description	Validates the items in the customer's cart and modifies them if any items are invalid, such as sold-out items.
-//	Returns the list of sold-out items' IDs that have been removed from the cart.
-//	Use this method before placing an order to ensure that the order is valid.
-//	@Tags			Cart
-//	@Accept			json
-//	@Produce		json
-//	@Success		200				{object}	 response.BaseResponse[[]string]
-//	@Failure		400				{object}	string
-//	@Failure		401				{object}	string
-//	@Router			/cart/checkout [get]
 func (controller CartController) CheckOut(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(model.User)
 	soldItemIds, err := controller.Service.CheckOutAndDelete(currentUser.Id)

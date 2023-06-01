@@ -112,11 +112,15 @@ func toProductQuantityMap(quantities []*product.ProductQuantity) map[string]*pro
 }
 
 func (service *CartServiceImpl) CheckOutAndDelete(customerId string) ([]string, error) {
-	invalidItems, err := service.ListInvalidCartItem(customerId)
-	if err != nil {
-		return nil, err
+	cartItems, err := service.Get(customerId)
+	if len(cartItems) == 0 {
+		return nil, fmt.Errorf("customer(%s)'s cart is empty", customerId)
 	}
-	err = service.cartRepo.DeleteAll(customerId, invalidItems)
+	invalidItems, err := service.ListInvalidCartItem(customerId)
+	if len(invalidItems) > 0 {
+		err = service.cartRepo.DeleteAll(customerId, invalidItems)
+	}
+
 	if err != nil {
 		return nil, err
 	}

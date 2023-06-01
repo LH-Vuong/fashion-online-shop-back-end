@@ -14,6 +14,7 @@ import (
 )
 
 type OrderService interface {
+	IsAbleCreateOrder(customerId string, paymentMethod payment.Method, addressInfo string) ([]string, error)
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
@@ -30,6 +31,17 @@ type OrderServiceImpl struct {
 	CartService   CartService
 	OrderRepo     repository.OrderRepository
 	Processor     zalopay.Processor
+}
+
+func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod payment.Method, deliveryAddress string) ([]string, error) {
+	removedCartItemIds, err := svc.CartService.CheckOutAndDelete(customerId)
+	if err != nil {
+		return nil, fmt.Errorf("error(%s) is encoutered while try to valid cart item of customer(%s)", err.Error(), customerId)
+	}
+	if len(removedCartItemIds) > 0 {
+		return removedCartItemIds, fmt.Errorf("the customer(%s)'s cart is invalid and has been updated. Please try placing your order again.", customerId)
+	}
+	return nil, nil
 }
 
 func NewOrderServiceImpl(couponService CouponService,
