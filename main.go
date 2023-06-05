@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
 	"log"
 	container "online_fashion_shop/api"
 	"online_fashion_shop/api/router"
 	"online_fashion_shop/api/worker"
 	_ "online_fashion_shop/docs"
 	"online_fashion_shop/initializers"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -19,7 +20,7 @@ func init() {
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	server := gin.Default()
 	config, err := initializers.LoadConfig(".")
 
@@ -47,21 +48,21 @@ func main() {
 	log.Fatal(server.Run(":" + config.ServerPort))
 }
 
-//	@title			Online Shop API
-//	@version		1.0
-//	@description	Online Shop API
-//	@termsOfService	http://swagger.io/terms/
+// @title			Online Shop API
+// @version		1.0
+// @description	Online Shop API
+// @termsOfService	http://swagger.io/terms/
 
-//	@contact.name	vangxitrum
-//	@contact.url	http://www.swagger.io/support
-//	@contact.email	19522482@gm.uit.edu.vn
+// @contact.name	vangxitrum
+// @contact.url	http://www.swagger.io/support
+// @contact.email	19522482@gm.uit.edu.vn
 
-//	@license.name	Apache 2.0
-//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.name	Apache 2.0
+// @license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@BasePath	/api/
+// @BasePath	/api/
 
-//	@securityDefinitions.basic	BasicAuth
+// @securityDefinitions.basic	BasicAuth
 
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
+// @externalDocs.description	OpenAPI
+// @externalDocs.url			https://swagger.io/resources/open-api/

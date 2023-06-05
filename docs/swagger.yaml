@@ -15,6 +15,17 @@ definitions:
       size:
         type: string
     type: object
+  chat.CreateMessageInput:
+    properties:
+      dialog_id:
+        type: string
+      is_user:
+        type: boolean
+      type:
+        type: string
+      value:
+        type: string
+    type: object
   coupon.CouponInfo:
     properties:
       code:
@@ -786,6 +797,35 @@ paths:
       summary: Get info of coupon
       tags:
       - Coupon
+  /districts/{provinceId}:
+    get:
+      consumes:
+      - application/json
+      description: Get districts
+      parameters:
+      - description: Province's Id
+        in: path
+        name: provinceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get districts
+      tags:
+      - users
   /inventory:
     post:
       consumes:
@@ -961,6 +1001,35 @@ paths:
       summary: List by detail_id(product_id)
       tags:
       - inventory
+  /message:
+    get:
+      consumes:
+      - application/json
+      description: Get user's messages
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get user's messages
+      tags:
+      - chat
   /order/:
     put:
       consumes:
@@ -1356,6 +1425,64 @@ paths:
       summary: List distinct types of products
       tags:
       - product
+  /provinces:
+    get:
+      consumes:
+      - application/json
+      description: Get provinces
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get provinces
+      tags:
+      - users
+  /send-message:
+    post:
+      consumes:
+      - application/json
+      description: Send message
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Message
+        in: body
+        name: chat
+        required: true
+        schema:
+          $ref: '#/definitions/chat.CreateMessageInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Send user message
+      tags:
+      - chat
   /users/address:
     delete:
       consumes:
@@ -1633,6 +1760,35 @@ paths:
           schema:
             type: string
       summary: add user's wishlist item
+      tags:
+      - users
+  /wards/{districtId}:
+    get:
+      consumes:
+      - application/json
+      description: Get wards
+      parameters:
+      - description: District's Id
+        in: path
+        name: districtId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get wards
       tags:
       - users
 securityDefinitions:

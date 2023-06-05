@@ -1,12 +1,17 @@
 package controller
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"online_fashion_shop/api/common/errs"
 	model "online_fashion_shop/api/model/user"
 	"online_fashion_shop/api/service"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 )
 
 type UserController struct {
@@ -195,4 +200,141 @@ func (uc *UserController) GetUserWishlist(ctx *gin.Context) {
 	}
 
 	uc.Service.GetUserWishlist(ctx, payload)
+}
+
+// Get Provinces
+//
+//	@Summary		Get provinces
+//	@Description	Get provinces
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200				{object}	string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/provinces [get]
+func (uc *UserController) GetProvinces(ctx *gin.Context) {
+	var resp struct {
+		Districts []struct {
+			ProvinceId    int      `json:"ProvinceID"`
+			ProvinceName  string   `json:"ProvinceName"`
+			CountryId     int      `json:"CountryID"`
+			NameExtension []string `json:"NameExtension"`
+		} `json:"data"`
+	}
+
+	timeout, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	r := resty.New()
+	res, err := r.R().
+		SetContext(timeout).
+		SetResult(&resp).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Token", "cc01798d-e4cf-11ed-bc91-ba0234fcde32").
+		ForceContentType("application/json").
+		Get("http://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province")
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetDistrict")
+	}
+
+	if res.StatusCode() == http.StatusOK {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"data":   resp,
+		})
+	}
+}
+
+// Get District
+//
+//	@Summary		Get districts
+//	@Description	Get districts
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param 			provinceId 		path 			string 		true "Province's Id"
+//	@Success		200				{object}	string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/districts/{provinceId} [get]
+func (uc *UserController) GetDistricts(ctx *gin.Context) {
+	provinceId := ctx.Param("provinceId")
+	var resp struct {
+		Districts []struct {
+			DistrictId    int      `json:"DistrictID"`
+			ProvinceId    int      `json:"ProvinceID"`
+			DistrictName  string   `json:"DistrictName"`
+			NameExtension []string `json:"NameExtension,omitempty"`
+		} `json:"data"`
+	}
+
+	r := resty.New()
+	res, err := r.R().
+		SetResult(&resp).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("token", "cc01798d-e4cf-11ed-bc91-ba0234fcde32").
+		SetBody(strings.NewReader(fmt.Sprintf(`{
+			"province_id":%s 
+		}`, provinceId))).
+		Get("http://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district")
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetDistricts")
+		return
+	}
+
+	if res.StatusCode() == http.StatusOK {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"data":   resp,
+		})
+	}
+
+}
+
+// Get Ward
+//
+//	@Summary		Get wards
+//	@Description	Get wards
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param 			districtId 		path 			string 		true "District's Id"
+//	@Success		200				{object}	string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/wards/{districtId} [get]
+func (uc *UserController) GetWards(ctx *gin.Context) {
+	districtId := ctx.Param("districtId")
+	var resp struct {
+		Districts []struct {
+			WardCode      string   `json:"WardCode"`
+			DistrictId    int      `json:"DistrictID"`
+			WardName      string   `json:"WardName"`
+			NameExtension []string `json:"NameExtension,omitempty"`
+		} `json:"data"`
+	}
+
+	r := resty.New()
+	res, err := r.R().
+		SetResult(&resp).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("token", "cc01798d-e4cf-11ed-bc91-ba0234fcde32").
+		SetQueryParam("district_id", districtId).
+		Get("http://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward")
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetDistricts")
+		return
+	}
+
+	if res.StatusCode() == http.StatusOK {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"data":   resp,
+		})
+	}
+
 }

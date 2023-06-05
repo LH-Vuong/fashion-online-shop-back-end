@@ -24,6 +24,13 @@ func InitUserRouter(s *gin.Engine, c *dig.Container) {
 			router.POST("/wishlist", controller.AddUserWishlist)
 			router.DELETE("/wishlist", controller.DeleteUserWishlist)
 		}
+
+		router1 := s.Group("api")
+		{
+			router1.GET("/provinces", controller.GetProvinces)
+			router1.GET("/districts/:provinceId", controller.GetDistricts)
+			router1.GET("/wards/:districtId", controller.GetWards)
+		}
 	})
 	if err != nil {
 		panic(err)
