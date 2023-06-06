@@ -37,6 +37,8 @@ type Config struct {
 
 	AzureStorageBlobContainer string `mapstructure:"AZURE_STORAGE_BLOB_CONTAINER"`
 	AzureStorageBlobKey2      string `mapstructure:"AZURE_STORAGE_BLOB_KEY2"`
+
+	RedisURL string `mapstructure:"REDIS_URL"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

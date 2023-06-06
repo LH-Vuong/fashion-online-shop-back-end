@@ -1,6 +1,7 @@
 package container
 
 import (
+	"github.com/redis/go-redis/v9"
 	"log"
 	"online_fashion_shop/api/repository"
 	userrepo "online_fashion_shop/api/repository/user"
@@ -154,4 +155,15 @@ func provideUserRepositoryImpl(cl initializers.Client) userrepo.UserRepository {
 	userWishlistCollection := cl.Database("fashion_shop").Collection("user_wishlist")
 	userAddressCollection := cl.Database("fashion_shop").Collection("user_address")
 	return userrepo.NewUserRepositoryImpl(userCollection, userVerifyCollection, userWishlistCollection, userAddressCollection)
+}
+func ProvideRedisClient() *redis.Client {
+	config, err := initializers.LoadConfig("../")
+	if err != nil {
+		panic(err)
+	}
+	opt, err := redis.ParseURL(config.RedisURL)
+	if err != nil {
+		panic(err)
+	}
+	return redis.NewClient(opt)
 }
