@@ -34,6 +34,8 @@ func init() {
 	container.Provide(provideZaloPayProcessor)
 	container.Provide(provideQuantityService)
 	container.Provide(provideAzurePhotoStorage)
+	container.Provide(provideRatingService)
+	container.Provide(provideRedisClient)
 }
 
 func BuildContainer() *dig.Container {
@@ -79,9 +81,9 @@ func providePhotoRepositoryImpl(client initializers.Client) repository.ProductPh
 }
 func provideProductServiceImpl(detailRepo repository.ProductDetailRepository,
 	photoService service.PhotoService,
-	ratingRepo repository.ProductRatingRepository,
+	ratingService service.RatingService,
 	quantityService service.ProductQuantityService) service.ProductService {
-	return service.NewProductServiceImpl(detailRepo, ratingRepo, photoService, quantityService)
+	return service.NewProductServiceImpl(detailRepo, ratingService, photoService, quantityService)
 }
 
 func provideMongoDbClient() initializers.Client {
@@ -156,7 +158,7 @@ func provideUserRepositoryImpl(cl initializers.Client) userrepo.UserRepository {
 	userAddressCollection := cl.Database("fashion_shop").Collection("user_address")
 	return userrepo.NewUserRepositoryImpl(userCollection, userVerifyCollection, userWishlistCollection, userAddressCollection)
 }
-func ProvideRedisClient() *redis.Client {
+func provideRedisClient() *redis.Client {
 	config, err := initializers.LoadConfig("../")
 	if err != nil {
 		panic(err)
@@ -166,4 +168,8 @@ func ProvideRedisClient() *redis.Client {
 		panic(err)
 	}
 	return redis.NewClient(opt)
+}
+
+func provideRatingService(cacheClient *redis.Client, repo repository.ProductRatingRepository) service.RatingService {
+	return service.NewRatingServiceImpl(repo, cacheClient)
 }

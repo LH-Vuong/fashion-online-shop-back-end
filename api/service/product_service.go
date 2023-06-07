@@ -21,7 +21,7 @@ type ProductService interface {
 type ProductServiceImpl struct {
 	ProductDetailRepository repository.ProductDetailRepository
 	PhotoService            PhotoService
-	ProductRatingRepository repository.ProductRatingRepository
+	RatingService           RatingService
 	QuantityService         ProductQuantityService
 }
 
@@ -50,12 +50,12 @@ func (service *ProductServiceImpl) ListType() ([]string, error) {
 }
 
 func NewProductServiceImpl(productDetailRepo repository.ProductDetailRepository,
-	productRatingRepo repository.ProductRatingRepository,
+	ratingService RatingService,
 	photoService PhotoService, quantityService ProductQuantityService) ProductService {
 	return &ProductServiceImpl{
 		productDetailRepo,
 		photoService,
-		productRatingRepo,
+		ratingService,
 		quantityService,
 	}
 }
@@ -90,7 +90,7 @@ func (service *ProductServiceImpl) Get(id string) (*product.Product, error) {
 	if err != nil {
 		return nil, err
 	}
-	avr, err := service.getAvrRate(product.Id)
+	avr, err := service.RatingService.GetProductAvrRate(product.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -106,36 +106,6 @@ func (service *ProductServiceImpl) Get(id string) (*product.Product, error) {
 	product.ProductQuantities = quantities
 	product.Photos = ConvertPhotosToUrls(photos)
 	return product, nil
-}
-
-func (service *ProductServiceImpl) getAvrRate(productId string) (avr float64, err error) {
-
-	rs, err := service.ProductRatingRepository.GetAvr(productId)
-	if err != nil {
-		return 5, err
-	}
-	avr = rs.AvrRate
-	return
-}
-
-func (s *ProductServiceImpl) addPhotosToProduct(products []*product.Product) error {
-
-	productIds := make([]string, len(products))
-	for index := range products {
-		productIds[index] = products[index].Id
-	}
-
-	photoMap, err := s.PhotoService.ListByMultiProductId(productIds)
-	if err != nil {
-		return err
-	}
-
-	for _, product := range products {
-		if photos, ok := photoMap[product.Id]; ok {
-			product.Photos = ConvertPhotosToUrls(photos)
-		}
-	}
-	return nil
 }
 
 func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequest) ([]*product.Product, int64, error) {
@@ -157,7 +127,23 @@ func (service *ProductServiceImpl) List(productsRequest request.ListProductsRequ
 	if err != nil {
 		return nil, 0, err
 	}
-	service.addPhotosToProduct(products)
+
+	productIds := make([]string, len(products))
+	for index := range products {
+		productIds[index] = products[index].Id
+	}
+
+	photoMap, err := service.PhotoService.ListByMultiProductId(productIds)
+	if err != nil {
+		return nil, 0, err
+	}
+	productRatings, err := service.RatingService.GetMultiProductAvrRate(productIds)
+	for _, product := range products {
+		if photos, ok := photoMap[product.Id]; ok {
+			product.Photos = ConvertPhotosToUrls(photos)
+		}
+		product.AvrRate, _ = productRatings[product.Id]
+	}
 
 	return products, totalDocs, nil
 }

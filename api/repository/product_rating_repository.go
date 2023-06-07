@@ -2,12 +2,15 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"math"
 	"online_fashion_shop/api/model/rating"
 	"online_fashion_shop/initializers"
+	"time"
 )
 
 type ProductRatingRepository interface {
@@ -25,24 +28,47 @@ type ProductRatingRepositoryImpl struct {
 }
 
 func (r *ProductRatingRepositoryImpl) DeleteOne(id string) error {
-	//TODO implement me
-	panic("implement me")
+	objId, err := primitive.ObjectIDFromHex(id)
+
+	filter := bson.M{"_id": objId}
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	_, err = r.ratingCollection.DeleteOne(ctx, filter)
+	return err
 }
 
 func (r *ProductRatingRepositoryImpl) Update(updateInfo *rating.Rating) error {
-	//TODO implement me
-	panic("implement me")
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	updateInfo.UpdatedAt = time.Now().UnixMilli()
+	objId, err := primitive.ObjectIDFromHex(updateInfo.Id)
+	if err != nil {
+		return err
+	}
+	query := bson.M{"_id": objId}
+	updateInfo.Id = ""
+	update := bson.M{"$set": &updateInfo}
+	_, err = r.ratingCollection.UpdateOne(ctx, query, update)
+	return err
 }
 
 func (r *ProductRatingRepositoryImpl) GetAvr(productId string) (int, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	filter := bson.D{{"rate_for", productId}}
-	groupState := bson.D{{"$group", bson.D{{"_id", "$rate_for"}, {"average", bson.D{{"$avg", "$rate"}}}}}}
 
-	cursor, err := r.ratingCollection.Aggregate(ctx, mongo.Pipeline{filter, groupState})
+	num, _ := r.ratingCollection.CountDocuments(ctx, bson.M{"rate_for": productId})
+	if num < 1 {
+		return 5, nil
+	}
+	matchStage := bson.D{{"$match", bson.D{{"rate_for", productId}}}}
+
+	groupState := bson.D{{"$group", bson.D{
+		{"_id", "$rate_for"},
+		{"average", bson.D{{"$avg", "$rate"}}}}}}
+
+	cursor, err := r.ratingCollection.Aggregate(ctx, mongo.Pipeline{matchStage, groupState})
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	defer cursor.Close(ctx)
 
@@ -51,13 +77,11 @@ func (r *ProductRatingRepositoryImpl) GetAvr(productId string) (int, error) {
 			Average float64 `bson:"average"`
 		}
 		if err := cursor.Decode(&result); err != nil {
-			return 0, err
+			return -1, err
 		}
-		return int(result.Average), nil
-	} else {
-		//no rating found for product
-		return 5, nil
+		return int(math.Ceil(result.Average)), nil
 	}
+	return -1, fmt.Errorf("retrieve empty value")
 }
 
 func (r *ProductRatingRepositoryImpl) List(option rating.RateSearchOption) ([]*rating.Rating, error) {
@@ -140,7 +164,11 @@ func (r *ProductRatingRepositoryImpl) ListAvrRate(productIds []string) (map[stri
 func (r *ProductRatingRepositoryImpl) Get(id string) (*rating.Rating, error) {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-	filter := bson.M{"_id": id}
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{"_id": objId}
 	var result rating.Rating
 	if err := r.ratingCollection.FindOne(ctx, filter).Decode(&result); err != nil {
 		if err == mongo.ErrNoDocuments {

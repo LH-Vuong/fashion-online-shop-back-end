@@ -232,7 +232,7 @@ definitions:
   product.Product:
     properties:
       avr_rate:
-        type: number
+        type: integer
       brand:
         type: string
       description:
@@ -277,6 +277,23 @@ definitions:
       size:
         type: string
     type: object
+  rating.Rating:
+    properties:
+      created_at:
+        type: integer
+      id:
+        type: string
+      rate:
+        type: integer
+      rate_by:
+        type: string
+      rate_for:
+        type: string
+      review:
+        type: string
+      updated_at:
+        type: integer
+    type: object
   request.CartItemUpdater:
     properties:
       color:
@@ -314,6 +331,17 @@ definitions:
       data:
         items:
           $ref: '#/definitions/product.ProductQuantity'
+        type: array
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-array_rating_Rating:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/rating.Rating'
         type: array
       message:
         type: string
@@ -364,6 +392,15 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/product.ProductQuantity'
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-rating_Rating:
+    properties:
+      data:
+        $ref: '#/definitions/rating.Rating'
       message:
         type: string
       status:
@@ -1356,6 +1393,152 @@ paths:
       summary: List distinct types of products
       tags:
       - product
+  /rating:
+    post:
+      consumes:
+      - application/json
+      description: update a rating, specify by id field
+      parameters:
+      - description: update info
+        in: body
+        name: update_info
+        required: true
+        schema:
+          $ref: '#/definitions/rating.Rating'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: update a rating
+      tags:
+      - rating
+    put:
+      consumes:
+      - application/json
+      description: rate to a product of the current Customer by using their access
+        token.
+      parameters:
+      - description: customer's rating
+        in: body
+        name: rating_content
+        required: true
+        schema:
+          $ref: '#/definitions/rating.Rating'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_rating_Rating'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: add a rating for product
+      tags:
+      - rating
+  /rating/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a rating by id
+      parameters:
+      - description: customer's rating
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Delete a rating by id
+      tags:
+      - rating
+    get:
+      consumes:
+      - application/json
+      description: retrieve rating by rating id
+      parameters:
+      - description: rating's id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-rating_Rating'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: retrieve rating by rating id
+      tags:
+      - rating
+  /ratings/{product_id}:
+    get:
+      consumes:
+      - application/json
+      description: retrieve ratings by product id
+      parameters:
+      - description: product's id
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_rating_Rating'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: retrieve ratings by product id
+      tags:
+      - rating
   /users/address:
     delete:
       consumes:

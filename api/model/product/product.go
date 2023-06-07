@@ -13,7 +13,7 @@ type Product struct {
 	Description       string             `bson:"description,omitempty" json:"description"`
 	Photos            []string           `bson:"-" json:"photos"`
 	ProductQuantities []*ProductQuantity `json:"product_quantities" bson:"-"`
-	AvrRate           float64            `bson:"-" json:"avr_rate"`
+	AvrRate           int                `bson:"-" json:"avr_rate"`
 	CreatedAt         int64              `bson:"create_at,omitempty" json:"-"`
 	CreateBy          string             `bson:"create_by,omitempty" json:"-"`
 	UpdatedAt         int64              `bson:"updated_at,omitempty" json:"-"`
