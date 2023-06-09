@@ -2488,7 +2488,7 @@ const docTemplate = `{
         "request.CreateOrderRequest": {
             "type": "object",
             "properties": {
-                "address_info": {
+                "address_id": {
                     "type": "string"
                 },
                 "coupon_code": {

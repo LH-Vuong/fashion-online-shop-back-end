@@ -32,12 +32,16 @@ type OrderController struct {
 //	@Router			/order/ [put]
 func (controller *OrderController) Create(ctx *gin.Context) {
 	var createRequest request.CreateOrderRequest
-	ctx.BindJSON(&createRequest)
-	createRequest.CustomerId = ctx.Param("customer_id")
-
-	info, err := controller.Service.Create(createRequest.CustomerId, createRequest.PaymentMethod, createRequest.AddressInfo, createRequest.CouponCode)
+	err := ctx.BindJSON(&createRequest)
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
+	}
+	currentUser := ctx.MustGet("currentUser").(model.User)
+	createRequest.CustomerId = currentUser.Id
+	info, err := controller.Service.Create(createRequest.CustomerId, createRequest.PaymentMethod, createRequest.AddressId, createRequest.CouponCode)
 	if err != nil {
 		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	ctx.JSON(200, gin.H{"status": "success", "data": info})
 }
@@ -96,7 +100,7 @@ func (controller *OrderController) Checkout(ctx *gin.Context) {
 	var createRequest request.CreateOrderRequest
 	ctx.BindJSON(&createRequest)
 	currentUser := ctx.MustGet("currentUser").(model.User)
-	invalidData, err := controller.Service.IsAbleCreateOrder(currentUser.Id, createRequest.PaymentMethod, createRequest.AddressInfo)
+	invalidData, err := controller.Service.IsAbleCreateOrder(currentUser.Id, createRequest.PaymentMethod, createRequest.AddressId)
 	if err != nil {
 		ctx.JSON(200, response.BaseResponse[[]string]{
 			Status:  "failed",

@@ -8,5 +8,5 @@ type CreateOrderRequest struct {
 	CustomerId    string         `json:"-"`
 	CouponCode    *string        `json:"coupon_code"`
 	PaymentMethod payment.Method `json:"payment_method"`
-	AddressInfo   string         `json:"address_info"`
+	AddressId     string         `json:"address_id"`
 }

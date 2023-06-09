@@ -305,7 +305,7 @@ definitions:
     type: object
   request.CreateOrderRequest:
     properties:
-      address_info:
+      address_id:
         type: string
       coupon_code:
         type: string
