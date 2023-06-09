@@ -56,7 +56,6 @@ func (c CouponServiceImpl) Get(couponCode string) (*coupon.CouponInfo, error) {
 func (svc CouponServiceImpl) Check(couponCode string) (bool, error) {
 	coupon, err := svc.couponRepo.Get(couponCode)
 	if err != nil {
-		panic(err)
 		return false, err
 	}
 	if coupon.EndAt > time.Now().UnixMilli() && coupon.StartAt < time.Now().UnixMilli() {

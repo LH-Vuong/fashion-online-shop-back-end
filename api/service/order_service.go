@@ -80,16 +80,16 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("encoutered err(%s) while trying to validate cart items", err.Error())
 	}
 	if len(invalidItems) > 0 {
-		return nil, fmt.Errorf("Invalid Cart Item")
+		return nil, fmt.Errorf("(%d)Invalid Cart Items", len(invalidItems))
 	}
 
 	// Get the customer's cart items.
 	cartItems, err := svc.CartService.Get(customerID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("encoutered error(%s)while trying to get cart items", err.Error())
 	}
 
 	if len(cartItems) == 0 {
