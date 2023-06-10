@@ -141,9 +141,8 @@ func (service *UserServiceImpl) VerifyAccount(ctx *gin.Context, uniqueToken stri
 		return
 	}
 
-	if existVerify.CreatedAt.Sub(time.Now()).Hours() > 6 {
+	if time.Until(existVerify.CreatedAt) > 6 {
 		errs.HandleFailStatus(ctx, "Token expired", http.StatusBadRequest)
-
 		return
 	}
 
@@ -162,9 +161,13 @@ func (service *UserServiceImpl) VerifyAccount(ctx *gin.Context, uniqueToken stri
 
 	if err != nil {
 		errs.HandleErrorStatus(ctx, err, "VerifyAccount")
+		return
 	}
 
-	err = service.userRepo.DeleteUserVerify(ctx, existVerify)
+	if err = service.userRepo.DeleteUserVerify(ctx, existVerify); err != nil {
+		errs.HandleErrorStatus(ctx, err, "VerifyAccount")
+		return
+	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success"})
 }
@@ -195,13 +198,13 @@ func (service *UserServiceImpl) SignIn(ctx *gin.Context, payload model.SignInMod
 		log.Fatal("🚀 Could not load environment variables", err)
 	}
 
-	access_token, err := utils.CreateToken(config.AccessTokenExpiresIn, existUser.Id, config.AccessTokenPrivateKey)
+	access_token, err := utils.CreateToken(config.AccessTokenExpiresIn*time.Minute, existUser.Id, config.AccessTokenPrivateKey)
 	if err != nil {
 		errs.HandleErrorStatus(ctx, err, "CreateToken")
 		return
 	}
 
-	refresh_token, err := utils.CreateToken(config.RefreshTokenExpiresIn, existUser.Id, config.RefreshTokenPrivateKey)
+	refresh_token, err := utils.CreateToken(config.RefreshTokenExpiresIn*time.Minute, existUser.Id, config.RefreshTokenPrivateKey)
 	if err != nil {
 		errs.HandleErrorStatus(ctx, err, "CreateToken")
 		return
@@ -325,10 +328,11 @@ func (service *UserServiceImpl) AddUserWishlistItem(ctx *gin.Context, payload mo
 	}
 
 	newWishlistItem := model.UserWishlist{
-		ProductId: payload.ProductId,
-		UserId:    currentUser.Id,
-		Status:    "active",
-		CreatedAt: time.Now(),
+		ProductId:    payload.ProductId,
+		UserId:       currentUser.Id,
+		ProductImage: payload.ProductImage,
+		Status:       "active",
+		CreatedAt:    time.Now(),
 	}
 
 	rs, err := service.userRepo.CreateWishlistItem(ctx, &newWishlistItem)
@@ -395,7 +399,15 @@ func (service *UserServiceImpl) CreateUserAddress(ctx *gin.Context, payload mode
 		WardCode:   payload.WardCode,
 		Address:    payload.Address,
 		Name:       payload.Name,
+		IsDefault:  payload.IsDefault,
 		CreatedAt:  time.Now(),
+	}
+
+	count, err := service.userRepo.GetUserAddressCount(ctx, currentUser.Id)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
+		return
 	}
 
 	rs, err := service.userRepo.CreateUserAddress(ctx, &newAddress)
@@ -403,6 +415,13 @@ func (service *UserServiceImpl) CreateUserAddress(ctx *gin.Context, payload mode
 	if err != nil {
 		errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
 		return
+	}
+
+	if count == 0 || newAddress.IsDefault {
+		if err := service.userRepo.SetDefaultAddress(ctx, currentUser.Id, rs.Id); err != nil {
+			errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
+			return
+		}
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "data": rs})
@@ -426,6 +445,7 @@ func (service *UserServiceImpl) UpdateUserAddress(ctx *gin.Context, payload mode
 	existAddress.DistrictId = payload.DistrictId
 	existAddress.WardCode = payload.WardCode
 	existAddress.Name = payload.Name
+	existAddress.IsDefault = payload.IsDefault
 	existAddress.UpdatedAt = time.Now()
 
 	rs, err := service.userRepo.UpdateUserAddress(ctx, existAddress)
@@ -435,7 +455,21 @@ func (service *UserServiceImpl) UpdateUserAddress(ctx *gin.Context, payload mode
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "data": rs})
+	count, err := service.userRepo.GetUserAddressCount(ctx, existAddress.UserId)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
+		return
+	}
+
+	if count == 0 || existAddress.IsDefault {
+		if err := service.userRepo.SetDefaultAddress(ctx, existAddress.UserId, existAddress.Id); err != nil {
+			errs.HandleErrorStatus(ctx, err, "CreateUserAddress")
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rs})
 }
 
 func (service *UserServiceImpl) DeleteUserAddress(ctx *gin.Context, addressId string) {
