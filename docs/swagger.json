@@ -860,6 +860,20 @@
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2087,10 +2101,14 @@
         "model.AddWishListModel": {
             "type": "object",
             "required": [
-                "product_id"
+                "product_id",
+                "product_image"
             ],
             "properties": {
                 "product_id": {
+                    "type": "string"
+                },
+                "product_image": {
                     "type": "string"
                 }
             }
@@ -2100,6 +2118,7 @@
             "required": [
                 "address",
                 "district_id",
+                "is_default",
                 "name",
                 "province_id",
                 "ward_code"
@@ -2110,6 +2129,9 @@
                 },
                 "district_id": {
                     "type": "integer"
+                },
+                "is_default": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -2183,6 +2205,7 @@
                 "address",
                 "district_id",
                 "id",
+                "is_default",
                 "name",
                 "province_id",
                 "ward_code"
@@ -2196,6 +2219,9 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -2282,6 +2308,9 @@
                     "type": "string"
                 },
                 "product_id": {
+                    "type": "string"
+                },
+                "product_image": {
                     "type": "string"
                 },
                 "status": {

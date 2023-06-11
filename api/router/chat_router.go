@@ -14,13 +14,13 @@ import (
 func InitChatRouter(s *gin.Engine, c *dig.Container) {
 	err := c.Invoke(func(chatService service.ChatService) {
 		controller := controller.NewChatController(chatService, chat.Server{
-			Conns: make(map[string]*websocket.Conn),
+			Conns: make(map[*websocket.Conn]string),
 		})
 
 		s.GET("api/open/:token", middleware.DeserializeUser(), controller.HandleWS)
 		s.GET("api/message", middleware.DeserializeUser(), controller.GetUserMessage)
 		s.POST("api/send-message", middleware.DeserializeUser(), controller.SendMessage)
-		s.POST("api/send-user-message/:userId/:dialodId/:message", controller.SendUserMessage)
+		s.POST("api/send-user-message/:userId/:dialogId/:message", controller.SendUserMessage)
 	})
 	if err != nil {
 		panic(err)

@@ -44,7 +44,7 @@ func (c *ChatController) HandleWS(ctx *gin.Context) {
 				return
 			}
 		}
-		c.s.Conns[currentUser.Id] = ws
+		c.s.Conns[ws] = currentUser.Id
 		buf := make([]byte, 1024)
 
 		for {
@@ -108,6 +108,8 @@ func (c *ChatController) SendMessage(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			Authorization	header		string	true	"Bearer Token"
+//	@Param			page			query		int		true	"page"
+//	@Param			page_size		query		int	 	true	"page size"
 //	@Success		200				{object}	string
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
@@ -150,12 +152,17 @@ func (c *ChatController) SendUserMessage(ctx *gin.Context) {
 		return
 	}
 
-	go func(ws *websocket.Conn) {
+	for key, value := range c.s.Conns {
+		if value == userId {
+			go func(ws *websocket.Conn) {
 
-		if _, err := ws.Write([]byte(data)); err != nil {
-			fmt.Println("Write error: ", err)
+				if _, err := ws.Write([]byte(data)); err != nil {
+					fmt.Println("Write error: ", err)
+				}
+			}(key)
+
 		}
-	}(c.s.Conns[userId])
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  "success",

@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ChatRepotitory interface {
@@ -14,7 +15,7 @@ type ChatRepotitory interface {
 	CreateMessage(context.Context, *model.Message) (*model.Message, error)
 
 	GetDialogByUserId(context.Context, string) (*model.Dialog, error)
-	GetMessagesByDialogId(context.Context, string) ([]*model.Message, error)
+	GetMessagesByDialogId(context.Context, int64, int64, string) ([]*model.Message, int64, error)
 }
 
 type chatRepotitory struct {
@@ -59,22 +60,35 @@ func (r *chatRepotitory) CreateMessage(ctx context.Context, newMessage *model.Me
 	return newMessage, err
 }
 
-func (r *chatRepotitory) GetMessagesByDialogId(ctx context.Context, dialogId string) (result []*model.Message, err error) {
+func (r *chatRepotitory) GetMessagesByDialogId(ctx context.Context, page int64, pageSize int64, dialogId string) (result []*model.Message, total int64, err error) {
 	ctx, cancel := initializers.InitContext()
 
 	defer cancel()
 
-	cursor, err := r.chatCollection.Find(ctx, bson.M{"dialog_id": dialogId})
+	opts := options.Find().
+		SetSkip(page - 1).
+		SetLimit(pageSize)
+
+	query := bson.M{"dialog_id": dialogId}
+
+	rs, err := r.chatCollection.Find(ctx, query, opts)
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	if err := cursor.All(ctx, &result); err != nil {
-		return nil, err
+	total, err = r.chatCollection.CountDocuments(ctx, query)
+
+	if err != nil {
+		return nil, 0, err
 	}
 
-	return result, nil
+	err = rs.All(ctx, &result)
+
+	if err != nil {
+		return nil, 0, err
+	}
+	return
 }
 
 func (r *chatRepotitory) GetDialogByUserId(ctx context.Context, userId string) (result *model.Dialog, err error) {
