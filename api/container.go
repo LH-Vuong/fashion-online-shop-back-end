@@ -5,6 +5,7 @@ import (
 	"online_fashion_shop/api/repository"
 	userrepo "online_fashion_shop/api/repository/user"
 	"online_fashion_shop/api/service"
+	"online_fashion_shop/external_services"
 	"online_fashion_shop/initializers"
 	"online_fashion_shop/initializers/storage"
 	"online_fashion_shop/initializers/zalopay"
@@ -167,4 +168,19 @@ func provideUserRepositoryImpl(cl initializers.Client) userrepo.UserRepository {
 	userWishlistCollection := cl.Database("fashion_shop").Collection("user_wishlist")
 	userAddressCollection := cl.Database("fashion_shop").Collection("user_address")
 	return userrepo.NewUserRepositoryImpl(userCollection, userVerifyCollection, userWishlistCollection, userAddressCollection)
+}
+
+func provideGHNService() *external_services.GHNService {
+	config, err := initializers.LoadConfig("../")
+
+	if err != nil {
+		log.Fatal("🚀 Could not load environment variables", err)
+	}
+	return &external_services.GHNService{
+		Token:          config.GHNToken,
+		ShopId:         config.GHNShopId,
+		ShopDistrictId: "",
+		ShopWardId:     "",
+		ServiceTypeId:  "",
+	}
 }
