@@ -10,7 +10,8 @@ import (
 type PhotoService interface {
 	ListByMultiProductId(productIds []string) (map[string][]*product.ProductPhoto, error)
 	ListByProductId(productId string) ([]*product.ProductPhoto, error)
-	UploadPhoto(file []io.Reader, productId string) ([]string, error)
+	UploadProductPhoto(file []io.Reader, productId string) ([]string, error)
+	UploadFile(file io.Reader) (string, error)
 	DeletePhotoByProductId(productId string) error
 	DeleteOne(photoURL string, productId string) error
 }
@@ -18,6 +19,10 @@ type PhotoService interface {
 type PhotoServiceImpl struct {
 	PhotoRepo    repository.ProductPhotoRepository
 	PhotoStorage storage.PhotoStorage
+}
+
+func (p *PhotoServiceImpl) UploadFile(file io.Reader) (string, error) {
+	return p.PhotoStorage.Upload(file)
 }
 
 func (p *PhotoServiceImpl) DeleteOne(photoURL string, productId string) error {
@@ -58,7 +63,7 @@ func (p *PhotoServiceImpl) DeletePhotoByProductId(productId string) error {
 	return nil
 }
 
-func (p *PhotoServiceImpl) UploadPhoto(files []io.Reader, productId string) ([]string, error) {
+func (p *PhotoServiceImpl) UploadProductPhoto(files []io.Reader, productId string) ([]string, error) {
 
 	paths, err := p.PhotoStorage.MultiUpload(files)
 	if err != nil {

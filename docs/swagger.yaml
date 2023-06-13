@@ -1546,6 +1546,35 @@ paths:
       summary: Send user message
       tags:
       - chat
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file then return an url path of file
+      parameters:
+      - description: The file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Upload a file
+      tags:
+      - File
   /users/address:
     delete:
       consumes:

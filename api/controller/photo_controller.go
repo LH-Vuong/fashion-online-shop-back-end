@@ -47,7 +47,7 @@ func (cl *PhotoController) Upload(c *gin.Context) {
 		}
 		reader[index] = bytes.NewReader(fileBytes)
 	}
-	photos, err := cl.PhotoService.UploadPhoto(reader, productId)
+	photos, err := cl.PhotoService.UploadProductPhoto(reader, productId)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
@@ -115,4 +115,39 @@ func (cl *PhotoController) DeleteAll(c *gin.Context) {
 		Status:  "success",
 	})
 
+}
+
+// UploadOne File
+//
+//	@Summary		Upload a file
+//	@Description	Upload a file then return an url path of file
+//	@Tags			File
+//	@Accept 		multipart/form-data
+//	@Produce		json
+//	@Param          file   formData    file			true    "The file to upload"
+//	@Success		200				{object}	response.BaseResponse[string]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/upload [post]
+func (cl *PhotoController) UploadOne(c *gin.Context) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		errs.HandleErrorStatus(c, err, "FormFile")
+		return
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	url, err := cl.PhotoService.UploadFile(file)
+	if err != nil {
+		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, response.BaseResponse[string]{
+		Data:    url,
+		Message: "URL",
+		Status:  "success",
+	})
 }
