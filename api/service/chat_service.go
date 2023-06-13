@@ -1,8 +1,10 @@
 package service
 
 import (
+	"online_fashion_shop/api/common/errs"
 	chat "online_fashion_shop/api/model/chatbox"
 	model "online_fashion_shop/api/model/user"
+	"strconv"
 	"time"
 
 	"online_fashion_shop/api/repository"
@@ -64,14 +66,26 @@ func (s ChatServiceImpl) GetDialogByUserId(ctx *gin.Context, userId string) (*ch
 
 func (s ChatServiceImpl) GetUserMessage(ctx *gin.Context) (*chat.GetUserMessageResponse, error) {
 	currentUser := ctx.MustGet("currentUser").(model.User)
-
-	userDialog, err := s.r.GetDialogByUserId(ctx, currentUser.Id)
+	pageSize, err := strconv.ParseInt(ctx.Query("page_size"), 10, 64)
 
 	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUserMessages")
 		return nil, err
 	}
 
-	userMessages, err := s.r.GetMessagesByDialogId(ctx, userDialog.Id)
+	page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUserMessages")
+		return nil, err
+	}
+
+	userDialog, err := s.r.GetDialogByUserId(ctx, currentUser.Id)
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUserMessages")
+		return nil, err
+	}
+
+	userMessages, total, err := s.r.GetMessagesByDialogId(ctx, page, pageSize, userDialog.Id)
 
 	if err != nil {
 		return nil, err
@@ -79,5 +93,6 @@ func (s ChatServiceImpl) GetUserMessage(ctx *gin.Context) (*chat.GetUserMessageR
 	return &chat.GetUserMessageResponse{
 		DialogId: userDialog.Id,
 		Messages: userMessages,
+		Total:    total,
 	}, nil
 }

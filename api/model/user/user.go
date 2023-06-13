@@ -26,12 +26,13 @@ type UserVerify struct {
 }
 
 type UserWishlist struct {
-	Id        string    `bson:"_id,omitempty" json:"id"`
-	UserId    string    `bson:"user_id" json:"user_id"`
-	ProductId string    `bson:"product_id" json:"product_id"`
-	Status    string    `bson:"status" json:"status"`
-	CreatedAt time.Time `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+	Id           string    `bson:"_id,omitempty" json:"id"`
+	UserId       string    `bson:"user_id" json:"user_id"`
+	ProductId    string    `bson:"product_id" json:"product_id"`
+	ProductImage string    `bson:"product_image" json:"product_image"`
+	Status       string    `bson:"status" json:"status"`
+	CreatedAt    time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt    time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 type UserAddress struct {
@@ -53,6 +54,7 @@ type CreateUserAddressModel struct {
 	WardCode   string `json:"ward_code" binding:"required"`
 	Address    string `json:"address" binding:"required"`
 	Name       string `json:"name" binding:"required"`
+	IsDefault  bool   `json:"is_default" binding:"required"`
 }
 
 type UpdateUserAddressModel struct {
@@ -61,6 +63,7 @@ type UpdateUserAddressModel struct {
 	DistrictId int    `json:"district_id" binding:"required"`
 	WardCode   string `json:"ward_code" binding:"required"`
 	Address    string `json:"address" binding:"required"`
+	IsDefault  bool   `json:"is_default" binding:"required"`
 	Name       string `json:"name" binding:"required"`
 }
 
@@ -82,7 +85,8 @@ type SignInModel struct {
 }
 
 type AddWishListModel struct {
-	ProductId string `json:"product_id" binding:"required"`
+	ProductId    string `json:"product_id" binding:"required"`
+	ProductImage string `json:"product_image" binding:"required"`
 }
 
 type DeleteWishListModel struct {

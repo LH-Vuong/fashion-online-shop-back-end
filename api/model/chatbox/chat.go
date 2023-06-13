@@ -1,29 +1,18 @@
 package chat
 
 import (
-	"fmt"
 	"time"
 
 	"golang.org/x/net/websocket"
 )
 
 type Server struct {
-	Conns map[string]*websocket.Conn
-}
-
-func (s *Server) broadcast(b []byte) {
-	for key := range s.Conns {
-		go func(ws *websocket.Conn) {
-			if _, err := ws.Write(b); err != nil {
-				fmt.Println("Write error: ", err)
-			}
-		}(s.Conns[key])
-	}
+	Conns map[*websocket.Conn]string
 }
 
 func NewServer() *Server {
 	return &Server{
-		Conns: make(map[string]*websocket.Conn),
+		Conns: make(map[*websocket.Conn]string),
 	}
 }
 
@@ -52,4 +41,5 @@ type CreateMessageInput struct {
 type GetUserMessageResponse struct {
 	DialogId string     `json:"dialog_id"`
 	Messages []*Message `json:"messages"`
+	Total    int64      `json:"total"`
 }

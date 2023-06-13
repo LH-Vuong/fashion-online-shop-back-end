@@ -912,6 +912,20 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page size",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2139,10 +2153,14 @@ const docTemplate = `{
         "model.AddWishListModel": {
             "type": "object",
             "required": [
-                "product_id"
+                "product_id",
+                "product_image"
             ],
             "properties": {
                 "product_id": {
+                    "type": "string"
+                },
+                "product_image": {
                     "type": "string"
                 }
             }
@@ -2152,6 +2170,7 @@ const docTemplate = `{
             "required": [
                 "address",
                 "district_id",
+                "is_default",
                 "name",
                 "province_id",
                 "ward_code"
@@ -2162,6 +2181,9 @@ const docTemplate = `{
                 },
                 "district_id": {
                     "type": "integer"
+                },
+                "is_default": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -2235,6 +2257,7 @@ const docTemplate = `{
                 "address",
                 "district_id",
                 "id",
+                "is_default",
                 "name",
                 "province_id",
                 "ward_code"
@@ -2248,6 +2271,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -2334,6 +2360,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "product_id": {
+                    "type": "string"
+                },
+                "product_image": {
                     "type": "string"
                 },
                 "status": {

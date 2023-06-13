@@ -41,8 +41,11 @@ definitions:
     properties:
       product_id:
         type: string
+      product_image:
+        type: string
     required:
     - product_id
+    - product_image
     type: object
   model.CreateUserAddressModel:
     properties:
@@ -50,6 +53,8 @@ definitions:
         type: string
       district_id:
         type: integer
+      is_default:
+        type: boolean
       name:
         type: string
       province_id:
@@ -59,6 +64,7 @@ definitions:
     required:
     - address
     - district_id
+    - is_default
     - name
     - province_id
     - ward_code
@@ -109,6 +115,8 @@ definitions:
         type: integer
       id:
         type: string
+      is_default:
+        type: boolean
       name:
         type: string
       province_id:
@@ -119,6 +127,7 @@ definitions:
     - address
     - district_id
     - id
+    - is_default
     - name
     - province_id
     - ward_code
@@ -172,6 +181,8 @@ definitions:
       id:
         type: string
       product_id:
+        type: string
+      product_image:
         type: string
       status:
         type: string
@@ -1050,6 +1061,16 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: page size
+        in: query
+        name: page_size
+        required: true
+        type: integer
       produces:
       - application/json
       responses:

@@ -33,6 +33,8 @@ type UserRepository interface {
 	GetUserAddressList(context.Context, string, int64, int64) ([]*model.UserAddress, int64, error)
 	UpdateUserAddress(context.Context, *model.UserAddress) (*model.UserAddress, error)
 	GetUserAddressById(context.Context, string) (*model.UserAddress, error)
+	SetDefaultAddress(context.Context, string, string) error
+	GetUserAddressCount(context.Context, string) (int64, error)
 }
 
 type userRepository struct {
@@ -466,4 +468,49 @@ func (r *userRepository) GetUserAddressById(ctx context.Context, id string) (use
 	}
 
 	return userAddress, nil
+}
+
+func (r *userRepository) SetDefaultAddress(ctx context.Context, userId string, addressId string) error {
+	objId, err := primitive.ObjectIDFromHex(addressId)
+
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	updatedDataMap := bson.M{"is_default": false}
+
+	if err != nil {
+		return err
+	}
+
+	query := bson.M{"user_id": userId, "_id": bson.M{"$ne": objId}}
+	update := bson.M{"$set": updatedDataMap}
+
+	_, err = r.userAddressCollection.UpdateOne(ctx, query, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) GetUserAddressCount(ctx context.Context, userId string) (int64, error) {
+	ctx, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	query := bson.M{"user_id": userId}
+
+	count, err := r.userAddressCollection.CountDocuments(ctx, query)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
