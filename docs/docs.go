@@ -542,6 +542,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/delivery/cal_fee/{address_id}": {
+            "get": {
+                "description": "calculate and return fee base on addressId of customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "calculate fee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "addressID",
+                        "name": "address_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-int"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/districts/{provinceId}": {
             "get": {
                 "description": "Get districts",
@@ -2567,6 +2611,20 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/coupon.CouponInfo"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-int": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "integer"
                 },
                 "message": {
                     "type": "string"

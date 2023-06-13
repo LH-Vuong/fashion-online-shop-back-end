@@ -12,25 +12,25 @@ type GHNService struct {
 	ShopId         string
 	ShopDistrictId string
 	ShopWardId     string
-	ServiceTypeId  string
+	ServiceTypeId  int
 }
 
-func (service *GHNService) CalculateFee(districtId string, wardId string, codValue int) (int, error) {
-	url := "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee"
+func (service *GHNService) CalculateFee(districtId int, wardCode string) (int, error) {
+	url := "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee"
 	method := "POST"
 
 	payload := map[string]interface{}{
-		"from_district_id": service.ShopDistrictId,
-		"from_ward_code":   service.ShopWardId,
+		"from_district_id": 1454,
+		"from_ward_code":   "21211",
 		"service_id":       nil,
-		"service_type_id":  service.ServiceTypeId,
+		"service_type_id":  2,
 		"to_district_id":   districtId,
-		"to_ward_code":     wardId,
+		"to_ward_code":     wardCode,
 		"height":           50,
 		"length":           20,
 		"weight":           200,
 		"width":            20,
-		"cod_value":        codValue,
+		"cod_value":        nil,
 		"coupon":           nil,
 	}
 
@@ -45,11 +45,9 @@ func (service *GHNService) CalculateFee(districtId string, wardId string, codVal
 		return 0, err
 	}
 	//set header
-	{
-		req.Header.Add("Content-Type", "application/json")
-		req.Header.Add("ShopId", service.ShopId)
-		req.Header.Add("Token", service.Token)
-	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("ShopId", service.ShopId)
+	req.Header.Add("Token", service.Token)
 
 	client := &http.Client{}
 

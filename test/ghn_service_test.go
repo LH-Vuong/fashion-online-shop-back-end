@@ -6,11 +6,15 @@ import (
 	"testing"
 )
 
-func TestProduct(t *testing.T) {
+func TestGHN(t *testing.T) {
 	var ghn external_services.GHNService
 	container.Inject(&ghn)
-	t.Run("Get Product", func(t *testing.T) {
-
+	t.Run("cal delivery fee", func(t *testing.T) {
+		fee, err := ghn.CalculateFee(1566, "510101")
+		if err != nil {
+			panic(err)
+		}
+		println(fee)
 	})
 
 }

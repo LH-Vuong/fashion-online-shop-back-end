@@ -38,8 +38,10 @@ type Config struct {
 	AzureStorageBlobContainer string `mapstructure:"AZURE_STORAGE_BLOB_CONTAINER"`
 	AzureStorageBlobKey2      string `mapstructure:"AZURE_STORAGE_BLOB_KEY2"`
 
-	GHNToken  string `mapstructure:"GHN_TOKEN"`
-	GHNShopId string `mapstructure:"GHN_SHOP_ID"`
+	GHNToken     string `mapstructure:"GHN_TOKEN"`
+	GHNShopId    string `mapstructure:"GHN_SHOP_ID"`
+	ShopWard     string `mapstructure:"WARD_CODE"`
+	ShopDistrict string `mapstructure:"DISTRICT_ID"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

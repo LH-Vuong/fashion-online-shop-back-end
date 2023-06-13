@@ -362,6 +362,15 @@ definitions:
       status:
         type: string
     type: object
+  response.BaseResponse-int:
+    properties:
+      data:
+        type: integer
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   response.BaseResponse-product_Product:
     properties:
       data:
@@ -797,6 +806,35 @@ paths:
       summary: Get info of coupon
       tags:
       - Coupon
+  /delivery/cal_fee/{address_id}:
+    get:
+      consumes:
+      - application/json
+      description: calculate and return fee base on addressId of customer
+      parameters:
+      - description: addressID
+        in: path
+        name: address_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-int'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: calculate fee
+      tags:
+      - Delivery
   /districts/{provinceId}:
     get:
       consumes:

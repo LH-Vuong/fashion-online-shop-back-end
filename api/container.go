@@ -36,6 +36,8 @@ func init() {
 	container.Provide(provideAzurePhotoStorage)
 	container.Provide(provideChatRepositoryImpl)
 	container.Provide(provideChatService)
+	container.Provide(provideGHNService)
+	container.Provide(provideDeliveryService)
 }
 
 func BuildContainer() *dig.Container {
@@ -139,8 +141,9 @@ func provideOrderService(orderRepo repository.OrderRepository,
 	cartService service.CartService,
 	couponService service.CouponService,
 	processor zalopay.Processor,
+	deliveryService service.DeliveryService,
 ) service.OrderService {
-	return service.NewOrderServiceImpl(couponService, cartService, orderRepo, processor)
+	return service.NewOrderServiceImpl(couponService, cartService, orderRepo, processor, deliveryService)
 }
 
 func provideCouponServiceImpl(couponRepo repository.CouponRepository) service.CouponService {
@@ -179,8 +182,12 @@ func provideGHNService() *external_services.GHNService {
 	return &external_services.GHNService{
 		Token:          config.GHNToken,
 		ShopId:         config.GHNShopId,
-		ShopDistrictId: "",
-		ShopWardId:     "",
-		ServiceTypeId:  "",
+		ShopDistrictId: config.ShopDistrict,
+		ShopWardId:     config.ShopWard,
+		ServiceTypeId:  1,
 	}
+}
+
+func provideDeliveryService(ghnService *external_services.GHNService, userRepo userrepo.UserRepository) service.DeliveryService {
+	return service.NewDeliveryServiceImpl(ghnService, userRepo)
 }
