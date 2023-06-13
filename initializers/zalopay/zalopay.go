@@ -110,6 +110,7 @@ func (processor *ZaloPaymentProcessor) InitPayment(info *order.OrderInfo) error 
 
 	switch result.ReturnCode {
 	case 1:
+		info.PaymentInfo.OrderUrl = &result.OrderUrl
 		info.PaymentInfo.Status = payment.StatusPending
 		info.PaymentInfo.PaymentId = fmt.Sprintf("%02d%02d%02d_%v", now.Year()%100, int(now.Month()), now.Day(), transID)
 	default:

@@ -2383,7 +2383,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "coupon_code": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "coupon_discount": {
                     "type": "integer"
@@ -2564,8 +2567,11 @@ const docTemplate = `{
                 "address_id": {
                     "type": "string"
                 },
-                "coupon_code": {
-                    "type": "string"
+                "coupon_codes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "payment_method": {
                     "$ref": "#/definitions/payment.Method"

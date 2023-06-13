@@ -6,7 +6,7 @@ import (
 
 type CreateOrderRequest struct {
 	CustomerId    string         `json:"-"`
-	CouponCode    *string        `json:"coupon_code"`
+	CouponCodes   []string       `json:"coupon_codes"`
 	PaymentMethod payment.Method `json:"payment_method"`
 	AddressId     string         `json:"address_id"`
 }

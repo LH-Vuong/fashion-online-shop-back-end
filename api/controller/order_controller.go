@@ -38,7 +38,7 @@ func (controller *OrderController) Create(ctx *gin.Context) {
 	}
 	currentUser := ctx.MustGet("currentUser").(model.User)
 	createRequest.CustomerId = currentUser.Id
-	info, err := controller.Service.Create(createRequest.CustomerId, createRequest.PaymentMethod, createRequest.AddressId, createRequest.CouponCode)
+	info, err := controller.Service.Create(createRequest.CustomerId, createRequest.PaymentMethod, createRequest.AddressId, createRequest.CouponCodes)
 	if err != nil {
 		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
 		return

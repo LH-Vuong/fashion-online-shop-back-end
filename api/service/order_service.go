@@ -18,7 +18,7 @@ type OrderService interface {
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
-	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error)
+	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode []string) (*order.OrderInfo, error)
 
 	// ListByCustomerID Get list of orders (order history of customer)
 	ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int64, error)
@@ -78,7 +78,10 @@ func (svc *OrderServiceImpl) UpdateWithCallbackData(paymentId string, data map[s
 	return nil
 }
 
-func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressId string, couponCode *string) (*order.OrderInfo, error) {
+func (svc *OrderServiceImpl) Create(customerID string,
+	paymentMethod payment.Method,
+	addressId string,
+	couponCode []string) (*order.OrderInfo, error) {
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
@@ -99,13 +102,13 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 	}
 
 	// Check the coupon code, if provided.
-	coupon, err := svc.getCoupon(couponCode)
+	coupons, err := svc.ListAndValidMultiCoupon(couponCode)
 	if err != nil {
 		return nil, err
 	}
 
 	// Prepare the order information.
-	total, err := svc.calculateTotal(cartItems, coupon, addressId)
+	total, err := svc.calculateTotal(cartItems, coupons, addressId)
 	if err != nil {
 		return nil, err
 	}
@@ -148,25 +151,11 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 
 }
 
-func (svc *OrderServiceImpl) getCoupon(couponCode *string) (*coupon.CouponInfo, error) {
-
-	if couponCode == nil {
-		return nil, nil
-	}
-
-	valid, err := svc.CouponService.Check(*couponCode)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if !valid {
-		return nil, fmt.Errorf("invalid coupon code %s", couponCode)
-	}
-	return svc.CouponService.Get(*couponCode)
+func (svc OrderServiceImpl) ListAndValidMultiCoupon(codes []string) ([]*coupon.CouponInfo, error) {
+	return svc.CouponService.List(codes)
 }
 
-func (svc *OrderServiceImpl) calculateTotal(items []*cart.CartItem, coupon *coupon.CouponInfo, addressId string) (int64, error) {
+func (svc *OrderServiceImpl) calculateTotal(items []*cart.CartItem, coupon []*coupon.CouponInfo, addressId string) (int64, error) {
 	var total int64
 
 	for _, item := range items {
@@ -178,18 +167,11 @@ func (svc *OrderServiceImpl) calculateTotal(items []*cart.CartItem, coupon *coup
 		return -1, err
 	}
 	total += int64(deliveryFee)
-	//if coupon != nil {
-	//	if coupon.DiscountAmount > 0 {
-	//		total -= coupon.DiscountAmount
-	//	} else if coupon.DiscountPercent > 0 {
-	//		total *= int64(1.0 - coupon.DiscountPercent)
-	//	}
-	//}
-	if coupon != nil {
-		if coupon.DiscountPercent > 0 {
-			total *= int64(1.0 - coupon.DiscountPercent)
-		}
+	var discountPercent float64
+	for index := range coupon {
+		discountPercent += coupon[index].DiscountPercent
 	}
+	total = int64(float64(total) * discountPercent)
 
 	if total < 0 {
 		return 0, fmt.Errorf("invalid total price")

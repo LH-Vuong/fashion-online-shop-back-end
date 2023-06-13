@@ -196,7 +196,9 @@ definitions:
       address:
         type: string
       coupon_code:
-        type: string
+        items:
+          type: string
+        type: array
       coupon_discount:
         type: integer
       customer_id:
@@ -318,8 +320,10 @@ definitions:
     properties:
       address_id:
         type: string
-      coupon_code:
-        type: string
+      coupon_codes:
+        items:
+          type: string
+        type: array
       payment_method:
         $ref: '#/definitions/payment.Method'
     type: object
