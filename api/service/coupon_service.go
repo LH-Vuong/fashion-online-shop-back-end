@@ -10,7 +10,6 @@ import (
 type CouponService interface {
 	Get(code string) (*coupon.CouponInfo, error)
 	List(codes []string) ([]*coupon.CouponInfo, error)
-	Check(code string) (bool, error)
 	Delete(code string) error
 	Update(info *coupon.CouponInfo) error
 	Create(info *coupon.CouponInfo) error
@@ -69,22 +68,8 @@ func (c CouponServiceImpl) Get(couponCode string) (*coupon.CouponInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Your '%s'code is invalid ", couponCode)
 	}
-
-	if couponInfo.EndAt < time.Now().UnixMilli() {
-		expiredAt := time.UnixMilli(couponInfo.EndAt).Format("02/01/2006 15:04:05")
-		return nil, fmt.Errorf("Your '%s' coupon  was expired at %s", couponCode, expiredAt)
+	if err := isExpiredCoupon(couponInfo); err != nil {
+		return nil, err
 	}
-
-	return c.couponRepo.Get(couponCode)
-}
-
-func (svc CouponServiceImpl) Check(couponCode string) (bool, error) {
-	coupon, err := svc.couponRepo.Get(couponCode)
-	if err != nil {
-		return false, err
-	}
-	if coupon.EndAt > time.Now().UnixMilli() && coupon.StartAt < time.Now().UnixMilli() {
-		return true, nil
-	}
-	return true, nil
+	return couponInfo, nil
 }

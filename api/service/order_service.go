@@ -14,7 +14,7 @@ import (
 )
 
 type OrderService interface {
-	IsAbleCreateOrder(customerId string, paymentMethod payment.Method, addressInfo string) ([]string, error)
+	IsAbleCreateOrder(customerId string, couponCode string) ([]string, error)
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
@@ -34,7 +34,7 @@ type OrderServiceImpl struct {
 	DeliveryService DeliveryService
 }
 
-func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod payment.Method, deliveryAddress string) ([]string, error) {
+func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, couponCode string) ([]string, error) {
 	removedCartItemIds, err := svc.CartService.CheckOutAndDelete(customerId)
 	if err != nil {
 		return nil, fmt.Errorf("error(%s) is encoutered while try to valid cart item of customer(%s)", err.Error(), customerId)
@@ -42,6 +42,13 @@ func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod 
 	if len(removedCartItemIds) > 0 {
 		return removedCartItemIds, fmt.Errorf("the customer(%s)'s cart is invalid and has been updated. Please try placing your order again.", customerId)
 	}
+
+	if couponCode != "" {
+		if _, err := svc.CouponService.Get(couponCode); err != nil {
+			return []string{couponCode}, err
+		}
+	}
+
 	return nil, nil
 }
 

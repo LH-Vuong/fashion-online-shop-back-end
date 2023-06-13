@@ -1100,6 +1100,11 @@ paths:
       description: Create order by customer's. Will delete all items of customer's
         cart
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: access token received after login
         in: body
         name: OrderRequest
@@ -1124,22 +1129,25 @@ paths:
       summary: Creat order
       tags:
       - order
-  /order/checkout:
-    post:
+  /order/checkout/:coupon_code:
+    get:
       consumes:
       - application/json
       description: Validates order info if any invalid info, such as sold-out cart
-        items, invalid coupon, address or payment method.Use this method before placing
-        an order to ensure that the order is valid.If the order status is "failed,"
-        the reason for the failure will be displayed in the "message" field, and any
-        issues will be indicated in the "data" field.
+        items, invalid coupon. Use this method before placing an order to ensure that
+        the order is valid.If the order status is "failed," the reason for the failure
+        will be displayed in the "message" field, and any issues will be indicated
+        in the "data" field.
       parameters:
-      - description: order's info
-        in: body
-        name: order_info
+      - description: Access Token
+        in: header
+        name: Authorization
         required: true
-        schema:
-          $ref: '#/definitions/request.CreateOrderRequest'
+        type: string
+      - description: code want to apply for order
+        in: path
+        name: coupon_code
+        type: string
       produces:
       - application/json
       responses:
@@ -1164,6 +1172,11 @@ paths:
       - application/json
       description: List order by customer id
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: index of first item, default is 0
         in: query
         name: off_set

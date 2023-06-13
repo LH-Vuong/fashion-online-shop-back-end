@@ -965,6 +965,13 @@ const docTemplate = `{
                 "summary": "Creat order",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "access token received after login",
                         "name": "OrderRequest",
                         "in": "body",
@@ -996,9 +1003,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/order/checkout": {
-            "post": {
-                "description": "Validates order info if any invalid info, such as sold-out cart items, invalid coupon, address or payment method.Use this method before placing an order to ensure that the order is valid.If the order status is \"failed,\" the reason for the failure will be displayed in the \"message\" field, and any issues will be indicated in the \"data\" field.",
+        "/order/checkout/:coupon_code": {
+            "get": {
+                "description": "Validates order info if any invalid info, such as sold-out cart items, invalid coupon. Use this method before placing an order to ensure that the order is valid.If the order status is \"failed,\" the reason for the failure will be displayed in the \"message\" field, and any issues will be indicated in the \"data\" field.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1011,13 +1018,17 @@ const docTemplate = `{
                 "summary": "checkout order request is valid",
                 "parameters": [
                     {
-                        "description": "order's info",
-                        "name": "order_info",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateOrderRequest"
-                        }
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "code want to apply for order",
+                        "name": "coupon_code",
+                        "in": "path"
                     }
                 ],
                 "responses": {
@@ -1056,6 +1067,13 @@ const docTemplate = `{
                 ],
                 "summary": "list of customer's order",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "index of first item, default is 0",
