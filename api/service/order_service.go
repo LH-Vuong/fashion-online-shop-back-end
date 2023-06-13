@@ -27,10 +27,11 @@ type OrderService interface {
 }
 
 type OrderServiceImpl struct {
-	CouponService CouponService
-	CartService   CartService
-	OrderRepo     repository.OrderRepository
-	Processor     zalopay.Processor
+	CouponService   CouponService
+	CartService     CartService
+	OrderRepo       repository.OrderRepository
+	Processor       zalopay.Processor
+	DeliveryService DeliveryService
 }
 
 func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod payment.Method, deliveryAddress string) ([]string, error) {
@@ -47,14 +48,15 @@ func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod 
 func NewOrderServiceImpl(couponService CouponService,
 	cartService CartService,
 	orderRepo repository.OrderRepository,
-	processor zalopay.Processor) OrderService {
+	processor zalopay.Processor, deliveryService DeliveryService) OrderService {
 
 	worker.AddTask(15*60, UpdateOrderTask, orderRepo, processor)
 	return &OrderServiceImpl{
-		CouponService: couponService,
-		CartService:   cartService,
-		OrderRepo:     orderRepo,
-		Processor:     processor,
+		CouponService:   couponService,
+		CartService:     cartService,
+		OrderRepo:       orderRepo,
+		Processor:       processor,
+		DeliveryService: deliveryService,
 	}
 }
 
@@ -76,7 +78,7 @@ func (svc *OrderServiceImpl) UpdateWithCallbackData(paymentId string, data map[s
 	return nil
 }
 
-func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error) {
+func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressId string, couponCode *string) (*order.OrderInfo, error) {
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
@@ -103,7 +105,7 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 	}
 
 	// Prepare the order information.
-	total, err := calculateTotal(cartItems, coupon)
+	total, err := svc.calculateTotal(cartItems, coupon, addressId)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +119,7 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 
 	orderInfo := order.OrderInfo{
 		CustomerId:  customerID,
-		Address:     addressInfo,
+		Address:     addressId,
 		CouponCode:  couponCode,
 		TotalPrice:  total,
 		Items:       cartItems,
@@ -164,13 +166,18 @@ func (svc *OrderServiceImpl) getCoupon(couponCode *string) (*coupon.CouponInfo, 
 	return svc.CouponService.Get(*couponCode)
 }
 
-func calculateTotal(items []*cart.CartItem, coupon *coupon.CouponInfo) (int64, error) {
+func (svc *OrderServiceImpl) calculateTotal(items []*cart.CartItem, coupon *coupon.CouponInfo, addressId string) (int64, error) {
 	var total int64
 
 	for _, item := range items {
 		total += int64(item.Quantity) * item.ProductDetail.Price
 	}
 
+	deliveryFee, err := svc.DeliveryService.CalculateFeeByCustomerAddress(addressId)
+	if err != nil {
+		return -1, err
+	}
+	total += int64(deliveryFee)
 	//if coupon != nil {
 	//	if coupon.DiscountAmount > 0 {
 	//		total -= coupon.DiscountAmount
