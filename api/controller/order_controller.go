@@ -25,6 +25,7 @@ type OrderController struct {
 //	@Tags			order
 //	@Accept			json
 //	@Produce		json
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Param          OrderRequest		body       request.CreateOrderRequest	  true 	"access token received after login"
 //	@Success		200				{object}	order.OrderInfo
 //	@Failure		400				{object}	string
@@ -51,6 +52,7 @@ func (controller *OrderController) Create(ctx *gin.Context) {
 //	@Summary		list of customer's order
 //	@Description	List order by customer id
 //	@Tags			order
+//	@Param		Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param          off_set	query       int		  false 	"index of first item, default is 0"
@@ -87,20 +89,20 @@ func (controller *OrderController) List(ctx *gin.Context) {
 // Checkout  is able to create order
 //
 //	@Summary		checkout order request is valid
-//	@Description	Validates order info if any invalid info, such as sold-out cart items, invalid coupon, address or payment method.Use this method before placing an order to ensure that the order is valid.If the order status is "failed," the reason for the failure will be displayed in the "message" field, and any issues will be indicated in the "data" field.
+//	@Description	Validates order info if any invalid info, such as sold-out cart items, invalid coupon. Use this method before placing an order to ensure that the order is valid.If the order status is "failed," the reason for the failure will be displayed in the "message" field, and any issues will be indicated in the "data" field.
 //	@Tags			order
-//	@Param          order_info	body       request.CreateOrderRequest		  true		"order's info"
+//	@Param			Authorization	header		string	true	"Access Token"
+//	@Param          coupon_code	path       string		  false		"code want to apply for order"
 //	@Accept			json
 //	@Produce		json
 //	@Success		200				{object}	 response.BaseResponse[[]string]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
-//	@Router			/order/checkout [post]
+//	@Router			/order/checkout/:coupon_code [get]
 func (controller *OrderController) Checkout(ctx *gin.Context) {
-	var createRequest request.CreateOrderRequest
-	ctx.BindJSON(&createRequest)
+	couponCode := ctx.Param("coupon_code")
 	currentUser := ctx.MustGet("currentUser").(model.User)
-	invalidData, err := controller.Service.IsAbleCreateOrder(currentUser.Id, createRequest.PaymentMethod, createRequest.AddressId)
+	invalidData, err := controller.Service.IsAbleCreateOrder(currentUser.Id, couponCode)
 	if err != nil {
 		ctx.JSON(200, response.BaseResponse[[]string]{
 			Status:  "failed",

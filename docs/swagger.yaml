@@ -568,6 +568,12 @@ paths:
       - application/json
       description: Deletes all items from the customer's cart by using their access
         token
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -591,6 +597,12 @@ paths:
       - application/json
       description: Retrieve a list of cart items for the current Customer by using
         their access token.
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -615,6 +627,11 @@ paths:
       description: Delete all the previous cart items of the customer by using their
         access token then add the items received in the request body to their cart.
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Array of cart items to be added to the customer's cart
         in: body
         name: CartRequest
@@ -649,6 +666,11 @@ paths:
         the added items ,by using their access token.If an item already exists in
         the cart,its quantity will be updated.
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Array of cart items to be added to the cart
         in: body
         name: CartRequest
@@ -682,6 +704,11 @@ paths:
       description: Deletes a cart item specified by the product ID and the customer
         authentication code.
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: cart id
         in: path
         name: cart_id
@@ -1100,6 +1127,11 @@ paths:
       description: Create order by customer's. Will delete all items of customer's
         cart
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: access token received after login
         in: body
         name: OrderRequest
@@ -1124,22 +1156,25 @@ paths:
       summary: Creat order
       tags:
       - order
-  /order/checkout:
-    post:
+  /order/checkout/:coupon_code:
+    get:
       consumes:
       - application/json
       description: Validates order info if any invalid info, such as sold-out cart
-        items, invalid coupon, address or payment method.Use this method before placing
-        an order to ensure that the order is valid.If the order status is "failed,"
-        the reason for the failure will be displayed in the "message" field, and any
-        issues will be indicated in the "data" field.
+        items, invalid coupon. Use this method before placing an order to ensure that
+        the order is valid.If the order status is "failed," the reason for the failure
+        will be displayed in the "message" field, and any issues will be indicated
+        in the "data" field.
       parameters:
-      - description: order's info
-        in: body
-        name: order_info
+      - description: Access Token
+        in: header
+        name: Authorization
         required: true
-        schema:
-          $ref: '#/definitions/request.CreateOrderRequest'
+        type: string
+      - description: code want to apply for order
+        in: path
+        name: coupon_code
+        type: string
       produces:
       - application/json
       responses:
@@ -1164,6 +1199,11 @@ paths:
       - application/json
       description: List order by customer id
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: index of first item, default is 0
         in: query
         name: off_set
