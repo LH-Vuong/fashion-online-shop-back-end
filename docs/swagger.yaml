@@ -568,6 +568,12 @@ paths:
       - application/json
       description: Deletes all items from the customer's cart by using their access
         token
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -591,6 +597,12 @@ paths:
       - application/json
       description: Retrieve a list of cart items for the current Customer by using
         their access token.
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -615,6 +627,11 @@ paths:
       description: Delete all the previous cart items of the customer by using their
         access token then add the items received in the request body to their cart.
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Array of cart items to be added to the customer's cart
         in: body
         name: CartRequest
@@ -649,6 +666,11 @@ paths:
         the added items ,by using their access token.If an item already exists in
         the cart,its quantity will be updated.
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Array of cart items to be added to the cart
         in: body
         name: CartRequest
@@ -682,6 +704,11 @@ paths:
       description: Deletes a cart item specified by the product ID and the customer
         authentication code.
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: cart id
         in: path
         name: cart_id

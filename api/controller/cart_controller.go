@@ -44,6 +44,7 @@ func ToCartResponse(cartItems []*cart.CartItem) []*response.CartItem {
 //	@Summary		Update the cart of the current customer with the items received in the request body(replay)
 //	@Description	Delete all the previous cart items of the customer by using their access token then add the items received in the request body to their cart.
 //	@Tags			Cart
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param          CartRequest   body       []request.CartItemUpdater    true    "Array of cart items to be added to the customer's cart"
@@ -71,6 +72,7 @@ func (controller CartController) Update(c *gin.Context) {
 //	@Summary		Get the cart items of the current user
 //	@Description	Retrieve a list of cart items for the current Customer by using their access token.
 //	@Tags			Cart
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Success		200				{object}	response.BaseResponse[[]response.CartItem]
@@ -99,6 +101,7 @@ func (controller CartController) Get(c *gin.Context) {
 //	@Summary		Add multiple items to the cart
 //	@Description	Adds multiple items to the cart and returns the information of the added items ,by using their access token.If an item already exists in the cart,its quantity will be updated.
 //	@Tags			Cart
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param          CartRequest   body      []request.CartItemUpdater   true    "Array of cart items to be added to the cart"
@@ -134,6 +137,7 @@ func (controller CartController) AddMany(c *gin.Context) {
 //	@Summary		Delete a single item from the cart
 //	@Description	Deletes a cart item specified by the product ID and the customer authentication code.
 //	@Tags			Cart
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Param          cart_id  path       string    true    "cart id"
@@ -161,6 +165,7 @@ func (controller CartController) Delete(c *gin.Context) {
 //	@Summary		Delete all items from the cart
 //	@Description	Deletes all items from the customer's cart by using their access token
 //	@Tags			Cart
+//	@Param			Authorization	header		string	true	"Access Token"
 //	@Accept			json
 //	@Produce		json
 //	@Success		200				{object}	response.BaseResponse[[]string] "Array of items' id was deleted"

@@ -173,6 +173,15 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Get the cart items of the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -207,6 +216,13 @@ const docTemplate = `{
                 ],
                 "summary": "Add multiple items to the cart",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Array of cart items to be added to the cart",
                         "name": "CartRequest",
@@ -255,6 +271,13 @@ const docTemplate = `{
                 "summary": "Update the cart of the current customer with the items received in the request body(replay)",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Array of cart items to be added to the customer's cart",
                         "name": "CartRequest",
                         "in": "body",
@@ -300,6 +323,15 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Delete all items from the cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Array of items' id was deleted",
@@ -336,6 +368,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete a single item from the cart",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "cart id",
