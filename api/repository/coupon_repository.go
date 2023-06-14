@@ -9,6 +9,7 @@ import (
 
 type CouponRepository interface {
 	Get(couponCode string) (*coupon.CouponInfo, error)
+	List(codes []string) ([]*coupon.CouponInfo, error)
 	Delete(couponCode string) error
 	Update(create *coupon.CouponInfo) error
 	Create(create *coupon.CouponInfo) error
@@ -16,6 +17,20 @@ type CouponRepository interface {
 
 type CouponRepositoryImpl struct {
 	CouponCollection initializers.Collection
+}
+
+func (repo *CouponRepositoryImpl) List(codes []string) (coupons []*coupon.CouponInfo, err error) {
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	rs, err := repo.CouponCollection.Find(ctx, bson.M{"code": bson.M{"$in": codes}})
+	if err != nil {
+		return nil, err
+	}
+	err = rs.All(ctx, &coupons)
+	if err != nil {
+		return nil, err
+	}
+	return
 }
 
 func (repo *CouponRepositoryImpl) Delete(couponCode string) error {

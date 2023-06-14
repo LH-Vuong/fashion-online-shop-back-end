@@ -49,7 +49,6 @@ func (repo *OrderRepositoryImpl) Create(info order.OrderInfo) (*order.OrderInfo,
 	if info.PaymentInfo == nil {
 		return nil, fmt.Errorf("no zalopay info provided")
 	}
-	// You can add additional validations and checks here as needed.
 
 	// Insert the order into the database.
 	_, err := repo.collection.InsertOne(ctx, info)

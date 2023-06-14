@@ -13,6 +13,7 @@ func InitPhotoRouter(s *gin.Engine, c *dig.Container) {
 		s.DELETE("api/product_photo", controller.DeleteOne)
 		s.DELETE("api/product_photos/:product_id", controller.DeleteAll)
 		s.POST("api/product_photos/upload/:product_id", controller.Upload)
+		s.POST("api/upload", controller.UploadOne)
 	})
 
 	if err != nil {

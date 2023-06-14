@@ -173,6 +173,15 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Get the cart items of the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -207,6 +216,13 @@ const docTemplate = `{
                 ],
                 "summary": "Add multiple items to the cart",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Array of cart items to be added to the cart",
                         "name": "CartRequest",
@@ -255,6 +271,13 @@ const docTemplate = `{
                 "summary": "Update the cart of the current customer with the items received in the request body(replay)",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Array of cart items to be added to the customer's cart",
                         "name": "CartRequest",
                         "in": "body",
@@ -300,6 +323,15 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Delete all items from the cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Array of items' id was deleted",
@@ -336,6 +368,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete a single item from the cart",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "cart id",
@@ -529,6 +568,50 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "code is invalid or expired",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/delivery/cal_fee/{address_id}": {
+            "get": {
+                "description": "calculate and return fee base on addressId of customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Delivery"
+                ],
+                "summary": "calculate fee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "addressID",
+                        "name": "address_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-int"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "string"
                         }
@@ -965,6 +1048,13 @@ const docTemplate = `{
                 "summary": "Creat order",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "access token received after login",
                         "name": "OrderRequest",
                         "in": "body",
@@ -996,9 +1086,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/order/checkout": {
-            "post": {
-                "description": "Validates order info if any invalid info, such as sold-out cart items, invalid coupon, address or payment method.Use this method before placing an order to ensure that the order is valid.If the order status is \"failed,\" the reason for the failure will be displayed in the \"message\" field, and any issues will be indicated in the \"data\" field.",
+        "/order/checkout/:coupon_code": {
+            "get": {
+                "description": "Validates order info if any invalid info, such as sold-out cart items, invalid coupon. Use this method before placing an order to ensure that the order is valid.If the order status is \"failed,\" the reason for the failure will be displayed in the \"message\" field, and any issues will be indicated in the \"data\" field.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1011,13 +1101,17 @@ const docTemplate = `{
                 "summary": "checkout order request is valid",
                 "parameters": [
                     {
-                        "description": "order's info",
-                        "name": "order_info",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateOrderRequest"
-                        }
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "code want to apply for order",
+                        "name": "coupon_code",
+                        "in": "path"
                     }
                 ],
                 "responses": {
@@ -1056,6 +1150,13 @@ const docTemplate = `{
                 ],
                 "summary": "list of customer's order",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "index of first item, default is 0",
@@ -1610,6 +1711,50 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/upload": {
+            "post": {
+                "description": "Upload a file then return an url path of file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "File"
+                ],
+                "summary": "Upload a file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "The file to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-string"
                         }
                     },
                     "400": {
@@ -2383,7 +2528,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "coupon_code": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "coupon_discount": {
                     "type": "integer"
@@ -2564,8 +2712,11 @@ const docTemplate = `{
                 "address_id": {
                     "type": "string"
                 },
-                "coupon_code": {
-                    "type": "string"
+                "coupon_codes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "payment_method": {
                     "$ref": "#/definitions/payment.Method"
@@ -2640,6 +2791,20 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/coupon.CouponInfo"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-int": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "integer"
                 },
                 "message": {
                     "type": "string"

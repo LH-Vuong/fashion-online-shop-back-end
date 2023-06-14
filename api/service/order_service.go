@@ -14,11 +14,11 @@ import (
 )
 
 type OrderService interface {
-	IsAbleCreateOrder(customerId string, paymentMethod payment.Method, addressInfo string) ([]string, error)
+	IsAbleCreateOrder(customerId string, couponCode string) ([]string, error)
 	// Create order with cart items of customer
 	// If order is invalid, it will throw an error (invalid coupon,Invalid Cart_Item)
 	// After creating order, the user's cart will be emptied
-	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error)
+	Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode []string) (*order.OrderInfo, error)
 
 	// ListByCustomerID Get list of orders (order history of customer)
 	ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int64, error)
@@ -27,13 +27,14 @@ type OrderService interface {
 }
 
 type OrderServiceImpl struct {
-	CouponService CouponService
-	CartService   CartService
-	OrderRepo     repository.OrderRepository
-	Processor     zalopay.Processor
+	CouponService   CouponService
+	CartService     CartService
+	OrderRepo       repository.OrderRepository
+	Processor       zalopay.Processor
+	DeliveryService DeliveryService
 }
 
-func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod payment.Method, deliveryAddress string) ([]string, error) {
+func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, couponCode string) ([]string, error) {
 	removedCartItemIds, err := svc.CartService.CheckOutAndDelete(customerId)
 	if err != nil {
 		return nil, fmt.Errorf("error(%s) is encoutered while try to valid cart item of customer(%s)", err.Error(), customerId)
@@ -41,20 +42,28 @@ func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, paymentMethod 
 	if len(removedCartItemIds) > 0 {
 		return removedCartItemIds, fmt.Errorf("the customer(%s)'s cart is invalid and has been updated. Please try placing your order again.", customerId)
 	}
+
+	if couponCode != "" {
+		if _, err := svc.CouponService.Get(couponCode); err != nil {
+			return []string{couponCode}, err
+		}
+	}
+
 	return nil, nil
 }
 
 func NewOrderServiceImpl(couponService CouponService,
 	cartService CartService,
 	orderRepo repository.OrderRepository,
-	processor zalopay.Processor) OrderService {
+	processor zalopay.Processor, deliveryService DeliveryService) OrderService {
 
 	worker.AddTask(15*60, UpdateOrderTask, orderRepo, processor)
 	return &OrderServiceImpl{
-		CouponService: couponService,
-		CartService:   cartService,
-		OrderRepo:     orderRepo,
-		Processor:     processor,
+		CouponService:   couponService,
+		CartService:     cartService,
+		OrderRepo:       orderRepo,
+		Processor:       processor,
+		DeliveryService: deliveryService,
 	}
 }
 
@@ -76,7 +85,10 @@ func (svc *OrderServiceImpl) UpdateWithCallbackData(paymentId string, data map[s
 	return nil
 }
 
-func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Method, addressInfo string, couponCode *string) (*order.OrderInfo, error) {
+func (svc *OrderServiceImpl) Create(customerID string,
+	paymentMethod payment.Method,
+	addressId string,
+	couponCode []string) (*order.OrderInfo, error) {
 	// Check cart has any invalid Item
 	invalidItems, err := svc.CartService.ListInvalidCartItem(customerID)
 	if err != nil {
@@ -97,13 +109,13 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 	}
 
 	// Check the coupon code, if provided.
-	coupon, err := svc.getCoupon(couponCode)
+	coupons, err := svc.ListAndValidMultiCoupon(couponCode)
 	if err != nil {
 		return nil, err
 	}
 
 	// Prepare the order information.
-	total, err := calculateTotal(cartItems, coupon)
+	total, err := svc.calculateTotal(cartItems, coupons, addressId)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +129,7 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 
 	orderInfo := order.OrderInfo{
 		CustomerId:  customerID,
-		Address:     addressInfo,
+		Address:     addressId,
 		CouponCode:  couponCode,
 		TotalPrice:  total,
 		Items:       cartItems,
@@ -146,43 +158,27 @@ func (svc *OrderServiceImpl) Create(customerID string, paymentMethod payment.Met
 
 }
 
-func (svc *OrderServiceImpl) getCoupon(couponCode *string) (*coupon.CouponInfo, error) {
-
-	if couponCode == nil {
-		return nil, nil
-	}
-
-	valid, err := svc.CouponService.Check(*couponCode)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if !valid {
-		return nil, fmt.Errorf("invalid coupon code %s", couponCode)
-	}
-	return svc.CouponService.Get(*couponCode)
+func (svc OrderServiceImpl) ListAndValidMultiCoupon(codes []string) ([]*coupon.CouponInfo, error) {
+	return svc.CouponService.List(codes)
 }
 
-func calculateTotal(items []*cart.CartItem, coupon *coupon.CouponInfo) (int64, error) {
+func (svc *OrderServiceImpl) calculateTotal(items []*cart.CartItem, coupon []*coupon.CouponInfo, addressId string) (int64, error) {
 	var total int64
 
 	for _, item := range items {
 		total += int64(item.Quantity) * item.ProductDetail.Price
 	}
 
-	//if coupon != nil {
-	//	if coupon.DiscountAmount > 0 {
-	//		total -= coupon.DiscountAmount
-	//	} else if coupon.DiscountPercent > 0 {
-	//		total *= int64(1.0 - coupon.DiscountPercent)
-	//	}
-	//}
-	if coupon != nil {
-		if coupon.DiscountPercent > 0 {
-			total *= int64(1.0 - coupon.DiscountPercent)
-		}
+	deliveryFee, err := svc.DeliveryService.CalculateFeeByCustomerAddress(addressId)
+	if err != nil {
+		return -1, err
 	}
+	total += int64(deliveryFee)
+	var discountPercent float64
+	for index := range coupon {
+		discountPercent += coupon[index].DiscountPercent
+	}
+	total = int64(float64(total) * discountPercent)
 
 	if total < 0 {
 		return 0, fmt.Errorf("invalid total price")
