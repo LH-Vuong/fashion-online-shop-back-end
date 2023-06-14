@@ -169,3 +169,29 @@ func (c *ChatController) SendUserMessage(ctx *gin.Context) {
 		"message": "Send message successfully!",
 	})
 }
+
+// Chat
+//
+//	@Summary		Get all dialog
+//	@Description    Get all dialog
+//	@Tags			chat
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"Bearer Token"
+//	@Success		200				{object}	string
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/dialogs [get]
+func (c *ChatController) GetAllDialogs(ctx *gin.Context) {
+	rs, err := c.Service.GetDialogs(ctx)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetAllDialogs")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   rs,
+	})
+}

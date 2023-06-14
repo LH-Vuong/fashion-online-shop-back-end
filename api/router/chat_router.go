@@ -19,6 +19,7 @@ func InitChatRouter(s *gin.Engine, c *dig.Container) {
 
 		s.GET("api/open/:token", middleware.DeserializeUser(), controller.HandleWS)
 		s.GET("api/message", middleware.DeserializeUser(), controller.GetUserMessage)
+		s.GET("api/dialogs", middleware.DeserializeUser(), controller.GetAllDialogs)
 		s.POST("api/send-message", middleware.DeserializeUser(), controller.SendMessage)
 		s.POST("api/send-user-message/:userId/:dialogId/:message", controller.SendUserMessage)
 	})

@@ -3,7 +3,6 @@ package container
 import (
 	"log"
 	"online_fashion_shop/api/repository"
-	userrepo "online_fashion_shop/api/repository/user"
 	"online_fashion_shop/api/service"
 	"online_fashion_shop/initializers"
 	"online_fashion_shop/initializers/storage"
@@ -109,7 +108,7 @@ func provideCardServiceImpl(cartRepo repository.CartRepository,
 	return service.NewCartServiceImpl(cartRepo, quantityRepo, productService)
 }
 
-func provideUserServiceImpl(userRepo userrepo.UserRepository) service.UserService {
+func provideUserServiceImpl(userRepo repository.UserRepository) service.UserService {
 	return service.NewUserServiceImpl(userRepo)
 }
 
@@ -146,9 +145,9 @@ func provideCouponServiceImpl(couponRepo repository.CouponRepository) service.Co
 	return service.NewCouponServiceImpl(couponRepo)
 }
 
-func provideChatService(chatRepotitory repository.ChatRepotitory,
+func provideChatService(chatRepotitory repository.ChatRepotitory, userRepository repository.UserRepository,
 ) service.ChatService {
-	return service.NewChatServiceImpl(chatRepotitory)
+	return service.NewChatServiceImpl(chatRepotitory, userRepository)
 }
 
 func provideZaloPayProcessor() zalopay.Processor {
@@ -161,10 +160,10 @@ func provideZaloPayProcessor() zalopay.Processor {
 
 }
 
-func provideUserRepositoryImpl(cl initializers.Client) userrepo.UserRepository {
+func provideUserRepositoryImpl(cl initializers.Client) repository.UserRepository {
 	userCollection := cl.Database("fashion_shop").Collection("user")
 	userVerifyCollection := cl.Database("fashion_shop").Collection("user_verify")
 	userWishlistCollection := cl.Database("fashion_shop").Collection("user_wishlist")
 	userAddressCollection := cl.Database("fashion_shop").Collection("user_address")
-	return userrepo.NewUserRepositoryImpl(userCollection, userVerifyCollection, userWishlistCollection, userAddressCollection)
+	return repository.NewUserRepositoryImpl(userCollection, userVerifyCollection, userWishlistCollection, userAddressCollection)
 }
