@@ -71,8 +71,8 @@ func (controller *OrderController) List(ctx *gin.Context) {
 	if err != nil || limit > request.PageMaximum {
 		limit = 10
 	}
-	customerId := ctx.Param("customer_id")
-	infos, total, err := controller.Service.ListByCustomerID(customerId, limit, offset)
+	currentUser := ctx.MustGet("currentUser").(model.User)
+	infos, total, err := controller.Service.ListByCustomerID(currentUser.Id, limit, offset)
 
 	if err != nil {
 		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
