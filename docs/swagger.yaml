@@ -930,6 +930,35 @@ paths:
       summary: calculate fee
       tags:
       - Delivery
+  /dialogs:
+    get:
+      consumes:
+      - application/json
+      description: Get all dialog
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Get all dialog
+      tags:
+      - chat
   /districts/{provinceId}:
     get:
       consumes:

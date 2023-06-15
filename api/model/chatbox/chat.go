@@ -43,3 +43,11 @@ type GetUserMessageResponse struct {
 	Messages []*Message `json:"messages"`
 	Total    int64      `json:"total"`
 }
+
+type GetDialogsResponse struct {
+	Id           string  `json:"id"`
+	UserId       string  `json:"user_id"`
+	UserFullname string  `json:"user_fullname"`
+	UserPhoto    string  `json:"user_photo"`
+	Message      Message `json:"message"`
+}

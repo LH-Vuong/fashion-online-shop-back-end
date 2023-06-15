@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"online_fashion_shop/api/common/errs"
 	model "online_fashion_shop/api/model/user"
-	repository "online_fashion_shop/api/repository/user"
+	"online_fashion_shop/api/repository"
 	"online_fashion_shop/api/utils"
 	"online_fashion_shop/initializers"
 	"strings"

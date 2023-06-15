@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	chat "online_fashion_shop/api/model/chatbox"
 	model "online_fashion_shop/api/model/chatbox"
 	"online_fashion_shop/initializers"
 
@@ -16,6 +17,8 @@ type ChatRepotitory interface {
 
 	GetDialogByUserId(context.Context, string) (*model.Dialog, error)
 	GetMessagesByDialogId(context.Context, int64, int64, string) ([]*model.Message, int64, error)
+	GetAllDialogs(context.Context) ([]*chat.Dialog, error)
+	GetDialogLatestMessage(context.Context, string) (*chat.Message, error)
 }
 
 type chatRepotitory struct {
@@ -101,4 +104,40 @@ func (r *chatRepotitory) GetDialogByUserId(ctx context.Context, userId string) (
 	err = rs.Decode(&result)
 
 	return result, nil
+}
+
+func (r *chatRepotitory) GetAllDialogs(ctx context.Context) ([]*chat.Dialog, error) {
+	ctx, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	var result []*chat.Dialog
+
+	rs, err := r.dialogCollection.Find(ctx, bson.M{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := rs.All(ctx, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (r *chatRepotitory) GetDialogLatestMessage(ctx context.Context, dialogId string) (*chat.Message, error) {
+	ctx, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	var result chat.Message
+
+	options := options.FindOne().SetSort(bson.D{{Key: "created_at", Value: -1}})
+
+	if err := r.chatCollection.FindOne(ctx, bson.M{"dialog_id": dialogId}, options).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }

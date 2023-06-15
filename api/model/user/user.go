@@ -48,6 +48,17 @@ type UserAddress struct {
 	UpdatedAt  time.Time `bson:"updated_at" json:"updated_at"`
 }
 
+type UserRole struct {
+	Id   string `bson:"_id,omitempty" json:"id"`
+	Role string `bson:"role" json:"role"`
+}
+
+type UserRoleMapping struct {
+	Id     string `bson:"_id,omitempty" json:"id"`
+	UserId string `bson:"user_id" json:"user_id"`
+	RoleId string `bson:"role_id" json:"role_id"`
+}
+
 type CreateUserAddressModel struct {
 	ProvinceId int    `json:"province_id" binding:"required"`
 	DistrictId int    `json:"district_id" binding:"required"`

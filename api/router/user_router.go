@@ -15,7 +15,6 @@ func InitUserRouter(s *gin.Engine, c *dig.Container) {
 		router := s.Group("api/users")
 		{
 			router.Use(middleware.DeserializeUser())
-			router.GET("/me", controller.GetMe)
 			router.GET("/address", controller.GetUserAddressList)
 			router.POST("/address", controller.CreateUserAddress)
 			router.PUT("/address", controller.UpdateUserAddress)
@@ -25,6 +24,7 @@ func InitUserRouter(s *gin.Engine, c *dig.Container) {
 			router.DELETE("/wishlist", controller.DeleteUserWishlist)
 		}
 
+		s.GET("api/users/me", middleware.DeserializeAdmin(), controller.GetMe)
 		router1 := s.Group("api")
 		{
 			router1.GET("/provinces", controller.GetProvinces)

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	repository "online_fashion_shop/api/repository/user"
+	"online_fashion_shop/api/repository"
 	"online_fashion_shop/external_services"
 )
 
