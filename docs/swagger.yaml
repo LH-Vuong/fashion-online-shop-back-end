@@ -211,9 +211,21 @@ definitions:
         type: array
       payment_info:
         $ref: '#/definitions/payment.PaymentDetail'
+      status:
+        $ref: '#/definitions/order.Status'
       total:
         type: integer
     type: object
+  order.Status:
+    enum:
+    - PENDING
+    - CANCEL
+    - SUCCESS
+    type: string
+    x-enum-varnames:
+    - PENDING
+    - CANCEL
+    - SUCCESS
   payment.Method:
     enum:
     - ZALO_PAY
@@ -474,6 +486,47 @@ info:
   title: Online Shop API
   version: "1.0"
 paths:
+  /admin/orders:
+    get:
+      consumes:
+      - application/json
+      description: admin list order
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: index of first item, default is 0
+        in: query
+        name: off_set
+        type: integer
+      - description: order status
+        in: query
+        name: status
+        type: string
+      - description: max length of response, default is 10
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PagingResponse-order_OrderInfo'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: list  order
+      tags:
+      - order
   /auth/sign-in:
     post:
       consumes:
@@ -1056,7 +1109,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: List product's quantity
+      description: CustomerList product's quantity
       parameters:
       - description: id of product detail
         in: path
@@ -1078,7 +1131,7 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: List by detail_id(product_id)
+      summary: CustomerList by detail_id(product_id)
       tags:
       - inventory
   /message:
@@ -1156,6 +1209,39 @@ paths:
       summary: Creat order
       tags:
       - order
+  /order/approve/:order_id:
+    get:
+      consumes:
+      - application/json
+      description: to approve by modifying order status
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: order id
+        in: path
+        name: order_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: to approve a customer order
+      tags:
+      - order
   /order/checkout/:coupon_code:
     get:
       consumes:
@@ -1193,11 +1279,44 @@ paths:
       summary: checkout order request is valid
       tags:
       - order
+  /order/reject/:order_id:
+    get:
+      consumes:
+      - application/json
+      description: to reject by modifying order status
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: order id
+        in: path
+        name: order_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_string'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: to reject a customer order
+      tags:
+      - order
   /orders/:
     get:
       consumes:
       - application/json
-      description: List order by customer id
+      description: CustomerList order by customer id
       parameters:
       - description: Access Token
         in: header
@@ -1486,7 +1605,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: List distinct brands of products
+      description: CustomerList distinct brands of products
       produces:
       - application/json
       responses:
@@ -1502,14 +1621,14 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: List distinct brands of products
+      summary: CustomerList distinct brands of products
       tags:
       - product
   /products/types:
     get:
       consumes:
       - application/json
-      description: List distinct types of products
+      description: CustomerList distinct types of products
       produces:
       - application/json
       responses:
@@ -1525,7 +1644,7 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: List distinct types of products
+      summary: CustomerList distinct types of products
       tags:
       - product
   /provinces:

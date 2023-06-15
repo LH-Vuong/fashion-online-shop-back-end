@@ -107,7 +107,7 @@ func (uc *UserController) DeleteUserAddress(ctx *gin.Context) {
 	uc.Service.DeleteUserAddress(ctx, deleteId)
 }
 
-// Get User's Address List
+// Get User's Address CustomerList
 //
 //	@Summary		Get user's address list
 //	@Description	Get user's address list
@@ -178,7 +178,7 @@ func (uc *UserController) DeleteUserWishlist(ctx *gin.Context) {
 	uc.Service.DeleteUserWishlistItems(ctx, payload)
 }
 
-// Get User's Address List
+// Get User's Address CustomerList
 //
 //	@Summary		Get user's address list
 //	@Description	Get user's address list

@@ -47,7 +47,7 @@ package flow_test
 //		cartService.Add(customerId, item2)
 //	})
 //
-//	t.Run("List", func(t *testing.T) {
+//	t.Run("CustomerList", func(t *testing.T) {
 //		_, _, err := orderRepo.ListByCustomerId(customerId, 10, 0)
 //		if err != nil {
 //			t.Errorf("false")

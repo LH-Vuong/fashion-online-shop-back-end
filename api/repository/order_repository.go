@@ -16,13 +16,56 @@ type OrderRepository interface {
 	GetOneByPaymentId(paymentId string) (*order.OrderInfo, error)
 	Update(info order.OrderInfo) error
 	ListPendingOrder() (orders []*order.OrderInfo, err error)
+	GetOneByOrderId(orderId string) (*order.OrderInfo, error)
+	ListBySearchOptions(searchOptions order.SearchOptions) (orders []*order.OrderInfo, total int64, err error)
 }
 
 type OrderRepositoryImpl struct {
 	collection initializers.Collection
 }
 
-func NewOrderRepositoryImpl(collection initializers.Collection) *OrderRepositoryImpl {
+func (repo *OrderRepositoryImpl) ListBySearchOptions(searchOptions order.SearchOptions) (orders []*order.OrderInfo, total int64, err error) {
+	var filters []primitive.M
+	if searchOptions.Status != "" {
+		tagFilter := bson.M{"status": searchOptions.Status}
+		filters = append(filters, tagFilter)
+	}
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	var queryFilter primitive.M
+	if len(filters) > 0 {
+		queryFilter = bson.M{"$and": filters}
+	} else {
+		queryFilter = bson.M{}
+	}
+
+	total, err = repo.collection.CountDocuments(ctx, queryFilter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	cursor, err := repo.collection.Find(ctx, queryFilter, options.Find().
+		SetLimit(int64(searchOptions.Limit)).
+		SetSkip(int64(searchOptions.Offset)))
+	cursor.All(ctx, &orders)
+	return
+}
+
+func (repo *OrderRepositoryImpl) GetOneByOrderId(orderId string) (*order.OrderInfo, error) {
+	objectId, _ := primitive.ObjectIDFromHex(orderId)
+	filter := bson.M{"_id": objectId}
+	ctx, cancel := initializers.InitContext()
+	defer cancel()
+	var orderInfo order.OrderInfo
+	rs := repo.collection.FindOne(ctx, filter)
+	err := rs.Decode(&orderInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &orderInfo, nil
+}
+
+func NewOrderRepositoryImpl(collection initializers.Collection) OrderRepository {
 	return &OrderRepositoryImpl{collection: collection}
 }
 
