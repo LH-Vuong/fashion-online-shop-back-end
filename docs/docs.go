@@ -25,6 +25,68 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/orders": {
+            "get": {
+                "description": "admin list order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "list  order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "index of first item, default is 0",
+                        "name": "off_set",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "order status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "max length of response, default is 10",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PagingResponse-order_OrderInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/sign-in": {
             "post": {
                 "description": "Login and set access token to header",
@@ -805,7 +867,7 @@ const docTemplate = `{
         },
         "/inventory/with_detail/{detail_id}": {
             "get": {
-                "description": "List product's quantity",
+                "description": "CustomerList product's quantity",
                 "consumes": [
                     "application/json"
                 ],
@@ -815,7 +877,7 @@ const docTemplate = `{
                 "tags": [
                     "inventory"
                 ],
-                "summary": "List by detail_id(product_id)",
+                "summary": "CustomerList by detail_id(product_id)",
                 "parameters": [
                     {
                         "type": "string",
@@ -1086,6 +1148,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/order/approve/:order_id": {
+            "get": {
+                "description": "to approve by modifying order status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "to approve a customer order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "order id",
+                        "name": "order_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/order/checkout/:coupon_code": {
             "get": {
                 "description": "Validates order info if any invalid info, such as sold-out cart items, invalid coupon. Use this method before placing an order to ensure that the order is valid.If the order status is \"failed,\" the reason for the failure will be displayed in the \"message\" field, and any issues will be indicated in the \"data\" field.",
@@ -1136,9 +1248,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/order/reject/:order_id": {
+            "get": {
+                "description": "to reject by modifying order status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "to reject a customer order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "order id",
+                        "name": "order_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/": {
             "get": {
-                "description": "List order by customer id",
+                "description": "CustomerList order by customer id",
                 "consumes": [
                     "application/json"
                 ],
@@ -1572,7 +1734,7 @@ const docTemplate = `{
         },
         "/products/brands": {
             "get": {
-                "description": "List distinct brands of products",
+                "description": "CustomerList distinct brands of products",
                 "consumes": [
                     "application/json"
                 ],
@@ -1582,7 +1744,7 @@ const docTemplate = `{
                 "tags": [
                     "product"
                 ],
-                "summary": "List distinct brands of products",
+                "summary": "CustomerList distinct brands of products",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1607,7 +1769,7 @@ const docTemplate = `{
         },
         "/products/types": {
             "get": {
-                "description": "List distinct types of products",
+                "description": "CustomerList distinct types of products",
                 "consumes": [
                     "application/json"
                 ],
@@ -1617,7 +1779,7 @@ const docTemplate = `{
                 "tags": [
                     "product"
                 ],
-                "summary": "List distinct types of products",
+                "summary": "CustomerList distinct types of products",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2551,10 +2713,26 @@ const docTemplate = `{
                 "payment_info": {
                     "$ref": "#/definitions/payment.PaymentDetail"
                 },
+                "status": {
+                    "$ref": "#/definitions/order.Status"
+                },
                 "total": {
                     "type": "integer"
                 }
             }
+        },
+        "order.Status": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "CANCEL",
+                "SUCCESS"
+            ],
+            "x-enum-varnames": [
+                "PENDING",
+                "CANCEL",
+                "SUCCESS"
+            ]
         },
         "payment.Method": {
             "type": "string",

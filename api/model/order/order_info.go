@@ -13,5 +13,6 @@ type OrderInfo struct {
 	CouponDiscount int64                  `bson:"coupon_discount,omitempty"json:"coupon_discount"`
 	PaymentInfo    *payment.PaymentDetail `json:"payment_info" bson:"payment_info,omitempty"`
 	TotalPrice     int64                  `bson:"total,omitempty" json:"total"`
-	Items          []*cart.CartItem       `json:"items"bson:"items,omitempty"`
+	Items          []*cart.CartItem       `json:"items" bson:"items,omitempty"`
+	Status         Status                 `json:"status" bson:"status"`
 }

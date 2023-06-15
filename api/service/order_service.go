@@ -24,6 +24,10 @@ type OrderService interface {
 	ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int64, error)
 
 	UpdateWithCallbackData(paymentId string, callbackData map[string]any, handle CallbackHandle) error
+
+	UpdateOrderStatus(id string, status order.Status) error
+
+	List(searchOptions order.SearchOptions) ([]*order.OrderInfo, int64, error)
 }
 
 type OrderServiceImpl struct {
@@ -32,6 +36,21 @@ type OrderServiceImpl struct {
 	OrderRepo       repository.OrderRepository
 	Processor       zalopay.Processor
 	DeliveryService DeliveryService
+}
+
+func (svc *OrderServiceImpl) List(searchOptions order.SearchOptions) ([]*order.OrderInfo, int64, error) {
+
+	return svc.OrderRepo.ListBySearchOptions(searchOptions)
+}
+
+func (svc *OrderServiceImpl) UpdateOrderStatus(id string, status order.Status) error {
+	needUpdateOrder, err := svc.OrderRepo.GetOneByOrderId(id)
+	if err != nil {
+		return fmt.Errorf("encountered error(%s) while trying retrieve order(%s)", err, id)
+	}
+	needUpdateOrder.Status = status
+	err = svc.OrderRepo.Update(*needUpdateOrder)
+	return err
 }
 
 func (svc *OrderServiceImpl) IsAbleCreateOrder(customerId string, couponCode string) ([]string, error) {
@@ -134,6 +153,7 @@ func (svc *OrderServiceImpl) Create(customerID string,
 		TotalPrice:  total,
 		Items:       cartItems,
 		PaymentInfo: &paymentInfo,
+		Status:      order.PENDING,
 	}
 
 	if paymentMethod == payment.ZaloPayMethod {

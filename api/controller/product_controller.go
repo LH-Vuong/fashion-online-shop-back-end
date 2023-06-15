@@ -230,8 +230,8 @@ func (cl ProductController) Update(c *gin.Context) {
 
 // ListBrands distinct products' brands
 //
-//	@Summary		List distinct brands of products
-//	@Description	List distinct brands of products
+//	@Summary		CustomerList distinct brands of products
+//	@Description	CustomerList distinct brands of products
 //	@Tags			product
 //	@Accept			json
 //	@Produce		json
@@ -255,8 +255,8 @@ func (cl ProductController) ListBrands(c *gin.Context) {
 
 // ListType distinct products' types
 //
-//	@Summary		List distinct types of products
-//	@Description	List distinct types of products
+//	@Summary		CustomerList distinct types of products
+//	@Description	CustomerList distinct types of products
 //	@Tags			product
 //	@Accept			json
 //	@Produce		json

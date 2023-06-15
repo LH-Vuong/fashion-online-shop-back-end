@@ -123,8 +123,8 @@ func (ic InventoryController) Update(ctx *gin.Context) {
 
 // ListByDetailId
 //
-//	@Summary		List by detail_id(product_id)
-//	@Description	List product's quantity
+//	@Summary		CustomerList by detail_id(product_id)
+//	@Description	CustomerList product's quantity
 //	@Tags			inventory
 //	@Accept			json
 //	@Produce		json

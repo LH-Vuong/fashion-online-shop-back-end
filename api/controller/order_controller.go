@@ -47,10 +47,10 @@ func (controller *OrderController) Create(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"status": "success", "data": info})
 }
 
-// List Order
+// CustomerList Order
 //
 //	@Summary		list of customer's order
-//	@Description	List order by customer id
+//	@Description	CustomerList order by customer id
 //	@Tags			order
 //	@Param		Authorization	header		string	true	"Access Token"
 //	@Accept			json
@@ -61,7 +61,7 @@ func (controller *OrderController) Create(ctx *gin.Context) {
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
 //	@Router			/orders/ [get]
-func (controller *OrderController) List(ctx *gin.Context) {
+func (controller *OrderController) CustomerList(ctx *gin.Context) {
 	offset, err := strconv.Atoi(ctx.Param("off_set"))
 	if err != nil || offset < 0 {
 		offset = 0
@@ -83,6 +83,52 @@ func (controller *OrderController) List(ctx *gin.Context) {
 		Total:  total,
 		Status: "success",
 		Data:   infos,
+	})
+}
+
+// List  Orders
+//
+//	@Summary		list  order
+//	@Description	admin list order
+//	@Tags			order
+//	@Param		Authorization	header		string	true	"Access Token"
+//	@Accept			json
+//	@Produce		json
+//	@Param          off_set	query       int		  false 	"index of first item, default is 0"
+//	@Param          status	query       string	  false 	"order status"
+//	@Param          limit	query       int		  false		"max length of response, default is 10"
+//	@Success		200				{object}	response.PagingResponse[order.OrderInfo]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/admin/orders [get]
+func (controller *OrderController) List(ctx *gin.Context) {
+	queryValues := ctx.Request.URL.Query()
+	offset, err := strconv.Atoi(queryValues.Get("offset"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	limit, err := strconv.Atoi(queryValues.Get("limit"))
+	if err != nil || limit > request.PageMaximum {
+		limit = 10
+	}
+	status := queryValues.Get("status")
+
+	searchOptions := order.SearchOptions{
+		Status: status,
+		Offset: int64(offset),
+		Limit:  int64(limit),
+	}
+	orders, total, err := controller.Service.List(searchOptions)
+	if err != nil {
+		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ctx.JSON(200, response.PagingResponse[*order.OrderInfo]{
+		Data:   orders,
+		Total:  total,
+		Length: len(orders),
+		Status: "success",
 	})
 }
 
@@ -130,4 +176,58 @@ func (controller *OrderController) Callback(ctx *gin.Context) {
 		return
 	}
 
+}
+
+// Approve customer order
+//
+//	@Summary		to approve a customer order
+//	@Description	to approve by modifying order status
+//	@Tags			order
+//	@Param			Authorization	header		string	true	"Access Token"
+//	@Param          order_id	path       string		  false		"order id"
+//	@Accept			json
+//	@Produce		json
+//	@Success		200				{object}	 response.BaseResponse[[]string]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/order/approve/:order_id [get]
+func (controller *OrderController) Approve(ctx *gin.Context) {
+	id := ctx.Param("order_id")
+	err := controller.Service.UpdateOrderStatus(id, order.SUCCESS)
+	if err != nil {
+		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ctx.JSON(http.StatusOK, response.BaseResponse[string]{
+		Data:    id,
+		Message: "approve order successfully",
+		Status:  "success",
+	})
+}
+
+// Reject customer order
+//
+//	@Summary		to reject a customer order
+//	@Description	to reject by modifying order status
+//	@Tags			order
+//	@Param			Authorization	header		string	true	"Access Token"
+//	@Param          order_id	path       string		  false		"order id"
+//	@Accept			json
+//	@Produce		json
+//	@Success		200				{object}	 response.BaseResponse[[]string]
+//	@Failure		400				{object}	string
+//	@Failure		401				{object}	string
+//	@Router			/order/reject/:order_id [get]
+func (controller *OrderController) Reject(ctx *gin.Context) {
+	id := ctx.Param("order_id")
+	err := controller.Service.UpdateOrderStatus(id, order.CANCEL)
+	if err != nil {
+		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ctx.JSON(http.StatusOK, response.BaseResponse[string]{
+		Data:    id,
+		Message: "reject order successfully",
+		Status:  "success",
+	})
 }
