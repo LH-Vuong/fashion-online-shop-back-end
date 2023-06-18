@@ -75,12 +75,11 @@ func getUserById(ctx context.Context, userId string, config initializers.Config)
 	defer cancel()
 
 	rs := userCollection.FindOne(ct, bson.M{"_id": objId})
+	err = rs.Decode(&user)
 
 	if err != nil || user == nil {
 		return nil, err
 	}
-
-	err = rs.Decode(&user)
 
 	return
 }
