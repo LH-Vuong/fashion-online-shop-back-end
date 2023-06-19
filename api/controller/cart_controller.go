@@ -21,8 +21,8 @@ func ToCartResponse(cartItems []*cart.CartItem) []*response.CartItem {
 
 	for index, item := range cartItems {
 		var image string
-		if len(item.ProductDetail.Photos) > 0 {
-			image = item.ProductDetail.Photos[0]
+		if len(item.Images) > 0 {
+			image = item.Images[0]
 		}
 
 		responseItem[index] = &response.CartItem{

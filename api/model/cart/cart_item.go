@@ -7,6 +7,7 @@ type CartItem struct {
 	InventoryId   string          `bson:"product_id" json:"inventory_id"`
 	Quantity      int             `bson:"quantity" json:"quantity"`
 	Color         string          `bson:"color" json:"color"`
+	Images        []string        `bson:"images" json:"images"`
 	Size          string          `bson:"size" json:"size"`
 	ProductDetail product.Product `bson:"product_detail" json:"product_detail"`
 	CreatedAt     int64           `bson:"create_at,omitempty" json:"-"`

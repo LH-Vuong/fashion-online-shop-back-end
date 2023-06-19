@@ -81,6 +81,10 @@ func (service *CartServiceImpl) AddMany(customerId string, updateInfos []request
 	if err != nil {
 		return nil, err
 	}
+	err = service.addDetail(curItems)
+	if err != nil {
+		return nil, err
+	}
 	_, err = service.cartRepo.MultiCreate(customerId, curItems)
 	if err != nil {
 		return nil, err
@@ -187,8 +191,9 @@ func (service *CartServiceImpl) addDetail(cartItems []*cart.CartItem) error {
 			continue
 		}
 
-		if detailId, ok := productDetailMap[productQuantity.DetailId]; ok {
-			item.ProductDetail = *detailId
+		if productDetail, ok := productDetailMap[productQuantity.DetailId]; ok {
+			item.ProductDetail = *productDetail
+			item.Images = productDetail.Photos
 		}
 
 		item.Color = productQuantity.Color
@@ -202,7 +207,7 @@ func (service *CartServiceImpl) Get(customerId string) (cartItems []*cart.CartIt
 	if err != nil {
 		return nil, err
 	}
-	err = service.addDetail(cartItems)
+	//err = service.addDetail(cartItems)
 	if err != nil {
 		return nil, err
 	}

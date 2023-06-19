@@ -40,7 +40,26 @@ type OrderServiceImpl struct {
 
 func (svc *OrderServiceImpl) List(searchOptions order.SearchOptions) ([]*order.OrderInfo, int64, error) {
 
-	return svc.OrderRepo.ListBySearchOptions(searchOptions)
+	orders, total, err := svc.OrderRepo.ListBySearchOptions(searchOptions)
+	if err != nil {
+		return nil, 0, nil
+	}
+	err = svc.addDeliveryAddress(orders)
+	if err != nil {
+		return nil, 0, err
+	}
+	return orders, total, err
+}
+
+func (svc *OrderServiceImpl) addDeliveryAddress(orders []*order.OrderInfo) error {
+	for index := range orders {
+		address, err := svc.DeliveryService.GetDeliveryAddress(orders[index].Address)
+		if err != nil {
+			return err
+		}
+		orders[index].Address = address
+	}
+	return nil
 }
 
 func (svc *OrderServiceImpl) UpdateOrderStatus(id string, status order.Status) error {
@@ -208,9 +227,17 @@ func (svc *OrderServiceImpl) calculateTotal(items []*cart.CartItem, coupon []*co
 }
 
 func (svc *OrderServiceImpl) ListByCustomerID(customerID string, limit int, offset int) ([]*order.OrderInfo, int64, error) {
-	return svc.OrderRepo.ListByCustomerId(customerID, limit, offset)
-}
 
+	orders, total, err := svc.OrderRepo.ListByCustomerId(customerID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	err = svc.addDeliveryAddress(orders)
+	if err != nil {
+		return nil, 0, err
+	}
+	return orders, total, err
+}
 func UpdateOrderTask(orderRepo repository.OrderRepository, processor zalopay.Processor) {
 
 	orders, err := orderRepo.ListPendingOrder()
