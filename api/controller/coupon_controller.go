@@ -19,7 +19,7 @@ type CouponController struct {
 //	@Description	Try to retry coupon
 //	@Tags			Coupon
 //	@Accept			json
-//	@Param			code	path	string	true	"coupon's code"
+//	@Param		Authorization	header		string	true	"Access Token"
 //	@Produce		json
 //	@Success		200				{object}	response.BaseResponse[coupon.CouponInfo]
 //	@Failure		400				{object}	string "code is invalid or expired"
@@ -66,6 +66,7 @@ func (controller CouponController) Delete(ctx *gin.Context) {
 //	@Description	Create coupon
 //	@Tags			Coupon
 //	@Accept			json
+//	@Param		Authorization	header		string	true	"Access Token"
 //	@Param			coupon	body	coupon.CouponInfo	true	"coupon's info"
 //	@Produce		json
 //	@Success		200				{object}	string
@@ -97,6 +98,7 @@ func (controller CouponController) Create(ctx *gin.Context) {
 //	@Description	update coupon
 //	@Tags			Coupon
 //	@Accept			json
+//	@Param		Authorization	header		string	true	"Access Token"
 //	@Param			coupon	body	coupon.CouponInfo	true	"coupon's info"
 //	@Produce		json
 //	@Success		200				{object}	string
@@ -118,5 +120,35 @@ func (controller CouponController) Update(ctx *gin.Context) {
 		Data:    &couponInfo,
 		Message: "",
 		Status:  "success",
+	})
+}
+
+// List coupon
+//
+//	@Summary		list coupon
+//	@Description	Try to retry coupons
+//	@Tags			Coupon
+//	@Accept			json
+//	@Param		Authorization	header		string	true	"Access Token"
+//	@Param			code	query	string	false	"coupon's code"
+//	@Produce		json
+//	@Success		200				{object}	response.BaseResponse[[]coupon.CouponInfo]
+//	@Failure		400				{object}	string "code is invalid or expired"
+//	@Failure		401				{object}	string
+//	@Router			/coupons [get]
+func (controller CouponController) List(ctx *gin.Context) {
+	queryValues := ctx.Request.URL.Query()
+	couponInfos, err := controller.Service.ListBySearchOption(coupon.SearchOption{
+		Code: queryValues.Get("code"),
+		From: 0,
+		To:   0,
+	})
+	if err != nil {
+		errs.HandleFailStatus(ctx, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ctx.JSON(200, response.BaseResponse[[]*coupon.CouponInfo]{
+		Data:   couponInfos,
+		Status: "success",
 	})
 }
