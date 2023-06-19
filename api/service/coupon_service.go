@@ -13,6 +13,7 @@ type CouponService interface {
 	Delete(code string) error
 	Update(info *coupon.CouponInfo) error
 	Create(info *coupon.CouponInfo) error
+	ListBySearchOption(searchInfo coupon.SearchOption) ([]*coupon.CouponInfo, error)
 }
 
 type CouponServiceImpl struct {
@@ -27,7 +28,16 @@ func isExpiredCoupon(couponInfo *coupon.CouponInfo) error {
 	return nil
 }
 
-func (c CouponServiceImpl) List(codes []string) ([]*coupon.CouponInfo, error) {
+func (c *CouponServiceImpl) ListBySearchOption(searchInfo coupon.SearchOption) ([]*coupon.CouponInfo, error) {
+	coupons, err := c.couponRepo.ListBySearchOptions(searchInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return coupons, nil
+}
+
+func (c *CouponServiceImpl) List(codes []string) ([]*coupon.CouponInfo, error) {
 	coupons, err := c.couponRepo.List(codes)
 	if err != nil {
 		return nil, err
@@ -43,15 +53,15 @@ func (c CouponServiceImpl) List(codes []string) ([]*coupon.CouponInfo, error) {
 	return coupons, nil
 }
 
-func (c CouponServiceImpl) Update(info *coupon.CouponInfo) error {
+func (c *CouponServiceImpl) Update(info *coupon.CouponInfo) error {
 	return c.couponRepo.Update(info)
 }
 
-func (c CouponServiceImpl) Create(info *coupon.CouponInfo) error {
+func (c *CouponServiceImpl) Create(info *coupon.CouponInfo) error {
 	return c.couponRepo.Create(info)
 }
 
-func (c CouponServiceImpl) Delete(code string) error {
+func (c *CouponServiceImpl) Delete(code string) error {
 	err := c.couponRepo.Delete(code)
 	if err != nil {
 		return fmt.Errorf("'%v' coupon do not exist", code)

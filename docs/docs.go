@@ -482,6 +482,13 @@ const docTemplate = `{
                 "summary": "Create coupon",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "coupon's info",
                         "name": "coupon",
                         "in": "body",
@@ -525,6 +532,13 @@ const docTemplate = `{
                 ],
                 "summary": "update coupon",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "coupon's info",
                         "name": "coupon",
@@ -573,9 +587,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "coupon's code",
-                        "name": "code",
-                        "in": "path",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -626,6 +640,56 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "code is invalid or expired",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/coupons": {
+            "get": {
+                "description": "Try to retry coupons",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Coupon"
+                ],
+                "summary": "list coupon",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "coupon's code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.BaseResponse-array_coupon_CouponInfo"
                         }
                     },
                     "400": {
@@ -2409,6 +2473,12 @@ const docTemplate = `{
                 "customer_id": {
                     "type": "string"
                 },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "inventory_id": {
                     "type": "string"
                 },
@@ -2451,6 +2521,9 @@ const docTemplate = `{
                 },
                 "end_at": {
                     "type": "integer"
+                },
+                "id": {
+                    "type": "string"
                 },
                 "start_at": {
                     "type": "integer"
@@ -2905,6 +2978,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.BaseResponse-array_coupon_CouponInfo": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/coupon.CouponInfo"
+                    }
+                },
                 "message": {
                     "type": "string"
                 },
