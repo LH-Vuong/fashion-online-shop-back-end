@@ -242,7 +242,8 @@ func UpdateOrderTask(orderRepo repository.OrderRepository, processor zalopay.Pro
 
 	orders, err := orderRepo.ListPendingOrder()
 	if err != nil {
-		log.Println("Error When svc.OrderRepo.ListPendingOrder")
+		log.Println("Error(%s) When svc.OrderRepo.ListPendingOrder", err)
+		return
 	}
 	for _, orderInfo := range orders {
 		if orderInfo.PaymentInfo.PaymentMethod == payment.ZaloPayMethod {
