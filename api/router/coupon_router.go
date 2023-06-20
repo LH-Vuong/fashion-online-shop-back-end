@@ -11,6 +11,7 @@ func InitCouponRouter(s *gin.Engine, c *dig.Container) {
 	c.Invoke(func(couponService service.CouponService) {
 		controller := controller.CouponController{Service: couponService}
 		s.GET("api/coupon/:code", controller.Get)
+		s.GET("api/coupons", controller.List)
 		s.DELETE("api/coupon/:code", controller.Delete)
 		s.POST("api/coupon", controller.Update)
 		s.PUT("api/coupon", controller.Create)

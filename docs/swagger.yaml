@@ -6,6 +6,10 @@ definitions:
         type: string
       customer_id:
         type: string
+      images:
+        items:
+          type: string
+        type: array
       inventory_id:
         type: string
       product_detail:
@@ -34,6 +38,8 @@ definitions:
         type: number
       end_at:
         type: integer
+      id:
+        type: string
       start_at:
         type: integer
     type: object
@@ -342,6 +348,17 @@ definitions:
   response.BaseResponse-any:
     properties:
       data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  response.BaseResponse-array_coupon_CouponInfo:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/coupon.CouponInfo'
+        type: array
       message:
         type: string
       status:
@@ -791,6 +808,11 @@ paths:
       - application/json
       description: update coupon
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: coupon's info
         in: body
         name: coupon
@@ -820,6 +842,11 @@ paths:
       - application/json
       description: Create coupon
       parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: coupon's info
         in: body
         name: coupon
@@ -878,9 +905,9 @@ paths:
       - application/json
       description: Try to retry coupon
       parameters:
-      - description: coupon's code
-        in: path
-        name: code
+      - description: Access Token
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -899,6 +926,39 @@ paths:
           schema:
             type: string
       summary: Get info of coupon
+      tags:
+      - Coupon
+  /coupons:
+    get:
+      consumes:
+      - application/json
+      description: Try to retry coupons
+      parameters:
+      - description: Access Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: coupon's code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse-array_coupon_CouponInfo'
+        "400":
+          description: code is invalid or expired
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: list coupon
       tags:
       - Coupon
   /delivery/cal_fee/{address_id}:

@@ -91,12 +91,12 @@ func (ic InventoryController) DeleteByDetailId(ctx *gin.Context) {
 
 // Update
 //
-//	@Summary		add more product to inventory
-//	@Description	Increase the amount of a product by product_quantity_id
+//	@Summary		update product quantity
+//	@Description	update one  product_quantity by id fields
 //	@Tags			inventory
 //	@Accept			json
 //	@Produce		json
-//	@Param          request     	body       product.ProductQuantity   true    "quantity_id represent for amount of product's size & color "
+//	@Param          request     	body       product.ProductQuantity   true    "update info"
 //	@Success		200				{object}	response.BaseResponse[product.ProductQuantity]
 //	@Failure		400				{object}	string
 //	@Failure		401				{object}	string
@@ -105,16 +105,18 @@ func (ic InventoryController) Update(ctx *gin.Context) {
 	var updateQuantity product.ProductQuantity
 	err := ctx.BindJSON(&updateQuantity)
 	if err != nil {
-		errs.HandleErrorStatus(ctx, err, "invalid param")
+		errs.HandleFailStatus(ctx, "BIND_JSON_ERROR", http.StatusBadRequest)
+		return
 	}
 
-	rs, err := ic.Service.Update(updateQuantity)
+	err = ic.Service.Update(&updateQuantity)
 	if err != nil {
 		errs.HandleFailStatus(ctx, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, response.BaseResponse[*product.ProductQuantity]{
-		Data:    rs,
+		Data:    &updateQuantity,
 		Message: "updated one",
 		Status:  "success",
 	})
