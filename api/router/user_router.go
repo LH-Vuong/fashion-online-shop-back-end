@@ -22,6 +22,7 @@ func InitUserRouter(s *gin.Engine, c *dig.Container) {
 			router.GET("/wishlist", controller.GetUserWishlist)
 			router.POST("/wishlist", controller.AddUserWishlist)
 			router.DELETE("/wishlist", controller.DeleteUserWishlist)
+			router.PATCH("", controller.UpdateUserInfo)
 		}
 
 		s.GET("api/users/me", middleware.DeserializeAdmin(), controller.GetMe)

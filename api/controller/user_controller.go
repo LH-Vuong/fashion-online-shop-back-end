@@ -40,6 +40,17 @@ func (uc *UserController) GetMe(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": gin.H{"user": currentUser}})
 }
 
+func (uc *UserController) UpdateUserInfo(ctx *gin.Context) {
+	var payload model.UpdateUserInfoModel
+
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		errs.HandleErrorStatus(ctx, err, "ShouldBindJSON")
+		return
+	}
+
+	uc.Service.UpdateUserInfo(ctx, payload)
+}
+
 // Create User's Address
 //
 //	@Summary		create user's address
@@ -176,6 +187,7 @@ func (uc *UserController) DeleteUserWishlist(ctx *gin.Context) {
 	}
 
 	uc.Service.DeleteUserWishlistItems(ctx, payload)
+
 }
 
 // Get User's Address CustomerList

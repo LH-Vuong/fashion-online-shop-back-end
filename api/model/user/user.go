@@ -5,15 +5,16 @@ import (
 )
 
 type User struct {
-	Id        string    `bson:"_id,omitempty" json:"id"`
-	Password  string    `bson:"password" json:"-"`
-	Fullname  string    `bson:"fullname" json:"fullname"`
-	Email     string    `bson:"email" json:"email"`
-	Photo     string    `bson:"photo" json:"photo"`
-	Verified  bool      `bson:"verified" json:"verified"`
-	Status    string    `bson:"status" json:"status"`
-	CreatedAt time.Time `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+	Id          string    `bson:"_id,omitempty" json:"id"`
+	Password    string    `bson:"password" json:"-"`
+	Fullname    string    `bson:"fullname" json:"fullname"`
+	Email       string    `bson:"email" json:"email"`
+	PhoneNumber string    `bson:"phone_number" json:"phone_number"`
+	Photo       string    `bson:"photo" json:"photo"`
+	Verified    bool      `bson:"verified" json:"verified"`
+	Status      string    `bson:"status" json:"status"`
+	CreatedAt   time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 type UserVerify struct {
@@ -68,6 +69,12 @@ type CreateUserAddressModel struct {
 	IsDefault  bool   `json:"is_default" binding:"required"`
 }
 
+type UpdateUserInfoModel struct {
+	Fullname    string `json:"fullname" binding:"required"`
+	PhoneNumber string `json:"phone_number" binding:"required"`
+	Photo       string `json:"photo" binding:"required"`
+}
+
 type UpdateUserAddressModel struct {
 	Id         string `json:"id" binding:"required"`
 	ProvinceId int    `json:"province_id" binding:"required"`
@@ -118,4 +125,10 @@ type LoginResponseModel struct {
 	User         User   `json:"user"`
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type GetUsersInput struct {
+	Page     int64  `json:"page" form:"page" binding:"required"`
+	PageSize int64  `json:"page_size" form:"page_size" binding:"required"`
+	Keyword  string `json:"keyword" form:"keyword" binding:"required"`
 }

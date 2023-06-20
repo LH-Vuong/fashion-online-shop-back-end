@@ -1,0 +1,27 @@
+services: 
+  mongo:
+    image: mongo
+    container_name: online-shop-db
+    env_file:
+      - ./app.env
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - ./mongo_data:/data/db
+  vms_service:
+    container_name: fashion-shop
+    env_file: 
+      - ./app.env
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app.env:/app/app.env
+      - ./online_fashion_shop:/app/online_fashion_shop
+    restart: unless-stopped
+    depends_on:
+      - mongo

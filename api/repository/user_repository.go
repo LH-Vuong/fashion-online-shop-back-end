@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	model "online_fashion_shop/api/model/user"
 	"online_fashion_shop/initializers"
 
@@ -95,6 +96,10 @@ func (r *userRepository) GetVerifyByUniqueToken(ctx context.Context, uniqueToken
 
 	err = rs.Decode(&userVerify)
 
+	if err != nil {
+		return nil, errors.New("record not found")
+	}
+
 	return userVerify, nil
 }
 
@@ -106,6 +111,10 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (user
 	rs := r.userCollection.FindOne(ctx, bson.M{"email": email})
 
 	err = rs.Decode(&user)
+
+	if user == nil {
+		return nil, errors.New("record not found")
+	}
 
 	return user, nil
 }
@@ -291,6 +300,7 @@ func (r *userRepository) GetUserWishlist(ctx context.Context, userId string, pag
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return
 }
 
@@ -311,6 +321,9 @@ func (r *userRepository) GetUserWishlistItemByProductId(ctx context.Context, pro
 		return nil, err
 	}
 
+	if wishlistItem == nil {
+		return nil, errors.New("record not found")
+	}
 	return wishlistItem, nil
 }
 
@@ -337,6 +350,9 @@ func (r *userRepository) GetUserWishlistItemById(ctx context.Context, id string)
 		return nil, err
 	}
 
+	if wishlistItem == nil {
+		return nil, errors.New("record not found")
+	}
 	return wishlistItem, nil
 }
 
@@ -467,6 +483,9 @@ func (r *userRepository) GetUserAddressById(ctx context.Context, id string) (use
 		return nil, err
 	}
 
+	if userAddress == nil {
+		return nil, errors.New("record not found")
+	}
 	return userAddress, nil
 }
 
@@ -513,4 +532,41 @@ func (r *userRepository) GetUserAddressCount(ctx context.Context, userId string)
 	}
 
 	return count, nil
+}
+
+func (r *userRepository) GetUsers(ctx context.Context, filter model.GetUsersInput) (result []*model.User, total int64, err error) {
+	ctx, cancel := initializers.InitContext()
+
+	defer cancel()
+
+	opts := options.Find().
+		SetSkip(filter.Page - 1).
+		SetLimit(filter.PageSize)
+
+	query := bson.D{
+		{"$or", bson.A{
+			bson.D{{"first_name", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
+			bson.D{{"email", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
+			bson.D{{"phone_number", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
+		}},
+	}
+
+	rs, err := r.userAddressCollection.Find(ctx, query, opts)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err = r.userAddressCollection.CountDocuments(ctx, query)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = rs.All(ctx, &result)
+
+	if err != nil {
+		return nil, 0, err
+	}
+	return
 }

@@ -26,6 +26,7 @@ type UserService interface {
 	CreateUserAddress(*gin.Context, model.CreateUserAddressModel)
 	DeleteUserAddress(*gin.Context, string)
 	UpdateUserAddress(*gin.Context, model.UpdateUserAddressModel)
+	UpdateUserInfo(*gin.Context, model.UpdateUserInfoModel)
 	GetUserAddressList(*gin.Context, model.GetUserAddressListModel)
 
 	AddUserWishlistItem(*gin.Context, model.AddWishListModel)
@@ -425,6 +426,36 @@ func (service *UserServiceImpl) CreateUserAddress(ctx *gin.Context, payload mode
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "data": rs})
+}
+
+func (service *UserServiceImpl) UpdateUserInfo(ctx *gin.Context, payload model.UpdateUserInfoModel) {
+	currentUser := ctx.MustGet("currentUser").(model.User)
+
+	existUser, err := service.userRepo.GetUserById(ctx, currentUser.Id)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "UpdateUserInfo")
+		return
+	}
+
+	if existUser == nil {
+		errs.HandleFailStatus(ctx, "User does not exist!", http.StatusBadRequest)
+		return
+	}
+
+	existUser.Fullname = payload.Fullname
+	existUser.PhoneNumber = payload.PhoneNumber
+	existUser.Photo = payload.Photo
+	existUser.UpdatedAt = time.Now()
+
+	rs, err := service.userRepo.UpdateUser(ctx, existUser)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "UpdateUserInfo")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": rs})
 }
 
 func (service *UserServiceImpl) UpdateUserAddress(ctx *gin.Context, payload model.UpdateUserAddressModel) {
