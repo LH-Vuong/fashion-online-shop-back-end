@@ -1,0 +1,1 @@
+mongorestore -d fashion_shop /fashion_shop

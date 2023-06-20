@@ -9,3 +9,5 @@ vendor
 app.env
 
 online_fashion_shop
+
+mongo_data
