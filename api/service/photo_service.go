@@ -74,10 +74,8 @@ func (p *PhotoServiceImpl) UploadProductPhoto(files []io.Reader, productId strin
 	if curPhoto != nil {
 		paths = append(paths, curPhoto.SubPhotos...)
 	}
-	err = p.PhotoRepo.DeleteByProductId(productId)
-	if err != nil {
-		return nil, err
-	}
+	_ = p.PhotoRepo.DeleteByProductId(productId)
+
 	photo := &product.ProductPhoto{
 		MainPhoto: "",
 		SubPhotos: paths,

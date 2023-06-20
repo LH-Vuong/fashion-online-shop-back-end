@@ -16,7 +16,7 @@ type ProductQuantityRepository interface {
 	GetByDetailId(productDetailId string) ([]*product.ProductQuantity, error)
 	MultiGet(productIds []string) ([]*product.ProductQuantity, error)
 	Create(product product.ProductQuantity) error
-	Update(quantity product.ProductQuantity) error
+	Update(quantity *product.ProductQuantity) error
 	Delete(id string) error
 	DeleteManyByDetailId(detailId string) error
 }
@@ -55,25 +55,30 @@ func (p *ProductQuantityRepositoryImpl) GetBySearchOption(searchOption product.Q
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
 	// Perform search on quantityCollection based on provided parameters
-	filter := bson.M{}
-
-	if searchOption.Id != "" {
-		filter["id"] = searchOption.Id
-	}
+	var filters []primitive.M
 
 	if searchOption.DetailId != "" {
-		filter["detail_id"] = searchOption.DetailId
+		detailFilter := bson.M{"detail_id": searchOption.DetailId}
+		filters = append(filters, detailFilter)
 	}
 
 	if searchOption.Color != "" {
-		filter["color"] = searchOption.Color
+		colorFilter := bson.M{"color": searchOption.Color}
+		filters = append(filters, colorFilter)
 	}
 
 	if searchOption.Size != "" {
-		filter["size"] = searchOption.Size
+		sizeFilter := bson.M{"size": searchOption.Size}
+		filters = append(filters, sizeFilter)
+	}
+	var queryFilter primitive.M
+	if len(filters) > 0 {
+		queryFilter = bson.M{"$and": filters}
+	} else {
+		queryFilter = bson.M{}
 	}
 
-	err := p.quantityCollection.FindOne(ctx, filter).Decode(&productQuantity)
+	err := p.quantityCollection.FindOne(ctx, queryFilter).Decode(&productQuantity)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil // return nil, nil if no matching document found
@@ -152,13 +157,17 @@ func (p *ProductQuantityRepositoryImpl) Create(quantity product.ProductQuantity)
 	return nil
 }
 
-func (p *ProductQuantityRepositoryImpl) Update(quantity product.ProductQuantity) error {
+func (p *ProductQuantityRepositoryImpl) Update(quantity *product.ProductQuantity) error {
 	ctx, cancel := initializers.InitContext()
 	defer cancel()
-
-	query := bson.M{"_id": quantity.Id}
+	objectId, err := primitive.ObjectIDFromHex(quantity.Id)
+	if err != nil {
+		return err
+	}
+	query := bson.M{"_id": objectId}
+	quantity.Id = ""
 	update := bson.M{"$set": quantity}
-	_, err := p.quantityCollection.UpdateOne(ctx, query, update)
+	_, err = p.quantityCollection.UpdateOne(ctx, query, update)
 	if err != nil {
 		return err
 	}
