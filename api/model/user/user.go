@@ -130,5 +130,5 @@ type LoginResponseModel struct {
 type GetUsersInput struct {
 	Page     int64  `json:"page" form:"page" binding:"required"`
 	PageSize int64  `json:"page_size" form:"page_size" binding:"required"`
-	Keyword  string `json:"keyword" form:"keyword" binding:"required"`
+	Keyword  string `json:"keyword" form:"keyword"`
 }

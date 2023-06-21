@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetUserById(context.Context, string) (*model.User, error)
 	DeleteUser(context.Context, *model.User) (string, error)
 	UpdateUser(context.Context, *model.User) (*model.User, error)
+	GetUsers(context.Context, model.GetUsersInput) ([]*model.User, int64, error)
 
 	GetVerifyByUniqueToken(context.Context, string) (*model.UserVerify, error)
 	UpdateUserVerify(context.Context, *model.UserVerify) error
@@ -545,13 +546,13 @@ func (r *userRepository) GetUsers(ctx context.Context, filter model.GetUsersInpu
 
 	query := bson.D{
 		{"$or", bson.A{
-			bson.D{{"first_name", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
+			bson.D{{"fullname", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
 			bson.D{{"email", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
 			bson.D{{"phone_number", primitive.Regex{Pattern: filter.Keyword, Options: "i"}}},
 		}},
 	}
 
-	rs, err := r.userAddressCollection.Find(ctx, query, opts)
+	rs, err := r.userCollection.Find(ctx, query, opts)
 
 	if err != nil {
 		return nil, 0, err

@@ -350,3 +350,13 @@ func (uc *UserController) GetWards(ctx *gin.Context) {
 	}
 
 }
+
+func (uc *UserController) GetUsers(ctx *gin.Context) {
+	var filter model.GetUsersInput
+
+	if err := ctx.ShouldBindJSON(&filter); err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUsers")
+	}
+
+	uc.Service.GetUsers(ctx, filter)
+}

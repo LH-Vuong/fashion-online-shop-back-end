@@ -32,6 +32,7 @@ type UserService interface {
 	AddUserWishlistItem(*gin.Context, model.AddWishListModel)
 	DeleteUserWishlistItems(*gin.Context, model.DeleteWishListModel)
 	GetUserWishlist(*gin.Context, model.GetUserWishlistModel)
+	GetUsers(*gin.Context, model.GetUsersInput)
 }
 
 func NewUserServiceImpl(userRepo repository.UserRepository) UserService {
@@ -42,6 +43,30 @@ func NewUserServiceImpl(userRepo repository.UserRepository) UserService {
 
 type UserServiceImpl struct {
 	userRepo repository.UserRepository
+}
+
+func (s *UserServiceImpl) GetUsers(ctx *gin.Context, filter model.GetUsersInput) {
+	if filter.Page < 0 || filter.PageSize < 0 {
+		errs.HandleFailStatus(ctx, "Invalid input!", http.StatusBadRequest)
+	}
+
+	users, total, err := s.userRepo.GetUsers(ctx, filter)
+
+	if err != nil {
+		errs.HandleErrorStatus(ctx, err, "GetUsers")
+	}
+
+	if users == nil {
+		users = []*model.User{}
+	}
+
+	ctx.JSON(
+		http.StatusOK,
+		gin.H{
+			"total": total,
+			"data":  users,
+		},
+	)
 }
 
 func (service *UserServiceImpl) SignUp(ctx *gin.Context, payload model.SignUpModel) {

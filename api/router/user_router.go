@@ -32,6 +32,12 @@ func InitUserRouter(s *gin.Engine, c *dig.Container) {
 			router1.GET("/districts/:provinceId", controller.GetDistricts)
 			router1.GET("/wards/:districtId", controller.GetWards)
 		}
+
+		adminRouter := s.Group("api/admin")
+		{
+			adminRouter.Use(middleware.DeserializeAdmin())
+			adminRouter.GET("/users", controller.GetUsers)
+		}
 	})
 	if err != nil {
 		panic(err)
