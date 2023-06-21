@@ -213,8 +213,6 @@ func (cl ProductController) Update(c *gin.Context) {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	id := c.Param("product_id")
-	updateProduct.Id = id
 	err = cl.Service.Update(&updateProduct)
 	if err != nil {
 		errs.HandleFailStatus(c, err.Error(), http.StatusInternalServerError)

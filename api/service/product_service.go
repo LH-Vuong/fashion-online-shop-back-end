@@ -77,6 +77,10 @@ func ConvertPhotosToUrls(photos []*product.ProductPhoto) []string {
 }
 
 func (service *ProductServiceImpl) Update(updateInfo *product.Product) error {
+	err := service.QuantityService.MultiUpdate(updateInfo.ProductQuantities)
+	if err != nil {
+		return err
+	}
 	return service.ProductDetailRepository.Update(updateInfo)
 }
 

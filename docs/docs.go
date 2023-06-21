@@ -885,7 +885,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Increase the amount of a product by product_quantity_id",
+                "description": "update one  product_quantity by id fields",
                 "consumes": [
                     "application/json"
                 ],
@@ -895,10 +895,10 @@ const docTemplate = `{
                 "tags": [
                     "inventory"
                 ],
-                "summary": "add more product to inventory",
+                "summary": "update product quantity",
                 "parameters": [
                     {
-                        "description": "quantity_id represent for amount of product's size \u0026 color ",
+                        "description": "update info",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2679,6 +2679,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "phone_number": {
                     "type": "string"
                 },
                 "photo": {

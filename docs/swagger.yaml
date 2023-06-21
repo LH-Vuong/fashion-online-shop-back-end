@@ -148,6 +148,8 @@ definitions:
         type: string
       id:
         type: string
+      phone_number:
+        type: string
       photo:
         type: string
       status:
@@ -1052,9 +1054,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Increase the amount of a product by product_quantity_id
+      description: update one  product_quantity by id fields
       parameters:
-      - description: 'quantity_id represent for amount of product''s size & color '
+      - description: update info
         in: body
         name: request
         required: true
@@ -1075,7 +1077,7 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      summary: add more product to inventory
+      summary: update product quantity
       tags:
       - inventory
     put:

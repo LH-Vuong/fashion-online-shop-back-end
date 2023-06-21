@@ -9,6 +9,7 @@ import (
 type ProductQuantityService interface {
 	Create(newQuantity product.ProductQuantity) (*product.ProductQuantity, error)
 	Update(updateQuantity *product.ProductQuantity) error
+	MultiUpdate(updateQuantities []*product.ProductQuantity) error
 	DeleteOne(id string) error
 	DeleteManyByDetailId(detailId string) error
 
@@ -19,6 +20,16 @@ type ProductQuantityService interface {
 
 type ProductQuantityServiceImpl struct {
 	QuantityRepo repository.ProductQuantityRepository
+}
+
+func (s *ProductQuantityServiceImpl) MultiUpdate(updateQuantities []*product.ProductQuantity) error {
+	for index := range updateQuantities {
+		err := s.Update(updateQuantities[index])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func NewProductQuantityServiceImpl(quantityRepo repository.ProductQuantityRepository) ProductQuantityService {

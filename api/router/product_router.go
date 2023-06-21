@@ -14,7 +14,7 @@ func InitProductDetailRouter(s *gin.Engine, c *dig.Container) {
 		productRouter := s.Group("api/product")
 		{
 			productRouter.GET("/:id", controller.Get)
-			productRouter.POST("/:product_id", controller.Update)
+			productRouter.POST("", controller.Update)
 			productRouter.PUT("", controller.Create)
 		}
 
